@@ -2,6 +2,7 @@ from webbrowser import open_new
 from flask import Flask, request
 from threading import Thread
 import time
+import requests
 
 app = Flask(__name__)
 
@@ -70,6 +71,15 @@ if __name__ == '__main__':
     request_token(authorize_url)
     token = get_token()
     print(f'**run_sever() received {token}')
+    
+
+
+def do(api_url):
+    return requests.get(api_url, headers = {
+    'Accept': 'application/json',
+    'Content-Type': 'application/json',
+    'Authorization': f'Bearer {token}'
+    })
     
 
 
