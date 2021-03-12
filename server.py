@@ -1,7 +1,7 @@
+from webbrowser import open_new
 from flask import Flask, request
 from threading import Thread
 import time
-
 
 app = Flask(__name__)
 
@@ -9,9 +9,8 @@ token_received = None
 
 @app.route('/get_token/')
 def token_request():
-    #print('\n*********',request.args['code'],'\n************')
-    
-    return '''Received key. Sending it back to Python...
+    return '''
+<h1>Received key. Sending it back to Python...</h1>
 <script type="text/javascript">
 
 var hash = false; 
@@ -28,29 +27,49 @@ function processHash(hash){
     window.location.replace('http://localhost:8080/post_token/'+hash);
 }
                 
-            </script> '''
+</script> 
+'''
             
 @app.route('/post_token/')
 def token_response():
-    print('\n*********',request.args['access_token'],'\n************')
     global token_received
     token_received = request.args['access_token']
     
     func = request.environ.get('werkzeug.server.shutdown')
     func()
-    return "Token received by Python. You can close this."
+    return "<h1>Token received by Python. You can close this.</h1>"
+
+def construct_authorize_url(**params):
+    base = 'https://accounts.spotify.com/authorize/?'
+    return base + '&'.join([f'{key}={value}' for key, value in params.items()])
+
+def request_token(url):
+    print('opening URL')
+    open_new(url)
+        
 
 
-def run_server():
-    try:
-        app.run(port=8080)
-    except:
-        print('Ended this server')
+def get_token(port: int = 8080) -> str:
+    app.run(port=port)
+    return token_received
         
     
 
 if __name__ == '__main__':
-    run_server()
+    authorize_url = construct_authorize_url(
+        client_id = '5b35c8171b7f41bfb1f134c909b5e3ec',
+        redirect_uri = 'http://localhost:8080/get_token/',
+        scope = 'user-read-recently-played%20'
+                    'user-top-read%20'
+                    'user-read-playback-position%20'
+                    'user-modify-playback-state%20'
+                    'user-read-playback-state%20'
+                    'user-read-currently-playing',
+        response_type = 'token',
+        state = '123')
+    request_token(authorize_url)
+    token = get_token()
+    print(f'**run_sever() received {token}')
     
-print('All done')
-print(f'I GOT THE TOKEN! {token_received}')
+
+
