@@ -35,15 +35,10 @@ def token_response():
     print('\n*********',request.args['access_token'],'\n************')
     global token_received
     token_received = request.args['access_token']
-
-    shutdown_thread = Thread(target=shutdown_server)
-    shutdown_thread.start()
+    
+    func = request.environ.get('werkzeug.server.shutdown')
+    func()
     return "Token received by Python. You can close this."
-
-def shutdown_server():
-    time.sleep(1)
-    raise RuntimeError('End this!')
-
 
 
 def run_server():
@@ -56,3 +51,6 @@ def run_server():
 
 if __name__ == '__main__':
     run_server()
+    
+print('All done')
+print(f'I GOT THE TOKEN! {token_received}')
