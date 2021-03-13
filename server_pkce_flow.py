@@ -6,7 +6,7 @@ import random
 from hashlib import sha256
 import base64
 import json
-from urllib.parse import quote, urlencode
+from urllib.parse import urlencode
 from typing import Tuple, Optional
 
 app = Flask(__name__)
@@ -116,7 +116,7 @@ def _token_request():
         return f"<h1>WE GOT IT, WE GOT THE CODE!! IT IS:</h1> <br> {authorization_code}"
 
 
-def _get_token_json(code_verifier: bytes) -> dict:
+def _get_token_json(code_verifier: bytes):
     base_url = 'https://accounts.spotify.com/api/token'
     headers = {'Content-Type': 'application/x-www-form-urlencoded'}
     params = dict(
@@ -130,14 +130,7 @@ def _get_token_json(code_verifier: bytes) -> dict:
     credentials = requests.post(base_url, data=params, headers=headers).json()
 
 
-def _save_credentials():
-    with open('credentials.json', 'w') as credentials_json:
-        global credentials
-        credentials_json.write(json.dumps(credentials))
-        print("Saved credentials" + str(credentials))
-
-
-def _refresh_token():
+def _refresh_credentials():
     global credentials
     base_url = 'https://accounts.spotify.com/api/token'
     headers = {'Content-Type': 'application/x-www-form-urlencoded'}
@@ -150,36 +143,30 @@ def _refresh_token():
     _save_credentials()
 
 
-def create_token():
+def _save_credentials():
+    with open('credentials.json', 'w') as credentials_json:
+        global credentials
+        credentials_json.write(json.dumps(credentials))
+        print("Saved credentials" + str(credentials))
+        
+def _confirm_token_in_credentials() -> bool:
+    try:
+        return bool(credentials['access_token'])
+    except KeyError:
+        return False
+
+
+def get_new_credentials() -> dict:
     if _missing_credentials():
         code_verifier, code_challenge = _generate_code_challenge()
         _get_authorization(code_challenge)
         _get_token_json(code_verifier)
-        _save_credentials()
-    global credentials
-    return credentials['access_token']
+        #_save_credentials()
+        
+    _refresh_credentials()
+    
+    if _confirm_token_in_credentials():
+        return credentials
+    else:
+        raise ValueError("Something went wrong with the credentials. Could not find authorization token.")
 
-
-if __name__ == '__main__':
-    token = create_token()
-    print("\n\ntoken: ", token) 
-
-
-def do(api_url):
-    return requests.get(api_url, headers={
-        'Accept': 'application/json',
-        'Content-Type': 'application/json',
-        'Authorization': f'Bearer {token}'
-    })
-
-
-def refresh_token():
-    base_url = 'https://accounts.spotify.com/api/token'
-    headers = {'Content-Type': 'application/x-www-form-urlencoded'}
-    params = dict(
-        client_id='5b35c8171b7f41bfb1f134c909b5e3ec',
-        grant_type='refresh_token',
-        refresh_token=credentials['refresh_token']
-    )
-    json_response = requests.post(base_url, data=params, headers=headers).json()
-    print(json_response)
