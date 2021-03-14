@@ -148,7 +148,8 @@ def _save_credentials():
         global credentials
         credentials_json.write(json.dumps(credentials))
         print("Saved credentials" + str(credentials))
-        
+
+
 def _confirm_token_in_credentials() -> bool:
     try:
         return bool(credentials['access_token'])
@@ -161,12 +162,10 @@ def get_new_credentials() -> dict:
         code_verifier, code_challenge = _generate_code_challenge()
         _get_authorization(code_challenge)
         _get_token_json(code_verifier)
-        #_save_credentials()
-        
+
     _refresh_credentials()
-    
+
     if _confirm_token_in_credentials():
         return credentials
     else:
         raise ValueError("Something went wrong with the credentials. Could not find authorization token.")
-
