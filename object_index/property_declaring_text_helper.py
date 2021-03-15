@@ -20,6 +20,15 @@ self._album_type: str = json_dict['album_type']
         self._uri: str = json_dict['uri']
 """
 
+template = '''
+@property
+def {name}(self) -> {type_}:
+    """
+    T
+    """
+    return self._{name}
+'''
+
 def code_writer(s: str):
     properties =[]
     things = s.split('\n')[1:-1]
@@ -27,6 +36,7 @@ def code_writer(s: str):
         start = thing.find('_')
         end = thing.find(':')
         properties.append(thing[start+1:end])
-    print(properties)
+    for property_ in properties:
+        print(template.format(name=property_, type_='str'))
     
 code_writer(s)

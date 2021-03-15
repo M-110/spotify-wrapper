@@ -1,8 +1,11 @@
+from __future__ import annotations
+
 import json
 from collections.abc import Iterable
 from typing import List, Optional, TypeVar, Generic
 
 T = TypeVar('T')
+
 
 class SpotifyObject:
     """Baby cat."""
@@ -14,7 +17,7 @@ class SpotifyObject:
         elif isinstance(json_object, str):
             self._json_string = json_object
             self._json_dict = json.loads(json_object)
-            
+
         self._set_attributes(self._json_dict)
 
     def _set_attributes(self, json_dict: dict):
@@ -44,16 +47,17 @@ class PrivateUserObject:
     @property
     def country(self):
         return self.json_string['country']
-    
+
+
 class PagingObject(Iterable[T], SpotifyObject):
-    
+
     def _set_attributes(self, json_string: str):
         pass
-        
+
 
 
 class AlbumObject(SpotifyObject):
-    """Obj."""
+    """Album Object Doc String"""
 
     def _set_attributes(self, json_dict: dict):
         self._album_type: str = json_dict['album_type']
@@ -75,14 +79,14 @@ class AlbumObject(SpotifyObject):
         self._tracks: PagingObject[SimplifiedTrackObject] = json_dict['tracks']
         self._type: str = json_dict['type']
         self._uri: str = json_dict['uri']
-        
+
     @property
     def album_type(self) -> str:
         """
         The type of the album: album, single, or compilation.
         """
         return self._ablum_type
-        
+
     @property
     def artists(self) -> List[ArtistObject]:
         """
@@ -90,8 +94,9 @@ class AlbumObject(SpotifyObject):
         href to more detailed information about the artist.
         """
         return self._artists
-        
-        
+    
+    def test(self, baby: ArtistObject):
+        pass
 
 
 class AlbumRestrictionObject(SpotifyObject):
