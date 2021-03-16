@@ -1,42 +1,60 @@
-s = """
-self._album_type: str = json_dict['album_type']
-        self._artists: List[ArtistObject] = json_dict['artists']
-        self._available_markets: List[str] = json_dict['available_markets']
-        self._copyrights: List[CopyrightObject] = json_dict['copyrights']
-        self._external_ids: ExternalIdObject = json_dict['external_ids']
-        self._external_urls: ExternalUrlObject = json_dict['external_urls']
-        self._genres: List[str] = json_dict['genres']
-        self._href: str = json_dict['href']
-        self._id: str = json_dict['id']
-        self._images: List[ImageObject] = json_dict['images']
-        self._label: str = json_dict['label']
-        self._name: str = json_dict['name']
-        self._popularity: int = json_dict['popularity']
-        self._release_date: str = json_dict['release_date']
-        self._release_date_precision: str = json_dict['release_date_precision']
-        self._restrictions: Optional[AlbumRestrictionObject] = json_dict.get('restrictions')
-        self._tracks: PagingObject[SimplifiedTrackObject] = json_dict['tracks']
-        self._type: str = json_dict['type']
-        self._uri: str = json_dict['uri']
-"""
+import yaml
+import textwrap
 
-template = '''
-@property
-def {name}(self) -> {type_}:
+header_template = '''
+class {class_name}Object(SpotifyObject):
     """
-    T
+{class_doc}
     """
-    return self._{name}
 '''
 
-def code_writer(s: str):
-    properties =[]
-    things = s.split('\n')[1:-1]
-    for thing in things:
-        start = thing.find('_')
-        end = thing.find(':')
-        properties.append(thing[start+1:end])
-    for property_ in properties:
-        print(template.format(name=property_, type_='str'))
+prop_template = '''
+    @property
+    def {attr_name}(self) -> {attr_return}:
+        """
+{attr_doc}
+        """
+        return self._json_dict['{attr_name}']
+'''
+
+
+def class_wrap(class_text: str):
+    return '\n'.join(
+        textwrap.fill(line,
+                      width=78,
+                      initial_indent=' ' * 4,
+                      subsequent_indent=' ' * (4 + len(line) - len(line.strip())))
+        for line in class_text.splitlines())
+
+
+def attr_wrap(attr_text: str):
+    return '\n'.join(
+        textwrap.fill(line,
+                      width=78,
+                      initial_indent=' ' * 8,
+                      subsequent_indent=' ' * (8 + len(line) - len(line.strip())))
+        for line in attr_text.splitlines())
+
+
+def yaml_to_class(filename):
+    with open(filename, 'r', encoding='utf-8') as yaml_file:
+        yaml_dict = yaml.load(yaml_file, Loader=yaml.Loader)
     
-code_writer(s)
+    output = ''
+    
+    for class_ in yaml_dict:
+        header = header_template.format(class_name=class_['name'],
+                                        class_doc=class_wrap(class_['doc']))
+        output += header
+        for attr in class_['attrs']:
+            prop = prop_template.format(attr_name=attr['name'],
+                                        attr_doc=attr_wrap(attr['doc']),
+                                        attr_return=attr['return'])
+            output += prop
+        output += '\n'
+        
+    return output
+
+
+class_output = yaml_to_class('objects.yaml')
+print(class_output)

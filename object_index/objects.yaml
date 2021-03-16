@@ -1,0 +1,140 @@
+﻿---
+# 1. ALBUM
+# 
+- name: Album
+  doc: "Album Object Doc String."
+  attrs:
+    - name: album_type
+      doc: "The type of the album: album, single, or compilation."
+      return: str
+      
+    - name: artists
+      doc: "The artists of the album. Each artist object includes a link in href to more detailed information about the artist."
+      return: List[str]
+      
+    - name: available_markets
+      doc: "The markets in which the album is available: ISO 3166-1 alpha-2 country codes. Note that an album is considered available in a market when at least 1 of its tracks is available in that market."
+      return: List[str]
+      
+    - name: copyrights
+      doc: "The copyright statements of the album."
+      return: List[ArtistObject]
+      
+    - name: external_ids
+      doc: "Known external IDs for the album."
+      return: ExternalIdObject
+      
+    - name: external_urls
+      doc: "Known external URLs for this album."
+      return: ExternalUrlObject
+      
+    - name: genres
+      doc: 'A list of the genres used to classify the album. For example: “Prog Rock” , “Post-Grunge”. (If not yet classified, the array is empty.)'
+      return: List[str]     
+      
+    - name: href
+      doc: "A link to the Web API endpoint providing full details of the album."
+      return: str
+      
+    - name: id
+      doc: "The Spotify ID for the album."
+      return: str
+      
+    - name: images
+      doc: "The cover art for the album in various sizes, widest first."
+      return: List[ImageObject]
+      
+    - name: label
+      doc: "The label for the album."
+      return: str
+      
+    - name: name
+      doc: "The name of the album. In case of an album takedown, the value may be an empty string."
+      return: str    
+      
+    - name: popularity
+      doc: "The popularity of the album. The value will be between 0 and 100, with 100 being the most popular. The popularity is calculated from the popularity of the album’s individual tracks."
+      return: int
+      
+    - name: release_date
+      doc: "The date the album was first released, for example “1981-12-15”. Depending on the precision, it might be shown as “1981” or “1981-12”."
+      return: str      
+      
+    - name: release_data_precision
+      doc: 'The precision with which release_date value is known: “year”, “month”, or “day”.'
+      return: str
+      
+    - name: restrictions
+      doc: "Included in the response when a content restriction is applied. See Restriction Object for more details."
+      return: AlbumRestrictionObject   
+      
+    - name: tracks
+      doc: "The tracks of the album."
+      return: PagingObject[SimplifiedTrackObject]
+      
+    - name: type
+      doc: 'The object type: “album”.'
+      return: str      
+      
+    - name: uri
+      doc: "The Spotify URI for the album."
+      return: str
+
+# 2. AlbumRestrictionObject
+# TODO: What does this look like??
+- name: AlbumRestrictionObject
+  doc: "Album Restriction Object docstring..."
+  attrs:
+    - name: reason
+      doc: "The reason for the restriction. Supported values:
+               \n    market - The content item is not available in the given market.
+               \n    product - The content item is not available for the user’s subscription type.
+               \n    explicit - The content item is explicit and the user’s account is set to not play explicit content.
+            \n\nAdditional reasons may be added in the future."
+      return: str
+      
+# 3. ArtistObject
+# 
+- name: Artist
+  doc: "Artist docstring"
+  attrs:
+    - name: external_urls
+      doc: "The type of the album: album, single, or compilation."
+      return: str
+      
+    - name: followers
+      doc: "The artists of the album. Each artist object includes a link in href to more detailed information about the artist."
+      return: List[str]
+      
+    - name: genres
+      doc: "The markets in which the album is available: ISO 3166-1 alpha-2 country codes. Note that an album is considered available in a market when at least 1 of its tracks is available in that market."
+      return: List[str]
+      
+    - name: href
+      doc: "The copyright statements of the album."
+      return: List[ArtistObject]
+      
+    - name: id
+      doc: "Known external IDs for the album."
+      return: ExternalIdObject
+      
+    - name: images
+      doc: "Known external URLs for this album."
+      return: ExternalUrlObject
+      
+    - name: name
+      doc: 'A list of the genres used to classify the album. For example: “Prog Rock” , “Post-Grunge”. (If not yet classified, the array is empty.)'
+      return: List[str]     
+      
+    - name: popularity
+      doc: "A link to the Web API endpoint providing full details of the album."
+      return: str
+      
+    - name: type
+      doc: "The Spotify ID for the album."
+      return: str
+      
+    - name: uri
+      doc: "The cover art for the album in various sizes, widest first."
+      return: List[ImageObject]
+  

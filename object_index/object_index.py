@@ -55,7 +55,6 @@ class PagingObject(Iterable[T], SpotifyObject):
         pass
 
 
-
 class AlbumObject(SpotifyObject):
     """Album Object Doc String"""
 
