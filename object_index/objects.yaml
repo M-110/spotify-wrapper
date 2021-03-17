@@ -82,7 +82,7 @@
 
 # 2. AlbumRestrictionObject
 # TODO: What does this look like??
-- name: AlbumRestrictionObject
+- name: AlbumRestriction
   doc: "Album Restriction Object docstring..."
   attrs:
     - name: reason
@@ -100,43 +100,43 @@
   doc: "Artist docstring"
   attrs:
     - name: external_urls
-      doc: "The type of the album: album, single, or compilation."
-      return: str
+      doc: "Known external URLs for this artist."
+      return: ExternalUrlObject
       
     - name: followers
-      doc: "The artists of the album. Each artist object includes a link in href to more detailed information about the artist."
-      return: List[str]
+      doc: "Information about the followers of the artist."
+      return: FollowersObject
       
     - name: genres
-      doc: "The markets in which the album is available: ISO 3166-1 alpha-2 country codes. Note that an album is considered available in a market when at least 1 of its tracks is available in that market."
+      doc: 'A list of the genres the artist is associated with. For example: "Prog Rock" , "Post-Grunge". (If not yet classified, the array is empty.)'
       return: List[str]
       
     - name: href
-      doc: "The copyright statements of the album."
-      return: List[ArtistObject]
-      
-    - name: id
-      doc: "Known external IDs for the album."
-      return: ExternalIdObject
-      
-    - name: images
-      doc: "Known external URLs for this album."
-      return: ExternalUrlObject
-      
-    - name: name
-      doc: 'A list of the genres used to classify the album. For example: “Prog Rock” , “Post-Grunge”. (If not yet classified, the array is empty.)'
-      return: List[str]     
-      
-    - name: popularity
-      doc: "A link to the Web API endpoint providing full details of the album."
+      doc: "A link to the Web API endpoint providing full details of the artist."
       return: str
       
+    - name: id
+      doc: "The Spotify ID for the artist."
+      return: str
+      
+    - name: images
+      doc: "Images of the artist in various sizes, widest first."
+      return: List[ImageObject]
+      
+    - name: name
+      doc: "The name of the artist."
+      return: str     
+      
+    - name: popularity
+      doc: "The popularity of the artist. The value will be between 0 and 100, with 100 being the most popular. The artist’s popularity is calculated from the popularity of all the artist’s tracks."
+      return: int
+      
     - name: type
-      doc: "The Spotify ID for the album."
+      doc: 'The object type: "artist"'
       return: str
       
     - name: uri
-      doc: "The cover art for the album in various sizes, widest first."
+      doc: "The Spotify URI for the artist."
       return: List[ImageObject]
       
       
@@ -1066,14 +1066,14 @@
 # 38. ShowObject
 # 
 - name: Show
-  doc: "EpisodeObject doc string..."
+  doc: "ShowObject doc string..."
   attrs:
     - name: available_markets
       doc: "A list of the countries in which the show can be played, identified by their ISO 3166-1 alpha-2 code."
       return: List[str]
 
     - name: copyrights
-      doc: "The copyright statement of the show"
+      doc: "The copyright statement of the show."
       return: List[CopyrightObject]
 
     - name: description
@@ -1194,47 +1194,468 @@
       return: str
 
 # 40. SimplifiedArtistObject
-# TODO: This. Convert it to simplified.
-- name: Artist
+# 
+- name: SimplifiedArtist
   doc: "Artist docstring"
   attrs:
     - name: external_urls
-      doc: "The type of the album: album, single, or compilation."
-      return: str
-      
-    - name: followers
-      doc: "The artists of the album. Each artist object includes a link in href to more detailed information about the artist."
-      return: List[str]
-      
-    - name: genres
-      doc: "The markets in which the album is available: ISO 3166-1 alpha-2 country codes. Note that an album is considered available in a market when at least 1 of its tracks is available in that market."
-      return: List[str]
-      
-    - name: href
-      doc: "The copyright statements of the album."
-      return: List[ArtistObject]
-      
-    - name: id
-      doc: "Known external IDs for the album."
-      return: ExternalIdObject
-      
-    - name: images
-      doc: "Known external URLs for this album."
+      doc: "Known external URLs for this artist."
       return: ExternalUrlObject
       
-    - name: name
-      doc: 'A list of the genres used to classify the album. For example: “Prog Rock” , “Post-Grunge”. (If not yet classified, the array is empty.)'
-      return: List[str]     
+    - name: href
+      doc: "A link to the Web API endpoint providing full details of the artist."
+      return: str
       
-    - name: popularity
-      doc: "A link to the Web API endpoint providing full details of the album."
+    - name: id
+      doc: "The Spotify ID for the artist."
+      return: str
+      
+    - name: name
+      doc: "The name of the artist."
       return: str
       
     - name: type
-      doc: "The Spotify ID for the album."
+      doc: 'The object type: "artist".'
       return: str
       
     - name: uri
-      doc: "The cover art for the album in various sizes, widest first."
+      doc: "TThe Spotify URI for the artist."
+      return: str
+      
+
+# 41. SimplifiedEpisodeObject
+# 
+- name: SimplifiedEpisode
+  doc: "SimplifiedEpisodeObject doc string..."
+  attrs:
+    - name: audio_preview_url
+      doc: "A URL to a 30 second preview (MP3 format) of the episode. None if not available."
+      return: Optional[str]
+      
+    - name: description
+      doc: "A description of the episode."
+      return: str
+      
+    - name: duration_ms
+      doc: "The episode length in milliseconds."
+      return: int
+
+    - name: explicit
+      doc: "Whether or not the episode has explicit content (True = yes it does; False = no it does not OR unknown)."
+      return: bool
+      
+    - name: external_urls
+      doc: 'External URLs for this episode.'
+      return: ExternalUrlObject
+      
+    - name: href
+      doc: "A link to the Web API endpoint providing full details of the episode."
+      return: str
+      
+    - name: id
+      doc: 'The Spotify ID for the episode.'
+      return: str
+      
+    - name: images
+      doc: "The cover art for the episode in various sizes, widest first."
       return: List[ImageObject]
       
+    - name: is_externally_hosted
+      doc: 'True if the episode is hosted outside of Spotify’s CDN.'
+      return: bool
+      
+    - name: is_playable
+      doc: "True if the episode is playable in the given market. Otherwise False."
+      return: bool
+      
+    - name: languages
+      doc: "A list of the languages used in the episode, identified by their ISO 639 code."
+      return: List[str]
+      
+    - name: name
+      doc: "The name of the episode."
+      return: str
+
+    - name: release_date
+      doc: 'The date the episode was first released, for example "1981-12-15". Depending on the precision, it might be shown as "1981" or "1981-12".'
+      return: str
+      
+    - name: relase_data_precision
+      doc: 'The precision with which release_date value is known: "year", "month", or "day".'
+      return: str
+      
+    - name: resume_point
+      doc: "The user’s most recent position in the episode. Set if the supplied access token is a user token and has the scope user-read-playback-position."
+      return: Optional[ResumePointObject]
+      
+    - name: show
+      doc: 'The show on which the episode belongs.'
+      return: SimplifiedShowObject
+      
+    - name: type
+      doc: 'The object type: “episode”.'
+      return: str
+      
+    - name: uri
+      doc: 'The Spotify URI for the episode.'
+      return: str
+        
+        
+# 42. SimplifiedPlaylistObject
+#
+- name: SimplifiedPlaylist
+  doc: "SimplifiedPlayListObject doc string..."
+  attrs:
+    - name: collaborative
+      doc: "True if the owner allows other users to modify the playlist"
+      return: bool
+      
+    - name: description
+      doc: "The playlist description. Only returned for modified, verified playlists, otherwise None."
+      return: Optional[str]
+
+    - name: external_urls
+      doc: "Known external URLs for this playlist."
+      return: ExternalUrlObject
+
+    - name: href
+      doc: "A link to the Web API endpoint providing full details of the playlist."
+      return: str
+
+    - name: id
+      doc: "The Spotify ID for the playlist."
+      return: str
+
+    - name: images
+      doc: "Images for the playlist. The array may be empty or contain up to three images. The images are returned by size in descending order. Note: If returned, the source URL for the image (url) is temporary and will expire in less than a day."
+      return: List[ImageObject]
+      
+    - name: name
+      doc: "The name of the playlist."
+      return: str
+
+    - name: owner
+      doc: "The user who owns the playlist"
+      return: PublicUserObject
+
+    - name: public
+      doc: "The playlist’s public/private status: True the playlist is public, False the playlist is private, None the playlist status is not relevant."
+      return: Optional[bool]
+      
+    - name: snapshot_id
+      doc: "The version identifier for the current playlist. Can be supplied in other requests to target a specific playlist version."
+      return: str
+
+    - name: tracks
+      doc: "Information about the tracks of the playlist. Note, a track object may be None. This can happen if a track is no longer available."
+      return: List[Optional[PlaylistTrackObject]]
+      
+    - name: type
+      doc: 'The object type: “playlist”.'
+      return: str
+
+    - name: uri
+      doc: "The Spotify URI for the playlist."
+      return: str
+
+
+# 43. SimplifiedShowObject
+# 
+- name: SimplifiedShow
+  doc: "ShowObject doc string..."
+  attrs:
+    - name: available_markets
+      doc: "A list of the countries in which the show can be played, identified by their ISO 3166-1 alpha-2 code."
+      return: List[str]
+
+    - name: copyrights
+      doc: "The copyright statement of the show."
+      return: List[CopyrightObject]
+
+    - name: description
+      doc: "A description of the show."
+      return: str
+
+    - name: explicit
+      doc: "Whether or not the show has explicit content (True = yes it does; False = no it does not OR unknown)."
+      return: bool
+      
+    - name: external_urls
+      doc: 'External URLs for this show.'
+      return: ExternalUrlObject
+      
+    - name: href
+      doc: "A link to the Web API endpoint providing full details of the show."
+      return: str
+      
+    - name: id
+      doc: 'The Spotify ID for the show.'
+      return: str
+      
+    - name: images
+      doc: "The cover art for the show in various sizes, widest first."
+      return: List[ImageObject]
+      
+    - name: is_externally_hosted
+      doc: 'True if the show is hosted outside of Spotify’s CDN. This may be None in some cases.'
+      return: Optional[bool]
+      
+    - name: languages
+      doc: "A list of the languages used in the show, identified by their ISO 639 code."
+      return: List[str]
+      
+    - name: media_type
+      doc: "The media type of the show."
+      return: str
+      
+    - name: name
+      doc: "The name of the show."
+      return: str
+
+    - name: publisher
+      doc: 'The publisher of the show.'
+      return: str
+      
+    - name: type
+      doc: 'The object type: “show”.'
+      return: str
+      
+    - name: uri
+      doc: 'The Spotify URI for the show.'
+      return: str
+      
+
+# 44. SimplifiedTrackObject
+# 
+- name: SimplifiedTrack
+  doc: "SimplifiedTrackObject doc string..."
+  attrs:
+    - name: artists
+      doc: "The artists who performed the track. Each artist object includes a link in href to more detailed information about the artist."
+      return: List[SimplifiedArtistObject]
+      
+    - name: available_markets
+      doc: "A list of the countries in which the track can be played, identified by their ISO 3166-1 alpha-2 code."
+      return: List[str]
+
+    - name: disc_number
+      doc: "The disc number (usually 1 unless the album consists of more than one disc)."
+      return: int
+
+    - name: duration_ms
+      doc: "The track length in milliseconds."
+      return: int
+
+    - name: explicit
+      doc: "Whether or not the track has explicit lyrics (True = yes it does; False = no it does not OR unknown)."
+      return: bool
+      
+    - name: external_urls
+      doc: 'External URLs for this track.'
+      return: ExternalUrlObject
+      
+    - name: href
+      doc: "A link to the Web API endpoint providing full details of the track."
+      return: str
+      
+    - name: id
+      doc: 'The Spotify ID for the track.'
+      return: str
+      
+    - name: is_local
+      doc: "Whether or not the track is from a local file."
+      return: bool
+      
+    - name: is_playable
+      doc: 'Part of the response when Track Relinking is applied. If True , the track is playable in the given market. Otherwise False.'
+      return: Optional[bool]
+      
+    - name: linked_from
+      doc: "Part of the response when Track Relinking is applied and is only part of the response if the track linking, in fact, exists. The requested track has been replaced with a different track. The track in the linked_from object contains information about the originally requested track."
+      return: LinkedTrackObject
+      
+    - name: name
+      doc: "The name of the track."
+      return: str
+
+    - name: preview_url
+      doc: 'A URL to a 30 second preview (MP3 format) of the track.'
+      return: str
+
+    - name: restrictions
+      doc: 'Included in the response when a content restriction is applied. See Restriction Object for more details.'
+      return: TrackRestrictionObject
+      
+    - name: track_number
+      doc: 'The number of the track. If an album has several discs, the track number is the number on the specified disc.'
+      return: int      
+      
+    - name: type
+      doc: 'The object type: “track”.'
+      return: str
+      
+    - name: uri
+      doc: 'The Spotify URI for the track.'
+      return: str
+      
+
+# 45. TrackObject
+# 
+- name: Track
+  doc: "TrackObject doc string..."
+  attrs:
+    - name: album
+      doc: "The album on which the track appears. The album object includes a link in href to full information about the album."
+      return: SimplifiedAlbumObject
+      
+    - name: artists
+      doc: "The artists who performed the track. Each artist object includes a link in href to more detailed information about the artist."
+      return: List[SimplifiedArtistObject]
+
+    - name: available_markets
+      doc: "A list of the countries in which the track can be played, identified by their ISO 3166-1 alpha-2 code."
+      return: List[str]
+
+    - name: disc_number
+      doc: "The disc number (usually 1 unless the album consists of more than one disc)."
+      return: int
+
+    - name: duration_ms
+      doc: "The track length in milliseconds."
+      return: int
+
+    - name: explicit
+      doc: "Whether or not the track has explicit lyrics (True = yes it does; False = no it does not OR unknown)."
+      return: bool
+      
+    - name: external_ids
+      doc: 'Known external IDs for the track'
+      return: ExternalIdObject
+      
+    - name: external_urls
+      doc: 'External URLs for this track.'
+      return: ExternalUrlObject
+      
+    - name: href
+      doc: "A link to the Web API endpoint providing full details of the track."
+      return: str
+      
+    - name: id
+      doc: 'The Spotify ID for the track.'
+      return: str
+      
+    - name: is_local
+      doc: "Whether or not the track is from a local file."
+      return: bool
+      
+    - name: is_playable
+      doc: 'Part of the response when Track Relinking is applied. If True , the track is playable in the given market. Otherwise False.'
+      return: Optional[bool]
+      
+    - name: linked_from
+      doc: "Part of the response when Track Relinking is applied and is only part of the response if the track linking, in fact, exists. The requested track has been replaced with a different track. The track in the linked_from object contains information about the originally requested track."
+      return: LinkedTrackObject
+      
+    - name: name
+      doc: "The name of the track."
+      return: str
+
+    - name: popularity
+      doc: 'The popularity of the track. The value will be between 0 and 100, with 100 being the most popular.
+            \nThe popularity of a track is a value between 0 and 100, with 100 being the most popular. The popularity is calculated by algorithm and is based, in the most part, on the total number of plays the track has had and how recent those plays are.
+            \nGenerally speaking, songs that are being played a lot now will have a higher popularity than songs that were played a lot in the past. Duplicate tracks (e.g. the same track from a single and an album) are rated independently. Artist and album popularity is derived mathematically from track popularity. Note that the popularity value may lag actual popularity by a few days: the value is not updated in real time.'
+      return: int
+      
+    - name: preview_url
+      doc: 'A URL to a 30 second preview (MP3 format) of the track.'
+      return: str
+
+    - name: restrictions
+      doc: 'Included in the response when a content restriction is applied. See Restriction Object for more details.'
+      return: TrackRestrictionObject
+      
+    - name: track_number
+      doc: 'The number of the track. If an album has several discs, the track number is the number on the specified disc.'
+      return: int      
+      
+    - name: type
+      doc: 'The object type: “track”.'
+      return: str
+      
+    - name: uri
+      doc: 'The Spotify URI for the track.'
+      return: str
+      
+# 46. TrackRestrictionObject
+# TODO: What does this look like??
+- name: TrackRestrictionn
+  doc: "Track Restriction Object docstring..."
+  attrs:
+    - name: reason
+      doc: "The reason for the restriction. Supported values:
+               \n    market - The content item is not available in the given market.
+               \n    product - The content item is not available for the user’s subscription type.
+               \n    explicit - The content item is explicit and the user’s account is set to not play explicit content.
+            \n\nAdditional reasons may be added in the future."
+      return: str
+      
+# 4. TuneableTrackObject
+# 
+- name: TuneableTrack
+  doc: "TuneableTrackObject docstring.."
+  attrs:
+    - name: acousticness
+      doc: "A confidence measure from 0.0 to 1.0 of whether the track is acoustic. 1.0 represents high confidence the track is acoustic."
+      return: float
+      
+    - name: danceability
+      doc: "Danceability describes how suitable a track is for dancing based on a combination of musical elements including tempo, rhythm stability, beat strength, and overall regularity. A value of 0.0 is least danceable and 1.0 is most danceable."
+      return: float
+      
+    - name: duration_ms
+      doc: "The duration of the track in milliseconds."
+      return: int
+      
+    - name: energy
+      doc: "Energy is a measure from 0.0 to 1.0 and represents a perceptual measure of intensity and activity. Typically, energetic tracks feel fast, loud, and noisy. For example, death metal has high energy, while a Bach prelude scores low on the scale. Perceptual features contributing to this attribute include dynamic range, perceived loudness, timbre, onset rate, and general entropy."
+      return: float
+      
+    - name: instrumentalness
+      doc: 'Predicts whether a track contains no vocals. “Ooh” and “aah” sounds are treated as instrumental in this context. Rap or spoken word tracks are clearly “vocal”. The closer the instrumentalness value is to 1.0, the greater likelihood the track contains no vocal content. Values above 0.5 are intended to represent instrumental tracks, but confidence is higher as the value approaches 1.0.)'
+      return: int    
+      
+    - name: key
+      doc: "The key the track is in. Integers map to pitches using standard Pitch Class notation . E.g. 0 = C, 1 = C♯/D♭, 2 = D, and so on."
+      return: int
+
+    - name: liveness
+      doc: "Detects the presence of an audience in the recording. Higher liveness values represent an increased probability that the track was performed live. A value above 0.8 provides strong likelihood that the track is live."
+      return: float
+
+    - name: loudness
+      doc: "The overall loudness of a track in decibels (dB). Loudness values are averaged across the entire track and are useful for comparing relative loudness of tracks. Loudness is the quality of a sound that is the primary psychological correlate of physical strength (amplitude). Values typical range between -60 and 0 db."
+      return: float
+      
+    - name: mode
+      doc: "Mode indicates the modality (major or minor) of a track, the type of scale from which its melodic content is derived. Major is represented by 1 and minor is 0."
+      return: int
+      
+    - name: popularity
+      doc: "The popularity of the track. The value will be between 0 and 100, with 100 being the most popular. The popularity is calculated by algorithm and is based, in the most part, on the total number of plays the track has had and how recent those plays are. Note: When applying track relinking via the market parameter, it is expected to find relinked tracks with popularities that do not match min_*, max_*and target_* popularities. These relinked tracks are accurate replacements for unplayable tracks with the expected popularity scores. Original, non-relinked tracks are available via the linked_from attribute of the relinked track response."
+      return: float
+
+    - name: speechiness
+      doc: "Speechiness detects the presence of spoken words in a track. The more exclusively speech-like the recording (e.g. talk show, audio book, poetry), the closer to 1.0 the attribute value. Values above 0.66 describe tracks that are probably made entirely of spoken words. Values between 0.33 and 0.66 describe tracks that may contain both music and speech, either in sections or layered, including such cases as rap music. Values below 0.33 most likely represent music and other non-speech-like tracks."
+      return: float
+      
+    - name: tempo
+      doc: 'The overall estimated tempo of a track in beats per minute (BPM). In musical terminology, tempo is the speed or pace of a given piece and derives directly from the average beat duration.'
+      return: float    
+      
+    - name: time_signature
+      doc: "An estimated overall time signature of a track. The time signature (meter) is a notational convention to specify how many beats are in each bar (or measure)."
+      return: int
+
+    - name: valence
+      doc: "A measure from 0.0 to 1.0 describing the musical positiveness conveyed by a track. Tracks with high valence sound more positive (e.g. happy, cheerful, euphoric), while tracks with low valence sound more negative (e.g. sad, depressed, angry)."
+      return: float
