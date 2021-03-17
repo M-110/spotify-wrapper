@@ -297,7 +297,7 @@
       return: DeviceObject
 
     - name: is_playing
-      doc: "If something is currently playing, return true."
+      doc: "If something is currently playing, return True."
       return: bool
       
     - name: item
@@ -335,7 +335,7 @@
       return: str
 
     - name: is_playing
-      doc: "If something is currently playing, return true."
+      doc: "If something is currently playing, return True."
       return: bool
       
     - name: item
@@ -410,7 +410,7 @@
       return: bool
       
     - name: is_restricted
-      doc: 'Whether controlling this device is restricted. At present if this is “true” then no Web API commands will be accepted by this device.'
+      doc: 'Whether controlling this device is restricted. At present if this is True then no Web API commands will be accepted by this device.'
       return: bool
       
     - name: name
@@ -498,7 +498,7 @@
       return: int
 
     - name: explicit
-      doc: "Whether or not the episode has explicit content (true = yes it does; false = no it does not OR unknown)."
+      doc: "Whether or not the episode has explicit content (True = yes it does; False = no it does not OR unknown)."
       return: bool
       
     - name: external_urls
@@ -510,7 +510,7 @@
       return: str
       
     - name: id
-      doc: 'The Spotify ID for the episode..'
+      doc: 'The Spotify ID for the episode.'
       return: str
       
     - name: images
@@ -522,7 +522,7 @@
       return: bool
       
     - name: is_playable
-      doc: "True if the episode is playable in the given market. Otherwise false."
+      doc: "True if the episode is playable in the given market. Otherwise False."
       return: bool
       
     - name: languages
@@ -578,11 +578,11 @@
   doc: "ExplicitContentSettings doc string..."
   attrs:
     - name: filter_enabled
-      doc: "When true, indicates that explicit content should not be played."
+      doc: "When True, indicates that explicit content should not be played."
       return: bool
 
     - name: filter_locked
-      doc: "When true, indicates that the explicit content setting is locked and can’t be changed by the user."
+      doc: "When True, indicates that the explicit content setting is locked and can’t be changed by the user."
       return: bool
       
       
@@ -604,21 +604,637 @@
     - name: upc
       doc: "Universal Product Code."
       return: str
-      
        
-# 19. ExternalIdObject
+       
+       
+# 19. ExternalUrlObject
 # 
-- name: ExternalId
-  doc: "ExternalIdObject doc string..."
+- name: ExternalUrl
+  doc: "ExternalUrlObject doc string..."
   attrs:
-    - name: ean
-      doc: "International Article Number."
+    - name: spotify
+      doc: "The Spotify URL for the object."
+      return: str
+      
+      
+# 20. FollowersObject
+# TODO: The "href" key is currently not implemented by Spotify in the Web API, but could be in the future.
+- name: Followers
+  doc: "FollowersObject doc string..."
+  attrs:
+    - name: total
+      doc: "The total number of followers."
+      return: int
+     
+# 21. ImageObject
+#
+- name: Image
+  doc: "ImageObject doc string..."
+  attrs:
+    - name: height
+      doc: "The image height in pixels. If unknown: None."
+      return: Optional[int]
+      
+    - name: url
+      doc: "The source URL of the image."
+      return: str
+      
+    - name: width
+      doc: "The image width in pixels. If unknown: None."
+      return: Optional[int]
+      
+     
+     
+# 22. LinkedTrackObject
+#
+- name: LinkedTrack
+  doc: "LinkedTrackObject doc string..."
+  attrs:
+    - name: external_urls
+      doc: "Known external URLs for this track."
+      return: ExternalUrlObject
+      
+    - name: href
+      doc: "A link to the Web API endpoint providing full details of the track."
+      return: str
+      
+    - name: id
+      doc: "The Spotify ID for the track."
+      return: str
+      
+    - name: type
+      doc: 'The object type: “track”.'
+      return: str
+      
+    - name: uri
+      doc: "The Spotify URI for the track."
+      return: str
+      
+# 23. PagingObject
+# TODO: Make href a custom object?
+- name: Paging
+  doc: "PagingObject doc string..."
+  attrs:
+    - name: href
+      doc: "A link to the Web API endpoint returning the full result of the request."
+      return: str
+      
+    - name: items
+      doc: "The requested data."
+      return: List[SpotifyObject]
+
+    - name: limit
+      doc: "The maximum number of items in the response (as set in the query or by default)."
+      return: int
+      
+    - name: next
+      doc: 'URL to the next page of items. None if this is the last page.'
+      return: Optional[str]
+      
+    - name: offset
+      doc: "The offset of the items returned (as set in the query or by default)."
+      return: int
+
+    - name: previous
+      doc: 'URL to the previous page of items. None if this is the first page.'
+      return: Optional[str]
+      
+    - name: total
+      doc: "The total number of items available to return."
+      return: int
+      
+# 24. PagingObject
+#
+- name: PlayHistory
+  doc: "PlayHistoryObject doc string..."
+  attrs:
+    - name: context
+      doc: "The context the track was played from."
+      return: ContextObject
+      
+    - name: played_at
+      doc: "The date and time the track was played."
+      return: Timestamp
+
+    - name: track
+      doc: "The track the user listened to."
+      return: SimplifiedTrackObject
+      
+# 25. PlayErrorObject
+#
+- name: PlayError
+  doc: "PlayErrorObject doc string..."
+  attrs:
+    - name: message
+      doc: "A short description of the cause of the error."
+      return: str
+      
+    - name: reason
+      doc: "NO_PREV_TRACK - The command requires a previous track, but there is none in the context.
+            \nNO_NEXT_TRACK - The command requires a next track, but there is none in the context.
+            \nNO_SPECIFIC_TRACK - The requested track does not exist.
+            \nALREADY_PAUSED - The command requires playback to not be paused.
+            \nNOT_PAUSED - The command requires playback to be paused.
+            \nNOT_PLAYING_LOCALLY - The command requires playback on the local device.
+            \nNOT_PLAYING_TRACK - The command requires that a track is currently playing.
+            \nNOT_PLAYING_CONTEXT - The command requires that a context is currently playing.
+            \nENDLESS_CONTEXT - The shuffle command cannot be applied on an endless context.
+            \nCONTEXT_DISALLOW - The command could not be performed on the context.
+            \nALREADY_PLAYING - The track should not be restarted if the same track and context is already playing, and there is a resume point.
+            \nRATE_LIMITED - The user is rate limited due to too frequent track play, also known as cat-on-the-keyboard spamming.
+            \nREMOTE_CONTROL_DISALLOW - The context cannot be remote-controlled.
+            \nDEVICE_NOT_CONTROLLABLE - Not possible to remote control the device.
+            \nVOLUME_CONTROL_DISALLOW - Not possible to remote control the device’s volume.
+            \nNO_ACTIVE_DEVICE - Requires an active device and the user has none.
+            \nPREMIUM_REQUIRED - The request is prohibited for non-premium users.
+            \nUNKNOWN - Certain actions are restricted because of unknown reasons."
       return: str
 
-    - name: isrc
-      doc: "International Standard Recording Code."
+    - name: status
+      doc: "The HTTP status code. Either 404 NOT FOUND or 403 FORBIDDEN."
+      return: int
+      
+      
+# 26. PlaylistObject
+#
+- name: Playlist
+  doc: "PlayListObject doc string..."
+  attrs:
+    - name: collaborative
+      doc: "True if the owner allows other users to modify the playlist"
+      return: bool
+      
+    - name: description
+      doc: "The playlist description. Only returned for modified, verified playlists, otherwise None."
+      return: Optional[str]
+
+    - name: external_urls
+      doc: "Known external URLs for this playlist."
+      return: ExternalUrlObject
+
+    - name: followers
+      doc: "Information about the followers of the playlist."
+      return: FollowersObject
+      
+    - name: href
+      doc: "A link to the Web API endpoint providing full details of the playlist."
+      return: str
+
+    - name: id
+      doc: "The Spotify ID for the playlist."
+      return: str
+
+    - name: images
+      doc: "Images for the playlist. The array may be empty or contain up to three images. The images are returned by size in descending order. Note: If returned, the source URL for the image (url) is temporary and will expire in less than a day."
+      return: List[ImageObject]
+      
+    - name: name
+      doc: "The name of the playlist."
+      return: str
+
+    - name: owner
+      doc: "The user who owns the playlist"
+      return: PublicUserObject
+
+    - name: public
+      doc: "The playlist’s public/private status: True the playlist is public, False the playlist is private, None the playlist status is not relevant."
+      return: Optional[bool]
+      
+    - name: snapshot_id
+      doc: "The version identifier for the current playlist. Can be supplied in other requests to target a specific playlist version."
+      return: str
+
+    - name: tracks
+      doc: "Information about the tracks of the playlist. Note, a track object may be None. This can happen if a track is no longer available."
+      return: List[Optional[PlaylistTrackObject]]
+      
+    - name: type
+      doc: 'The object type: “playlist”.'
+      return: str
+
+    - name: uri
+      doc: "The Spotify URI for the playlist."
+      return: str
+
+# 27. PlaylistTrackObject
+#
+- name: PlaylistTrack
+  doc: "PlayListTrackObject doc string..."
+  attrs:
+    - name: added_at
+      doc: "The date and time the track or episode was added. Note that some very old playlists may return None in this field."
+      return: Optional[Timestamp]
+      
+    - name: added_by
+      doc: "The Spotify user who added the track or episode. Note that some very old playlists may return None in this field."
+      return: Optional[PublicUserObject]
+
+    - name: is_local
+      doc: "Whether this track or episode is a local file or not."
+      return: bool
+
+    - name: track
+      doc: "Information about the track or episode."
+      return: Union[TrackObject, EpisodeObject]
+      
+      
+      
+# 28. PlaylistTrackRefObject
+#
+- name: PlaylistTrackRef
+  doc: "PlayListTrackRefObject doc string..."
+  attrs:
+    - name: href
+      doc: "A link to the Web API endpoint where full details of the playlist’s tracks can be retrieved."
       return: str
       
-    - name: upc
-      doc: "Universal Product Code."
+    - name: total
+      doc: "Number of tracks in the playlist."
+      return: int
+
+# 29. PrivateUserObject
+#
+- name: PrivateUser
+  doc: "PrivateUserObject doc string..."
+  attrs:
+    - name: country
+      doc: "The country of the user, as set in the user’s account profile. An ISO 3166-1 alpha-2 country code. This field is only available when the current user has granted access to the user-read-private scope."
       return: str
+      
+    - name: display_name
+      doc: "The name displayed on the user’s profile. None if not available."
+      return: Optional[str]
+
+    - name: email
+      doc: "The user’s email address, as entered by the user when creating their account. Important! This email address is unverified; there is no proof that it actually belongs to the user. This field is only available when the current user has granted access to the user-read-email scope."
+      return: Optional[str]
+
+    - name: explicit_content
+      doc: "The user’s explicit content settings. This field is only available when the current user has granted access to the user-read-private scope."
+      return: Optional[ExplicitContentSettingsObject]
+      
+    - name: external_urls
+      doc: "Known external URLs for this user."
+      return: ExternalUrlObject
+
+    - name: followers
+      doc: "Information about the followers of the user."
+      return: FollowersObject
+
+    - name: href
+      doc: "A link to the Web API endpoint for this user."
+      return: str
+      
+    - name: id
+      doc: "The Spotify user ID for the user."
+      return: str
+      
+    - name: images
+      doc: "The user’s profile image."
+      return: List[ImageObject]
+      
+    - name: product
+      doc: 'The user’s Spotify subscription level: “premium”, “free”, etc. (The subscription level “open” can be considered the same as “free”.) This field is only available when the current user has granted access to the user-read-private scope.'
+      return: Optional[str]
+      
+    - name: type
+      doc: 'The object type: “user”.'
+      return: str
+
+    - name: uri
+      doc: "The Spotify URI for the user."
+      return: str
+
+      
+      
+
+# 30. PublicUserObject
+#
+- name: PublicUser
+  doc: "PublicUserObject doc string..."
+  attrs:
+    - name: display_name
+      doc: "The name displayed on the user’s profile. None if not available."
+      return: Optional[str]
+      
+    - name: external_urls
+      doc: "Known external URLs for this user."
+      return: ExternalUrlObject
+
+    - name: followers
+      doc: "Information about the followers of this user."
+      return: FollowersObject
+
+    - name: href
+      doc: "A link to the Web API endpoint for this user."
+      return: str
+      
+    - name: id
+      doc: "The Spotify user ID for this user."
+      return: str
+      
+    - name: images
+      doc: "The user’s profile image."
+      return: List[ImageObject]
+      
+    - name: product
+      doc: 'The user’s Spotify subscription level: “premium”, “free”, etc. (The subscription level “open” can be considered the same as “free”.) This field is only available when the current user has granted access to the user-read-private scope.'
+      return: Optional[str]
+      
+    - name: type
+      doc: 'The object type: “user”.'
+      return: str
+
+    - name: uri
+      doc: "The Spotify URI for the user."
+      return: str
+      
+
+# 31. RecommendationSeedObject
+#
+- name: RecommendationSeed
+  doc: "RecommendationSeedObject doc string..."
+  attrs:
+    - name: after_filtering_size
+      doc: "The number of tracks available after min_* and max_* filters have been applied."
+      return: int
+      
+    - name: after_relinking_size
+      doc: "The number of tracks available after relinking for regional availability."
+      return: int
+
+    - name: href
+      doc: "A link to the full track or artist data for this seed. For tracks this will be a link to a Track Object. For artists a link to an Artist Object. For genre seeds, this value will be None."
+      return: str
+      
+    - name: id
+      doc: "The id used to select this seed. This will be the same as the string used in the seed_artists, seed_tracks or seed_genres parameter."
+      return: str
+      
+    - name: initial_pool_size
+      doc: "The number of recommended tracks available for this seed."
+      return: int
+      
+    - name: type
+      doc: 'The entity type of this seed. One of artist, track or genre.'
+      return: str
+      
+
+# 32. RecommendationsObject
+#
+- name: Recommendations
+  doc: "RecommendationsObject doc string..."
+  attrs:
+    - name: seeds
+      doc: "A list of recommendation seed objects."
+      return: List[RecommendationSeedObject]
+      
+    - name: tracks
+      doc: "A list of simplified track objects ordered according to the parameters supplied."
+      return: List[SimplifiedTrackObject]
+      
+
+# 33. ResumePointObject
+#
+- name: ResumePoint
+  doc: "ResumePointObject doc string..."
+  attrs:
+    - name: fully_played
+      doc: "Whether or not the episode has been fully played by the user."
+      return: bool
+      
+    - name: resume_position_ms
+      doc: "The user’s most recent position in the episode in milliseconds."
+      return: int
+        
+
+# 34. SavedAlbumObject
+#
+- name: SavedAlbum
+  doc: "SavedAlbumObject doc string..."
+  attrs:
+    - name: added_at
+      doc: "The date and time the album was saved Timestamps are returned in ISO 8601 format as Coordinated Universal Time (UTC) with a zero offset: YYYY-MM-DDTHH:MM:SSZ. "
+      return: Timestamp
+      
+    - name: album
+      doc: "Information about the album."
+      return: AlbumObject
+      
+# 35. SavedEpisodeObject
+#
+- name: SavedEpisode
+  doc: "SavedEpisodeObject doc string..."
+  attrs:
+    - name: added_at
+      doc: "The date and time the episode was saved Timestamps are returned in ISO 8601 format as Coordinated Universal Time (UTC) with a zero offset: YYYY-MM-DDTHH:MM:SSZ. "
+      return: Timestamp
+      
+    - name: episode
+      doc: "Information about the episode."
+      return: EpisodeObject
+      
+      
+      
+# 36. SavedShowObject
+#
+- name: SavedShow
+  doc: "SavedShowObject doc string..."
+  attrs:
+    - name: added_at
+      doc: "The date and time the show was saved Timestamps are returned in ISO 8601 format as Coordinated Universal Time (UTC) with a zero offset: YYYY-MM-DDTHH:MM:SSZ. "
+      return: Timestamp
+      
+    - name: show
+      doc: "Information about the show."
+      return: SimplifiedShowObject
+      
+# 37. SavedTrackObject
+#
+- name: SavedTrack
+  doc: "SavedTrackObject doc string..."
+  attrs:
+    - name: added_at
+      doc: "The date and time the track was saved Timestamps are returned in ISO 8601 format as Coordinated Universal Time (UTC) with a zero offset: YYYY-MM-DDTHH:MM:SSZ. "
+      return: Timestamp
+      
+    - name: track
+      doc: "Information about the track."
+      return: TrackObject
+      
+
+# 38. ShowObject
+# 
+- name: Show
+  doc: "EpisodeObject doc string..."
+  attrs:
+    - name: available_markets
+      doc: "A list of the countries in which the show can be played, identified by their ISO 3166-1 alpha-2 code."
+      return: List[str]
+
+    - name: copyrights
+      doc: "The copyright statement of the show"
+      return: List[CopyrightObject]
+
+    - name: description
+      doc: "A description of the show."
+      return: str
+      
+    - name: episodes
+      doc: "A list of the show’s episodes."
+      return: List[SimplifiedEpisodeObject]
+
+    - name: explicit
+      doc: "Whether or not the show has explicit content (True = yes it does; False = no it does not OR unknown)."
+      return: bool
+      
+    - name: external_urls
+      doc: 'External URLs for this show.'
+      return: ExternalUrlObject
+      
+    - name: href
+      doc: "A link to the Web API endpoint providing full details of the show."
+      return: str
+      
+    - name: id
+      doc: 'The Spotify ID for the show.'
+      return: str
+      
+    - name: images
+      doc: "The cover art for the show in various sizes, widest first."
+      return: List[ImageObject]
+      
+    - name: is_externally_hosted
+      doc: 'True if the show is hosted outside of Spotify’s CDN. This may be None in some cases.'
+      return: Optional[bool]
+      
+    - name: languages
+      doc: "A list of the languages used in the show, identified by their ISO 639 code."
+      return: List[str]
+      
+    - name: media_type
+      doc: "The media type of the show."
+      return: str
+      
+    - name: name
+      doc: "The name of the show."
+      return: str
+
+    - name: publisher
+      doc: 'The publisher of the show.'
+      return: str
+      
+    - name: type
+      doc: 'The object type: “show”.'
+      return: str
+      
+    - name: uri
+      doc: 'The Spotify URI for the show.'
+      return: str
+      
+# 39. SimplifiedAlbumObject
+# 
+- name: SimplifiedAlbum
+  doc: "SimplifiedAlbumObject Doc String."
+  attrs:
+    - name: album_group
+      doc: 'The field is present when getting an artist’s albums. Possible values are “album”, “single”, “compilation”, “appears_on”. Compare to album_type this field represents relationship between the artist and the album.'
+      return: str
+      
+    - name: album_type
+      doc: "The type of the album: album, single, or compilation."
+      return: str
+      
+    - name: artists
+      doc: "The artists of the album. Each artist object includes a link in href to more detailed information about the artist."
+      return: List[str]
+      
+    - name: available_markets
+      doc: "The markets in which the album is available: ISO 3166-1 alpha-2 country codes. Note that an album is considered available in a market when at least 1 of its tracks is available in that market."
+      return: List[str]
+      
+    - name: external_urls
+      doc: "Known external URLs for this album."
+      return: ExternalUrlObject  
+      
+    - name: href
+      doc: "A link to the Web API endpoint providing full details of the album."
+      return: str
+      
+    - name: id
+      doc: "The Spotify ID for the album."
+      return: str
+      
+    - name: images
+      doc: "The cover art for the album in various sizes, widest first."
+      return: List[ImageObject]
+      
+    - name: name
+      doc: "The name of the album. In case of an album takedown, the value may be an empty string."
+      return: str    
+      
+    - name: release_date
+      doc: 'The date the album was first released, for example “1981-12-15”. Depending on the precision, it might be shown as “1981” or “1981-12”.'
+      return: str      
+      
+    - name: release_data_precision
+      doc: 'The precision with which release_date value is known: “year”, “month”, or “day”.'
+      return: str
+      
+    - name: restrictions
+      doc: "Included in the response when a content restriction is applied. See Restriction Object for more details."
+      return: AlbumRestrictionObject   
+      
+    - name: type
+      doc: 'The object type: “album”.'
+      return: str      
+      
+    - name: uri
+      doc: "The Spotify URI for the album."
+      return: str
+
+# 40. SimplifiedArtistObject
+# TODO: This. Convert it to simplified.
+- name: Artist
+  doc: "Artist docstring"
+  attrs:
+    - name: external_urls
+      doc: "The type of the album: album, single, or compilation."
+      return: str
+      
+    - name: followers
+      doc: "The artists of the album. Each artist object includes a link in href to more detailed information about the artist."
+      return: List[str]
+      
+    - name: genres
+      doc: "The markets in which the album is available: ISO 3166-1 alpha-2 country codes. Note that an album is considered available in a market when at least 1 of its tracks is available in that market."
+      return: List[str]
+      
+    - name: href
+      doc: "The copyright statements of the album."
+      return: List[ArtistObject]
+      
+    - name: id
+      doc: "Known external IDs for the album."
+      return: ExternalIdObject
+      
+    - name: images
+      doc: "Known external URLs for this album."
+      return: ExternalUrlObject
+      
+    - name: name
+      doc: 'A list of the genres used to classify the album. For example: “Prog Rock” , “Post-Grunge”. (If not yet classified, the array is empty.)'
+      return: List[str]     
+      
+    - name: popularity
+      doc: "A link to the Web API endpoint providing full details of the album."
+      return: str
+      
+    - name: type
+      doc: "The Spotify ID for the album."
+      return: str
+      
+    - name: uri
+      doc: "The cover art for the album in various sizes, widest first."
+      return: List[ImageObject]
+      
