@@ -1,0 +1,75 @@
+﻿---
+- method_name: get_multiple_albums
+  doc: "Get Spotify catalog information for multiple albums identified by their Spotify IDs."
+  http_method: get
+  endpoint: https://api.spotify.com/v1/albums
+  returns: List[Optional[AlbumObject]]
+  
+  header:
+    scope:
+    content_type:
+      
+  path_parameters:
+      
+  query_parameters:
+    - name: ids
+      doc: "A comma-separated list of the Spotify IDs for the albums. Maximum: 20 IDs."
+      required: true
+      type: List[str]
+    - COUNTRY
+    
+  json_parameters:
+    
+    
+- method_name: get_an_album
+  doc: "Get Spotify catalog information for a single album."
+  http_method: get
+  endpoint: "f'https://api.spotify.com/v1/albums/{id_}'"
+  returns: Optional[AlbumObject]
+  
+  header:
+    scope:
+      - 'Some-fake-scope'
+      - 'another-test-scope'
+    content_type:
+      
+  path_parameters:
+    - name: id_
+      doc: "The Spotify ID of the album."
+      required: true
+      type: str
+      
+  query_parameters:
+    - COUNTRY
+    
+  json_parameters:
+    
+- method_name: get_an_albums_tracks
+  doc: "Get Spotify catalog information about an album’s tracks. Optional parameters can be used to limit the number of tracks returned."
+  http_method: get
+  endpoint: "f'https://api.spotify.com/v1/albums/{id_}/tracks'"
+  returns: Optional[AlbumObject]
+  
+  header:
+    scope:
+      - 'Some-fake-scope'
+      - 'another-test-scope'
+    content_type:
+      
+  path_parameters:
+    - name: id_
+      doc: "The Spotify ID of the album."
+      required: true
+      type: str
+      
+  query_parameters:
+    - COUNTRY
+    - name: id_
+      doc: "The Spotify ID of the album."
+      required: true
+      type: str    
+    
+  json_parameters:
+     
+  
+  

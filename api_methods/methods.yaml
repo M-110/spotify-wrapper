@@ -1,0 +1,98 @@
+﻿---
+# 1. Albums API
+# 
+- name: Albums API
+  doc: "Album Object Doc String."
+  methods:
+    - name: get_multiple_albums
+      doc: "Get Spotify catalog information for multiple albums identified by their Spotify IDs."
+      required_scopes:
+      params:
+        - name: ids
+          doc: "A list of the Spotify IDs for the albums. Maximum 20 IDs"
+          required: true
+          type: List[str]
+        - name: market
+          doc: "An ISO 3166-1 alpha-2 country code."
+          required: false
+          type: str
+          validators:
+            - name: validate_country_code
+              params: 
+      http_method: get
+      endpoint_base: https://api.spotify.com/v1/albums
+      endpoint_path_param: None
+      endpoint_query_params:
+        - name: ids
+          constructor: "','.join(ids)"
+        - name: market
+          constructor: market
+          
+      return: List[Optional[AlbumObject]]
+      
+    - name: get_an_album
+      doc: "Get Spotify catalog information for a single album by its Spotify ID."
+      required_scopes: 
+        - 'fake-first-scope'
+      params:
+        - name: id_
+          doc: "A list of the Spotify IDs for the albums. Maximum 20 IDs"
+          required: true
+          type: str
+        - name: market
+          doc: "An ISO 3166-1 alpha-2 country code."
+          required: false
+          type: str
+        validators:
+          - name: validate_country_code
+            params: 
+      http_method: get
+      endpoint_base: https://api.spotify.com/v1/albums/
+      endpoint_path_param: id_
+      endpoint_query_params:
+        - name: market
+          constructor: market
+      return: AlbumObject
+      
+    - name: get_an_albums_tracks
+      doc: "Get Spotify catalog information about an album’s tracks. Optional parameters can be used to limit the number of tracks returned."
+      required_scopes: 
+        - 'fake-scope'
+        - 'fake-second-scope'
+      params:
+      - name: id_
+        doc: "A list of the Spotify IDs for the albums. Maximum 20 IDs"
+        required: true
+        type: str
+      - name: market
+        doc: "An ISO 3166-1 alpha-2 country code."
+        required: false
+        type: str
+        validators:
+          - name: validate_country_code
+            params: 
+      - name: limit
+        doc: "The maximum number of tracks to return. Default: 20. Minimum: 1. Maximum: 50."
+        required: false
+        type: int
+        validators:
+          - name: validate_type
+            params: int
+          - name: validate_range
+            params: 1, 50      
+      - name: offset
+        doc: "The index of the first track to return. Default: 0 (the first object). Use with limit to get the next set of tracks."
+        required: false
+        type: int
+      http_method: get
+      endpoint_base: https://api.spotify.com/v1/albums/
+      endpoint_path_params: "f'{id_}/tracks'"
+      endpoint_query_params:
+        - name: market
+          constructor: market
+        - name: limit
+          constructor: str(limit)
+        - name: offset
+          constructor: str(offset)
+        #TODO: API Reference claims this return, but this doesn't sound right. I think it's
+      return: AlbumObject 
