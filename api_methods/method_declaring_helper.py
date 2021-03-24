@@ -3,7 +3,7 @@ import textwrap
 
 header_template = '''
 {requires_decorator}
-def {method_name}({params}) -> {return_type}:
+def {method_name}(self, {params}) -> {return_type}:
     """
 {method_doc}
     """
@@ -60,16 +60,50 @@ def yaml_to_class(filename):
     return output
 
 
+def parse_yaml_method(method: dict):
+    name = method['method_name']
+    doc = method['doc']
+    http_method = method['http_method']
+    endpoint = method['endpoint']
+    returns = method['returns']
+    scope = method['header']['scope']
+    content_type = method['header']['content_type']
+    
+    path_params = method['path_parameters']
+    
+    query_params = method['query_parameters']
+    
+    json_params = method['json_parameters']
+    
+    if scope[0]:
+        requires_decorator = '\n@requires(' + ', '.join([f'{s!r}' for s in scope]) + ')'
+    else:
+        requires_decorator = ''
+        
+    output = header_template.format(requires_decorator=requires_decorator,
+                                    method_name=name,
+                                    params=str(path_params),
+                                    return_type=returns,
+                                    method_doc=doc,
+                                    http_method=http_method,
+                                    url=endpoint)
+    return output
+    
+
+        
+    
+    
+
+
 def yaml_to_methods(filename):
     with open(filename, 'r', encoding='utf-8') as yaml_file:
         yaml_dict = yaml.load(yaml_file, Loader=yaml.Loader)
 
     output = ''
 
-    for api in yaml_dict:
-        for method in api['methods']:
-            print(method)
+    for method in yaml_dict:
+        print(parse_yaml_method(method))
     return output
 
-class_output = yaml_to_methods('methods.yaml')
+class_output = yaml_to_methods('methods_2.yaml')
 print(class_output)
