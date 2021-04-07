@@ -32,7 +32,7 @@ SCOPE: str = ' '.join(['ugc-image-upload',
                        'user-library-modify',
                        'user-library-read',
                        'user-read-email',
-                       'user-read-private'])
+                       'user-read-private',])
 
 
 def _missing_credentials() -> bool:

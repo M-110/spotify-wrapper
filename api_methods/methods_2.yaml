@@ -1,24 +1,22 @@
 ﻿---
+# Albums
 - method_name: get_multiple_albums
   doc: "Get Spotify catalog information for multiple albums identified by their Spotify IDs."
   http_method: get
   endpoint: https://api.spotify.com/v1/albums
   returns: List[Optional[AlbumObject]]
-  
-  header:
-    scope:
-      -
-    content_type:
+  scope:
+    -
       
   path_parameters:
     -
       
   query_parameters:
     - name: ids
-      doc: "A comma-separated list of the Spotify IDs for the albums. Maximum: 20 IDs."
+      doc: "A list of strings of the Spotify IDs for the albums. Maximum: 20 IDs."
       required: true
       type: List[str]
-    - COUNTRY
+    - COUNTRY[market]
     
   json_parameters:
     -
@@ -29,21 +27,14 @@
   http_method: get
   endpoint: "f'https://api.spotify.com/v1/albums/{id_}'"
   returns: Optional[AlbumObject]
-  
-  header:
-    scope:
-      - 'Some-fake-scope'
-      - 'another-test-scope'
-    content_type:
+  scope:
+    -
       
   path_parameters:
-    - name: id_
-      doc: "The Spotify ID of the album."
-      required: true
-      type: str
+    - ID_[album]
       
   query_parameters:
-    - COUNTRY
+    - COUNTRY[market]
     
   json_parameters:
     -
@@ -54,25 +45,170 @@
   http_method: get
   endpoint: "f'https://api.spotify.com/v1/albums/{id_}/tracks'"
   returns: Optional[AlbumObject]
-  
-  header:
-    scope:
-      - 'Some-fake-scope'
-      - 'another-test-scope'
-    content_type:
+  scope:
+    - 
       
   path_parameters:
-    - name: id_
-      doc: "The Spotify ID of the album."
-      required: true
-      type: str
+    - ID_[album]
       
   query_parameters:
-    - COUNTRY
-    - LIMIT_OFFSET[track,20,1,50]
+    - COUNTRY[market]
+    - LIMIT[tracks,20,1,50]
+    - OFFSET[track]
     
   json_parameters:
     -
+      
+      
+# Artists
+- method_name: get_multiple_artists
+  doc: "Get Spotify catalog information for several artists based on their Spotify IDs."
+  http_method: get
+  endpoint: "f'https://api.spotify.com/v1/artists'"
+  returns: List[Optional[ArtistObject]]
+  scope:
+    - 
+      
+  path_parameters:
+    -
+      
+  query_parameters:
+    - name: ids
+      doc: "A list of strings of the Spotify IDs for the artists. Maximum: 50 IDs."
+      required: true
+      type: List[str]
+    
+  json_parameters:
+    - 
      
-  
-  
+
+- method_name: get_an_artist
+  doc: "Get Spotify catalog information for a single artist identified by their unique Spotify ID."
+  http_method: get
+  endpoint: "f'https://api.spotify.com/v1/artists/{id_}'"
+  returns: Union[ArtistObject, ErrorObject]
+  scope:
+    - 
+      
+  path_parameters:
+    - ID_[artist]
+      
+  query_parameters:
+    - 
+    
+  json_parameters:
+    - 
+
+
+- method_name: get_an_artists_top_tracks
+  doc: "Get Spotify catalog information about an artist’s top tracks by country."
+  http_method: get
+  endpoint: "f'https://api.spotify.com/v1/artists/{id}/top-tracks'"
+  returns: Union[List[TrackObject], ErrorObject]
+  scope:
+    - 
+      
+  path_parameters:
+    - ID_[artist]
+      
+  query_parameters:
+    - name: market
+      doc: "An ISO 3166-1 alpha-2 country code or the string 'from_token'."
+      required: true
+      type: str
+    
+  json_parameters:
+    -    
+
+
+- method_name: get_an_artists_related_artists
+  doc: "Get Spotify catalog information about artists similar to a given artist. Similarity is based on analysis of the Spotify community’s listening history."
+  http_method: get
+  endpoint: "f'https://api.spotify.com/v1/artists/{id}/related-artists'"
+  returns: Union[List[ArtistObject], ErrorObject]
+  scope:
+    - 
+      
+  path_parameters:
+    - ID_[artist]
+      
+  query_parameters:
+    -
+    
+  json_parameters:
+    -    
+
+
+- method_name: get_an_artists_albums
+  doc: "Get Spotify catalog information about an artist’s albums."
+  http_method: get
+  endpoint: "f'https://api.spotify.com/v1/artists/{id}/albums'"
+  returns: Union[PagingObject[SimplifiedAlbumObject], ErrorObject]
+  scope:
+    - 
+      
+  path_parameters:
+    - ID_[artist]
+      
+  query_parameters:
+    - name: include_groups
+      doc: "A list of strings of the keywords that will be used to filter the response. If not supplied, all album types will be returned. Valid keywords are 'album', 'single', 'appears_on', and 'compilation'."
+      required: false
+      type: List[str]
+    - COUNTRY[market]
+    - LIMIT[albums,20,1,50]
+    - OFFSET[album]
+    
+  json_parameters:
+    -    
+
+
+# Browse
+    
+
+- method_name: get_all_new_releases
+  doc: "Get a list of new album releases featured in Spotify (shown, for example, on a Spotify player’s “Browse” tab)."
+  http_method: get
+  endpoint: "f'https://api.spotify.com/v1/browse/new-releases'"
+  returns: Union[PagingObject[SimplifiedAlbumObject], ErrorObject]
+  scope:
+    - 
+      
+  path_parameters:
+    -
+      
+  query_parameters:
+    - COUNTRY[country]
+    - LIMIT[albums,20,1,50]
+    - OFFSET[album]
+    
+  json_parameters:
+    -    
+    
+
+- method_name: get_all_featured_playlists
+  doc: "Get a list of Spotify featured playlists (shown, for example, on a Spotify player’s ‘Browse’ tab)."
+  http_method: get
+  endpoint: "f'https://api.spotify.com/v1/browse/featured-playlists'"
+  returns: Union[PagingObject[SimplifiedAlbumObject], ErrorObject]
+  scope:
+    - 
+      
+  path_parameters:
+    -
+      
+  query_parameters:
+    - COUNTRY[country]
+    - name: locale
+      doc: "The desired language, consisting of a lowercase ISO 639-1 language code and an uppercase ISO 3166-1 alpha-2 country code, joined by an underscore. For example: es_MX, meaning “Spanish (Mexico)”. Provide this parameter if you want the results returned in a particular language (where available). Note that, if locale is not supplied, or if the specified language is not available, all strings will be returned in the Spotify default language (American English). The locale parameter, combined with the country parameter, may give odd results if not carefully matched."
+      required: false
+      type: str
+    - name: timestamp
+      doc: "A timestamp in ISO 8601 format: yyyy-MM-ddTHH:mm:ss. Use this parameter to specify the user’s local time to get results tailored for that specific date and time in the day. If not provided, the response defaults to the current UTC time. Example: “2014-10-23T09:00:00” for a user whose local time is 9AM. If there were no featured playlists (or there is no data) at the specified time, the response will revert to the current UTC time."
+      required: false
+      type: str
+    - LIMIT[albums,20,1,50]
+    - OFFSET[album]
+    
+  json_parameters:
+    -    

@@ -33,7 +33,6 @@
     - name: get_an_album
       doc: "Get Spotify catalog information for a single album by its Spotify ID."
       required_scopes: 
-        - 'fake-first-scope'
       params:
         - name: id_
           doc: "A list of the Spotify IDs for the albums. Maximum 20 IDs"
