@@ -1,5 +1,5 @@
 ﻿---
-# Albums
+# region Albums API
 - method_name: get_multiple_albums
   doc: "Get Spotify catalog information for multiple albums identified by their Spotify IDs."
   http_method: get
@@ -59,8 +59,10 @@
   json_parameters:
     -
       
+# endregion
       
-# Artists
+# region Artists API
+      
 - method_name: get_multiple_artists
   doc: "Get Spotify catalog information for several artists based on their Spotify IDs."
   http_method: get
@@ -162,9 +164,9 @@
   json_parameters:
     -    
 
+# endregion
 
-# Browse
-    
+# region Browse API
 
 - method_name: get_all_new_releases
   doc: "Get a list of new album releases featured in Spotify (shown, for example, on a Spotify player’s “Browse” tab)."
@@ -190,7 +192,7 @@
   doc: "Get a list of Spotify featured playlists (shown, for example, on a Spotify player’s ‘Browse’ tab)."
   http_method: get
   endpoint: "f'https://api.spotify.com/v1/browse/featured-playlists'"
-  returns: Union[PagingObject[SimplifiedAlbumObject], ErrorObject]
+  returns: Union[PagingObject[SimplifiedPlaylistObject], ErrorObject]
   scope:
     - 
       
@@ -199,10 +201,7 @@
       
   query_parameters:
     - COUNTRY[country]
-    - name: locale
-      doc: "The desired language, consisting of a lowercase ISO 639-1 language code and an uppercase ISO 3166-1 alpha-2 country code, joined by an underscore. For example: es_MX, meaning “Spanish (Mexico)”. Provide this parameter if you want the results returned in a particular language (where available). Note that, if locale is not supplied, or if the specified language is not available, all strings will be returned in the Spotify default language (American English). The locale parameter, combined with the country parameter, may give odd results if not carefully matched."
-      required: false
-      type: str
+    - LOCALE
     - name: timestamp
       doc: "A timestamp in ISO 8601 format: yyyy-MM-ddTHH:mm:ss. Use this parameter to specify the user’s local time to get results tailored for that specific date and time in the day. If not provided, the response defaults to the current UTC time. Example: “2014-10-23T09:00:00” for a user whose local time is 9AM. If there were no featured playlists (or there is no data) at the specified time, the response will revert to the current UTC time."
       required: false
@@ -211,4 +210,307 @@
     - OFFSET[album]
     
   json_parameters:
+    -  
+    
+
+- method_name: get_all_categories
+  doc: "Get a list of categories used to tag items in Spotify (on, for example, the Spotify player’s “Browse” tab)."
+  http_method: get
+  endpoint: "f'https://api.spotify.com/v1/browse/categories'"
+  returns: Union[PagingObject[CategoryObject], ErrorObject]
+  scope:
+    - 
+      
+  path_parameters:
+    -
+      
+  query_parameters:
+    - COUNTRY[country]
+    - LOCALE
+    - name: timestamp
+      doc: "A timestamp in ISO 8601 format: yyyy-MM-ddTHH:mm:ss. Use this parameter to specify the user’s local time to get results tailored for that specific date and time in the day. If not provided, the response defaults to the current UTC time. Example: “2014-10-23T09:00:00” for a user whose local time is 9AM. If there were no featured playlists (or there is no data) at the specified time, the response will revert to the current UTC time."
+      required: false
+      type: str
+    - LIMIT[albums,20,1,50]
+    - OFFSET[category]
+    
+  json_parameters:
+    -   
+    
+
+- method_name: get_a_category
+  doc: "Get a single category used to tag items in Spotify (on, for example, the Spotify player’s “Browse” tab)."
+  http_method: get
+  endpoint: "f'https://api.spotify.com/v1/browse/categories/{category_id}'"
+  returns: Union[CategoryObject, ErrorObject]
+  scope:
+    - 
+      
+  path_parameters:
+    - name: category_id
+      doc: "The Spotify category ID for the category."
+      required: true
+      type: str
+      
+  query_parameters:
+    - COUNTRY[country]
+    - LOCALE
+    
+  json_parameters:
     -    
+    
+
+- method_name: get_a_categorys_playlists
+  doc: "Get a list of Spotify playlists tagged with a particular category."
+  http_method: get
+  endpoint: "f'https://api.spotify.com/v1/browse/categories/{category_id}/playlists'"
+  returns: Union[PagingObject[SimplifiedPlaylistObject], ErrorObject]
+  scope:
+    - 
+      
+  path_parameters:
+    - name: category_id
+      doc: "The Spotify category ID for the category."
+      required: true
+      type: str
+      
+  query_parameters:
+    - COUNTRY[country]
+    - LOCALE
+    - LIMIT[albums,20,1,50]
+    - OFFSET[playlist]
+    
+  json_parameters:
+    -    
+    
+
+- method_name: get_recommendations
+  doc: "Recommendations are generated based on the available information for a given seed entity and matched against similar artists and tracks. If there is sufficient information about the provided seeds, a list of tracks will be returned together with pool size details."
+  http_method: get
+  endpoint: "f'https://api.spotify.com/v1/recommendations'"
+  returns: Union[RecommendationsObject, ErrorObject]
+  scope:
+    - 
+      
+  path_parameters:
+    -
+      
+  query_parameters:
+    - name: seed_artists
+      doc: "A list of strings of Spotify IDs for seed artists. Up to 5 seed values may be provided in any combination of seed_artists, seed_tracks and seed_genres."
+      required: true
+      type: List[str]
+    - name: seed_genres
+      doc: "A list of strings of Spotify IDs for seed genres. Up to 5 seed values may be provided in any combination of seed_artists, seed_tracks and seed_genres."
+      required: true
+      type: List[str]
+    - name: seed_tracks
+      doc: "A list of strings of Spotify IDs for seed tracks. Up to 5 seed values may be provided in any combination of seed_artists, seed_tracks and seed_genres."
+      required: true
+      type: List[str]
+      
+    - name: limit
+      doc: "The target size of the list of recommended tracks. For seeds with unusually small pools or when highly restrictive filtering is applied, it may be impossible to generate the requested number of recommended tracks. Debugging information for such cases is available in the response. Default: 20. Minimum: 1. Maximum: 100."
+      required: false
+      type: int
+    - name: market
+      doc: "An ISO 3166-1 alpha-2 country code or the string from_token. Provide this parameter if you want to apply Track Relinking. Because min_*, max_* and target_* are applied to pools before relinking, the generated results may not precisely match the filters applied. Original, non-relinked tracks are available via the linked_from attribute of the relinked track response."
+      required: false
+      type: str
+      
+    - name: min_acousticness
+      doc: "Restricts results to tracks with attribute greater than min. Acousticness is a confidence measure from 0.0 to 1.0 of whether the track is acoustic. 1.0 represents high confidence the track is acoustic."
+      required: false
+      type: float
+    - name: max_acousticness
+      doc: "Restricts results to tracks with attribute less than max. Acousticness is a confidence measure from 0.0 to 1.0 of whether the track is acoustic. 1.0 represents high confidence the track is acoustic."
+      required: false
+      type: float
+    - name: target_acousticness
+      doc: "Tracks near target attribute will be preferred. Acousticness is a confidence measure from 0.0 to 1.0 of whether the track is acoustic. 1.0 represents high confidence the track is acoustic."
+      required: false
+      type: float
+    - name: min_danceability
+      doc: "Restricts results to tracks with attribute greater than min. Danceability describes how suitable a track is for dancing based on a combination of musical elements including tempo, rhythm stability, beat strength, and overall regularity. A value of 0.0 is least danceable and 1.0 is most danceable."
+      required: false
+      type: float
+    - name: max_danceability
+      doc: "Restricts results to tracks with attribute less than max. Danceability describes how suitable a track is for dancing based on a combination of musical elements including tempo, rhythm stability, beat strength, and overall regularity. A value of 0.0 is least danceable and 1.0 is most danceable."
+      required: false
+      type: float
+    - name: target_danceability
+      doc: "Tracks near target attribute will be preferred. Danceability describes how suitable a track is for dancing based on a combination of musical elements including tempo, rhythm stability, beat strength, and overall regularity. A value of 0.0 is least danceable and 1.0 is most danceable."
+      required: false
+      type: float
+    - name: min_duration_ms
+      doc: "Restricts results to tracks with duration greater than min duration (in milliseconds)."
+      required: false
+      type: int
+    - name: max_duration_ms
+      doc: "Restricts results to tracks with duration less than max duration (in milliseconds)."
+      required: false
+      type: int
+    - name: target_duration_ms
+      doc: "Tracks near target duration will be preferred (in milliseconds)."
+      required: false
+      type: int
+    - name: min_energy
+      doc: "Restricts results to tracks with attribute greater than min. Energy is a measure from 0.0 to 1.0 and represents a perceptual measure of intensity and activity. Typically, energetic tracks feel fast, loud, and noisy. For example, death metal has high energy, while a Bach prelude scores low on the scale. Perceptual features contributing to this attribute include dynamic range, perceived loudness, timbre, onset rate, and general entropy."
+      required: false
+      type: float
+    - name: max_energy
+      doc: "Restricts results to tracks with attribute less than max. Energy is a measure from 0.0 to 1.0 and represents a perceptual measure of intensity and activity. Typically, energetic tracks feel fast, loud, and noisy. For example, death metal has high energy, while a Bach prelude scores low on the scale. Perceptual features contributing to this attribute include dynamic range, perceived loudness, timbre, onset rate, and general entropy."
+      required: false
+      type: float
+    - name: target_energy
+      doc: "Tracks near target attribute will be preferred. Energy is a measure from 0.0 to 1.0 and represents a perceptual measure of intensity and activity. Typically, energetic tracks feel fast, loud, and noisy. For example, death metal has high energy, while a Bach prelude scores low on the scale. Perceptual features contributing to this attribute include dynamic range, perceived loudness, timbre, onset rate, and general entropy."
+      required: false
+      type: float
+    - name: min_instrumentalness
+      doc: "Restricts results to tracks with attribute greater than min. Predicts whether a track contains no vocals. “Ooh” and “aah” sounds are treated as instrumental in this context. Rap or spoken word tracks are clearly “vocal”. The closer the instrumentalness value is to 1.0, the greater likelihood the track contains no vocal content. Values above 0.5 are intended to represent instrumental tracks, but confidence is higher as the value approaches 1.0."
+      required: false
+      type: float
+    - name: max_instrumentalness
+      doc: "Restricts results to tracks with attribute less than max. Predicts whether a track contains no vocals. “Ooh” and “aah” sounds are treated as instrumental in this context. Rap or spoken word tracks are clearly “vocal”. The closer the instrumentalness value is to 1.0, the greater likelihood the track contains no vocal content. Values above 0.5 are intended to represent instrumental tracks, but confidence is higher as the value approaches 1.0."
+      required: false
+      type: float
+    - name: target_instrumentalness
+      doc: "Tracks near target attribute will be preferred. Predicts whether a track contains no vocals. “Ooh” and “aah” sounds are treated as instrumental in this context. Rap or spoken word tracks are clearly “vocal”. The closer the instrumentalness value is to 1.0, the greater likelihood the track contains no vocal content. Values above 0.5 are intended to represent instrumental tracks, but confidence is higher as the value approaches 1.0."
+      required: false
+      type: float
+    - name: min_key
+      doc: "Restricts results to tracks with attribute greater than min. The key the track is in. Integers map to pitches using standard Pitch Class notation . E.g. 0 = C, 1 = C♯/D♭, 2 = D, and so on."
+      required: false
+      type: int
+    - name: max_key
+      doc: "Restricts results to tracks with attribute less than max. The key the track is in. Integers map to pitches using standard Pitch Class notation . E.g. 0 = C, 1 = C♯/D♭, 2 = D, and so on."
+      required: false
+      type: int
+    - name: target_key
+      doc: "Tracks near target attribute will be preferred. The key the track is in. Integers map to pitches using standard Pitch Class notation . E.g. 0 = C, 1 = C♯/D♭, 2 = D, and so on."
+      required: false
+      type: int
+    - name: min_liveness
+      doc: "Restricts results to tracks with attribute greater than min. Detects the presence of an audience in the recording. Higher liveness values represent an increased probability that the track was performed live. A value above 0.8 provides strong likelihood that the track is live."
+      required: false
+      type: float
+    - name: max_liveness
+      doc: "Restricts results to tracks with attribute less than max. Detects the presence of an audience in the recording. Higher liveness values represent an increased probability that the track was performed live. A value above 0.8 provides strong likelihood that the track is live."
+      required: false
+      type: float
+    - name: target_liveness
+      doc: "Tracks near target attribute will be preferred. Detects the presence of an audience in the recording. Higher liveness values represent an increased probability that the track was performed live. A value above 0.8 provides strong likelihood that the track is live."
+      required: false
+      type: float
+    - name: min_loudness
+      doc: "Restricts results to tracks with attribute greater than min. The overall loudness of a track in decibels (dB). Loudness values are averaged across the entire track and are useful for comparing relative loudness of tracks. Loudness is the quality of a sound that is the primary psychological correlate of physical strength (amplitude). Values typical range between -60 and 0 db."
+      required: false
+      type: float
+    - name: max_loudness
+      doc: "Restricts results to tracks with attribute less than max. The overall loudness of a track in decibels (dB). Loudness values are averaged across the entire track and are useful for comparing relative loudness of tracks. Loudness is the quality of a sound that is the primary psychological correlate of physical strength (amplitude). Values typical range between -60 and 0 db."
+      required: false
+      type: float
+    - name: target_loudness
+      doc: "Tracks near target attribute will be preferred. The overall loudness of a track in decibels (dB). Loudness values are averaged across the entire track and are useful for comparing relative loudness of tracks. Loudness is the quality of a sound that is the primary psychological correlate of physical strength (amplitude). Values typical range between -60 and 0 db."
+      required: false
+      type: float
+    - name: min_mode
+      doc: "Restricts results to tracks with attribute greater than min. Mode indicates the modality (major or minor) of a track, the type of scale from which its melodic content is derived. Major is represented by 1 and minor is 0."
+      required: false
+      type: int
+    - name: max_mode
+      doc: "Restricts results to tracks with attribute less than max. Mode indicates the modality (major or minor) of a track, the type of scale from which its melodic content is derived. Major is represented by 1 and minor is 0."
+      required: false
+      type: int
+    - name: target_mode
+      doc: "Tracks near target attribute will be preferred. Mode indicates the modality (major or minor) of a track, the type of scale from which its melodic content is derived. Major is represented by 1 and minor is 0."
+      required: false
+      type: int
+    - name: min_popularity
+      doc: "Restricts results to tracks with attribute greater than min. The popularity of the track. The value will be between 0 and 100, with 100 being the most popular. The popularity is calculated by algorithm and is based, in the most part, on the total number of plays the track has had and how recent those plays are."
+      required: false
+      type: int
+    - name: max_popularity
+      doc: "Restricts results to tracks with attribute less than max. The popularity of the track. The value will be between 0 and 100, with 100 being the most popular. The popularity is calculated by algorithm and is based, in the most part, on the total number of plays the track has had and how recent those plays are."
+      required: false
+      type: int
+    - name: target_popularity
+      doc: "Tracks near target attribute will be preferred. The popularity of the track. The value will be between 0 and 100, with 100 being the most popular. The popularity is calculated by algorithm and is based, in the most part, on the total number of plays the track has had and how recent those plays are."
+      required: false
+      type: int
+    - name: min_speechiness
+      doc: "Restricts results to tracks with attribute greater than min. Speechiness detects the presence of spoken words in a track. The more exclusively speech-like the recording (e.g. talk show, audio book, poetry), the closer to 1.0 the attribute value. Values above 0.66 describe tracks that are probably made entirely of spoken words. Values between 0.33 and 0.66 describe tracks that may contain both music and speech, either in sections or layered, including such cases as rap music. Values below 0.33 most likely represent music and other non-speech-like tracks."
+      required: false
+      type: float
+    - name: max_speechiness
+      doc: "Restricts results to tracks with attribute less than max. Speechiness detects the presence of spoken words in a track. The more exclusively speech-like the recording (e.g. talk show, audio book, poetry), the closer to 1.0 the attribute value. Values above 0.66 describe tracks that are probably made entirely of spoken words. Values between 0.33 and 0.66 describe tracks that may contain both music and speech, either in sections or layered, including such cases as rap music. Values below 0.33 most likely represent music and other non-speech-like tracks."
+      required: false
+      type: float
+    - name: target_speechiness
+      doc: "Tracks near target attribute will be preferred. Speechiness detects the presence of spoken words in a track. The more exclusively speech-like the recording (e.g. talk show, audio book, poetry), the closer to 1.0 the attribute value. Values above 0.66 describe tracks that are probably made entirely of spoken words. Values between 0.33 and 0.66 describe tracks that may contain both music and speech, either in sections or layered, including such cases as rap music. Values below 0.33 most likely represent music and other non-speech-like tracks."
+      required: false
+      type: float
+    - name: min_tempo
+      doc: "Restricts results to tracks with attribute greater than min. The overall estimated tempo of a track in beats per minute (BPM). In musical terminology, tempo is the speed or pace of a given piece and derives directly from the average beat duration."
+      required: false
+      type: float
+    - name: max_tempo
+      doc: "Restricts results to tracks with attribute less than max. The overall estimated tempo of a track in beats per minute (BPM). In musical terminology, tempo is the speed or pace of a given piece and derives directly from the average beat duration." 
+      required: false
+      type: float
+    - name: target_tempo
+      doc: "Tracks near target attribute will be preferred. The overall estimated tempo of a track in beats per minute (BPM). In musical terminology, tempo is the speed or pace of a given piece and derives directly from the average beat duration."
+      required: false
+      type: float
+    - name: min_time_signature
+      doc: "Restricts results to tracks with attribute greater than min. An estimated overall time signature of a track. The time signature (meter) is a notational convention to specify how many beats are in each bar (or measure)."
+      required: false
+      type: int
+    - name: max_time_signature
+      doc: "Restricts results to tracks with attribute less than max. An estimated overall time signature of a track. The time signature (meter) is a notational convention to specify how many beats are in each bar (or measure)."
+      required: false
+      type: int
+    - name: target_time_signature
+      doc: "Tracks near target attribute will be preferred. An estimated overall time signature of a track. The time signature (meter) is a notational convention to specify how many beats are in each bar (or measure)."
+      required: false
+      type: int 
+    - name: min_valence
+      doc: "Restricts results to tracks with attribute greater than min. A measure from 0.0 to 1.0 describing the musical positiveness conveyed by a track. Tracks with high valence sound more positive (e.g. happy, cheerful, euphoric), while tracks with low valence sound more negative (e.g. sad, depressed, angry)."
+      required: false
+      type: float
+    - name: max_valence
+      doc: "Restricts results to tracks with attribute less than max. A measure from 0.0 to 1.0 describing the musical positiveness conveyed by a track. Tracks with high valence sound more positive (e.g. happy, cheerful, euphoric), while tracks with low valence sound more negative (e.g. sad, depressed, angry)."
+      required: false
+      type: float
+    - name: target_valence
+      doc: "Tracks near target attribute will be preferred. A measure from 0.0 to 1.0 describing the musical positiveness conveyed by a track. Tracks with high valence sound more positive (e.g. happy, cheerful, euphoric), while tracks with low valence sound more negative (e.g. sad, depressed, angry)."
+      required: false
+      type: float
+
+  json_parameters:
+    -    
+      
+
+- method_name: get_recommendation_genres
+  doc: "Retrieve a list of available genres seed parameter values for recommendations."
+  http_method: get
+  endpoint: "f'https://api.spotify.com/v1/recommendations/available-genre-seeds'"
+  # TODO: What do recommendations look like?
+  returns: Union[RecommendationsObject, ErrorObject]
+  scope:
+    - 
+      
+  path_parameters:
+    - 
+      
+  query_parameters:
+    -  
+    
+  json_parameters:
+    -    
+  
+# endregion    
+  
+# region Episodes API
+    
+    

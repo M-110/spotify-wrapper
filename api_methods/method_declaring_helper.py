@@ -54,6 +54,16 @@ def generate_preset_param(param: str) -> dict:
         doc_string = 'The Spotify ID of the {}.'.format(*args)
         param_type = 'str'
         required = True
+    elif param_name == 'LOCALE':
+        doc_string = "The desired language, consisting of a lowercase ISO 639-1 language code and an uppercase ISO " \
+                     "3166-1 alpha-2 country code, joined by an underscore. For example: es_MX, meaning “Spanish (" \
+                     "Mexico)”. Provide this parameter if you want the results returned in a particular language (" \
+                     "where available). Note that, if locale is not supplied, or if the specified language is not " \
+                     "available, all strings will be returned in the Spotify default language (American English). The " \
+                     "locale parameter, combined with the country parameter, may give odd results if not carefully " \
+                     "matched."
+        param_type = 'str'
+        required = False
     else:
         raise ValueError(f'{param} not yet implemented.')
 
