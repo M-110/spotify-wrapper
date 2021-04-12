@@ -512,5 +512,768 @@
 # endregion    
   
 # region Episodes API
+
+      
+
+- method_name: get_multiple_episodes
+  doc: "Get Spotify catalog information for several episodes based on their Spotify IDs."
+  http_method: get
+  endpoint: "f'https://api.spotify.com/v1/episodes'"
+  returns: Union[List[Optional[EpisodeObject]], ErrorObject]
+  scope:
+    - 
+      
+  path_parameters:
+    -
+      
+  query_parameters:
+    - name: ids
+      doc: "A list of strings of the Spotify IDs for the episodes. Maximum: 50 IDs."
+      required: true
+      type: List[str]
+    - COUNTRY[market]
+    
+  json_parameters:
+    - 
+      
+
+- method_name: get_an_episode
+  doc: "Get Spotify catalog information for a single episode identified by its unique Spotify ID."
+  http_method: get
+  endpoint: "f'https://api.spotify.com/v1/episodes/{id_}'"
+  returns: Union[EpisodeObject, ErrorObject]
+  scope:
+    - 
+      
+  path_parameters:
+    - ID_[episode]
+      
+  query_parameters:
+    - COUNTRY[market]
+    
+  json_parameters:
+    - 
+    
+
+# endregion
+    
+# Region Follow API
+    
+
+- method_name: follow_a_playlist
+  doc: "Add the current user as a follower of a playlist."
+  http_method: put
+  endpoint: "f'https://api.spotify.com/v1/playlists/{playlist_id}/followers'"
+  returns: Optional[ErrorObject]
+  scope:
+    - user-follow-modify
+    - playlist-modify-private
+      
+  path_parameters:
+    - name: playlist_id
+      doc: "The Spotify ID of the playlist. Any playlist can be followed, regardless of its public/private status, as long as you know its playlist ID."
+      required: true
+      type: str
+      
+  query_parameters:
+    -  
+    
+  json_parameters:
+    - name: public
+      doc: "If True the playlist will be included in user’s public playlists, if False it will remain private. Defaults to True."
+      required: true
+      type: bool
+    
+
+- method_name: unfollow_playlist
+  doc: "Remove the current user as a follower of a playlist."
+  http_method: delete
+  endpoint: "f'https://api.spotify.com/v1/playlists/{playlist_id}/followers'"
+  returns: Optional[ErrorObject]
+  scope:
+    - playlist-modify-public
+    - playlist-modify-private
+      
+  path_parameters:
+    - name: playlist_id
+      doc: "The Spotify ID of the playlist to be unfollowed."
+      required: true
+      type: str
+      
+  query_parameters:
+    -  
+    
+  json_parameters:
+    -  
+    
+
+- method_name: check_if_users_follow_a_playlist
+  doc: "Check to see if one or more Spotify users are following a specified playlist."
+  http_method: get
+  endpoint: "f'https://api.spotify.com/v1/playlists/{playlist_id}/followers/contains'"
+  returns: Union[List[bool], ErrorObject]
+  scope:
+    - playlist-read-private
+      
+  path_parameters:
+    - name: playlist_id
+      doc: "The Spotify ID of the playlist."
+      required: true
+      type: str
+      
+  query_parameters:
+    - name: ids
+      doc: "A list of strings of Spotify User IDs; the ids of the users you want to check to see if they follow the playlist. Maximum: 5 ids."
+      required: true
+      type: List[str]
+    
+  json_parameters:
+    -  
+
+    
+- method_name: get_users_followed_artists
+  doc: "Get the current user’s followed artists."
+  http_method: get
+  endpoint: "f'https://api.spotify.com/v1/me/following'"
+  returns: Union[PagingObject[ArtistObject], ErrorObject]
+  scope:
+    - user-follow-modify
+      
+  path_parameters:
+    - 
+      
+  # TODO: Make 'artist' a default value
+  query_parameters:
+    - name: type_
+      doc: "The ID type: currently only 'artist' is supported."
+      required: true
+      type: str
+    - name: after
+      doc: "The last artist ID retrieved from the previous request."
+      required: false
+      type: str
+    - LIMIT[artists,20,1,50]
+       
+    
+  json_parameters:
+    -  
+
+    
+- method_name: follow_artists_or_users
+  doc: "Add the current user as a follower of one or more artists or other Spotify users."
+  http_method: put
+  endpoint: "f'https://api.spotify.com/v1/me/following'"
+  returns: Optional[ErrorObject]
+  scope:
+    - user-follow-modify
+      
+  path_parameters:
+    - 
+      
+  # TODO: Docs claim json body ids is also required, but probably wrong?
+  query_parameters:
+    - name: type_
+      doc: "The ID type: 'artist' or 'user'."
+      required: true
+      type: str
+    - name: ids
+      doc: "A list of strings of Spotify IDs of the artists or users to be followed. A maximum of 50 IDs can be sent in one request."
+      required: true
+      type: List[str]
+       
+    
+  json_parameters:
+    -  
+      
+      
+- method_name: unfollow_artists_or_users
+  doc: "Remove the current user as a follower of one or more artists or other Spotify users."
+  http_method: delete
+  endpoint: "f'https://api.spotify.com/v1/me/following'"
+  returns: Optional[ErrorObject]
+  scope:
+    - user-follow-modify
+      
+  path_parameters:
+    - 
+      
+  # TODO: Docs claim json body ids is also required, but probably wrong?
+  query_parameters:
+    - name: type_
+      doc: "The ID type: 'artist' or 'user'."
+      required: true
+      type: str
+    - name: ids
+      doc: "A list of strings of Spotify IDs of the artists or users to be unfollowed. A maximum of 50 IDs can be sent in one request."
+      required: true
+      type: List[str]
+       
+    
+  json_parameters:
+    -  
+      
+      
+- method_name: get_following_state_for_artists_or_users
+  doc: "Check to see if the current user is following one or more artists or other Spotify users.."
+  http_method: get
+  endpoint: "f'https://api.spotify.com/v1/me/following/contains'"
+  returns: Union[List[bool], ErrorObject]
+  scope:
+    - user-follow-read
+      
+  path_parameters:
+    - 
+      
+  # TODO: Docs claim json body ids is also required, but probably wrong?
+  query_parameters:
+    - name: type_
+      doc: "The ID type: 'artist' or 'user'."
+      required: true
+      type: str
+    - name: ids
+      doc: "A list of strings of Spotify IDs of the artists or users to be checked. A maximum of 50 IDs can be sent in one request."
+      required: true
+      type: List[str]
+       
+    
+  json_parameters:
+    -  
+      
+# end region
+  
+# region Library API
+    
+  # TODO: "Each album object is accompanied by a timestamp (added_at) to show when it was added. There is also an etag in the header that can be used in future conditional requests."?
+- method_name: get_users_saved_albums
+  doc: "Get a list of the albums saved in the current Spotify user’s ‘Your Music’ library."
+  http_method: get
+  endpoint: "f'https://api.spotify.com/v1/me/albums'"
+  returns: Union[PagingObject[SavedAlbumObject], ErrorObject]
+  scope:
+    - user-library-read
+      
+  path_parameters:
+    -
+      
+  query_parameters:
+    - LIMIT[albums,20,1,50]
+    - OFFSET[album]
+    - COUNTRY[market]
+    
+  json_parameters:
+    -    
     
     
+- method_name: save_albums_for_current_user
+  doc: "Save one or more albums to the current user’s ‘Your Music’ library."
+  http_method: put
+  endpoint: "f'https://api.spotify.com/v1/me/albums'"
+  returns: Optional[ErrorObject]
+  scope:
+    - user-library-modify
+      
+  path_parameters:
+    -
+      
+  query_parameters:
+    - name: ids
+      doc: "A list of strings of Spotify IDs of the albums to be saved. A maximum of 50 IDs can be sent in one request."
+      required: true
+      type: List[str]
+    
+  json_parameters:
+    -    
+    
+    
+- method_name: remove_albums_for_current_user
+  doc: "Remove one or more albums from the current user’s ‘Your Music’ library."
+  http_method: delete
+  endpoint: "f'https://api.spotify.com/v1/me/albums'"
+  returns: Optioanl[ErrorObject]
+  scope:
+    - user-library-modify
+      
+  path_parameters:
+    -
+      
+  query_parameters:
+    - name: ids
+      doc: "A list of strings of Spotify IDs of the albums to be removed. A maximum of 50 IDs can be sent in one request."
+      required: true
+      type: List[str]
+    
+  json_parameters:
+    -    
+    
+    
+- method_name: check_users_saved_albums
+  doc: "Check if one or more albums is already saved in the current Spotify user’s ‘Your Music’ library."
+  http_method: get
+  endpoint: "f'https://api.spotify.com/v1/me/albums/contains'"
+  returns: Union[List[bool], ErrorObject]
+  scope:
+    - user-library-read
+      
+  path_parameters:
+    -
+      
+  query_parameters:
+    - name: ids
+      doc: "A list of strings of Spotify IDs of the albums to be checked. A maximum of 50 IDs can be sent in one request."
+      required: true
+      type: List[str]
+    
+  json_parameters:
+    -    
+    
+    
+- method_name: get_users_saved_tracks
+  doc: "Get a list of the songs saved in the current Spotify user’s ‘Your Music’ library."
+  http_method: get
+  endpoint: "f'https://api.spotify.com/v1/me/tracks'"
+  returns: Union[PagingObject[SavedTrackObject], ErrorObject]
+  scope:
+    - user-library-read
+      
+  path_parameters:
+    -
+      
+  query_parameters:
+    - COUNTRY[market]
+    - LIMIT[tracks,20,1,50]
+    - OFFSET[track]
+    
+  json_parameters:
+    -  
+    
+    
+- method_name: save_tracks_for_users
+  doc: "Save one or more tracks to the current user’s ‘Your Music’ library."
+  http_method: put
+  endpoint: "f'https://api.spotify.com/v1/me/tracks'"
+  returns: Optional[ErrorObject]
+  scope:
+    - user-library-modify
+      
+  path_parameters:
+    -
+      
+  query_parameters:
+    - name: ids
+      doc: "A list of strings of Spotify IDs of the tracks to be saved. A maximum of 50 IDs can be sent in one request."
+      required: true
+      type: List[str]
+    
+  json_parameters:
+    -  
+    
+    
+- method_name: remove_users_saved_tracks
+  doc: "Remove one or more tracks from the current user’s ‘Your Music’ library."
+  http_method: delete
+  endpoint: "f'https://api.spotify.com/v1/me/tracks'"
+  returns: Optional[ErrorObject]
+  scope:
+    - user-library-modify
+      
+  path_parameters:
+    -
+      
+  query_parameters:
+    - name: ids
+      doc: "A list of strings of Spotify IDs of the tracks to be removed. A maximum of 50 IDs can be sent in one request."
+      required: true
+      type: List[str]
+    
+  json_parameters:
+    -  
+    
+    
+- method_name: check_users_saved_tracks
+  doc: "Check if one or more tracks is already saved in the current Spotify user’s ‘Your Music’ library."
+  http_method: get
+  endpoint: "f'https://api.spotify.com/v1/me/tracks/contains'"
+  returns: Union[List[bool], ErrorObject]
+  scope:
+    - user-library-read
+      
+  path_parameters:
+    -
+      
+  query_parameters:
+    - name: ids
+      doc: "A list of strings of Spotify IDs of the tracks to be checked. A maximum of 50 IDs can be sent in one request."
+      required: true
+      type: List[str]
+    
+  json_parameters:
+    -    
+    
+    
+- method_name: get_users_saved_episodes
+  doc: "Get a list of the episodes saved in the current Spotify user’s library. (This API endpoint is in beta and could change without warning)"
+  http_method: get
+  endpoint: "f'https://api.spotify.com/v1/me/episodes'"
+  returns: Union[PagingObject[SavedEpisodeObject], ErrorObject]
+  scope:
+    - user-library-read
+      
+  path_parameters:
+    -
+      
+  query_parameters:
+    - COUNTRY[market]
+    - LIMIT[episodes,20,1,50]
+    - OFFSET[episode]
+    
+  json_parameters:
+    -  
+    
+    
+- method_name: save_tracks_for_users
+  doc: "Save one or more episodes to the current user’s library. (This API endpoint is in beta and could change without warning)"
+  http_method: put
+  endpoint: "f'https://api.spotify.com/v1/me/episodes'"
+  returns: Optional[ErrorObject]
+  scope:
+    - user-library-modify
+      
+  path_parameters:
+    -
+      
+  query_parameters:
+    - name: ids
+      doc: "A list of strings of Spotify IDs of the episodes to be saved. A maximum of 50 IDs can be sent in one request."
+      required: true
+      type: List[str]
+    
+  json_parameters:
+    -  
+    
+    
+- method_name: remove_users_saved_tracks
+  doc: "Remove one or more episodes from the current user’s library. (This API endpoint is in beta and could change without warning)"
+  http_method: delete
+  endpoint: "f'https://api.spotify.com/v1/me/episodes'"
+  returns: Optional[ErrorObject]
+  scope:
+    - user-library-modify
+      
+  path_parameters:
+    -
+      
+  query_parameters:
+    - name: ids
+      doc: "A list of strings of Spotify IDs of the episodes to be removed. A maximum of 50 IDs can be sent in one request."
+      required: true
+      type: List[str]
+    
+  json_parameters:
+    -  
+    
+    
+- method_name: check_users_saved_tracks
+  doc: "Check if one or more episodes is already saved in the current Spotify user’s ‘Your Episodes’ library. (This API endpoint is in beta and could change without warning)"
+  http_method: get
+  endpoint: "f'https://api.spotify.com/v1/me/episodes/contains'"
+  returns: Union[List[bool], ErrorObject]
+  scope:
+    - user-library-read
+      
+  path_parameters:
+    -
+      
+  query_parameters:
+    - name: ids
+      doc: "A list of strings of Spotify IDs of the episodes to be checked. A maximum of 50 IDs can be sent in one request."
+      required: true
+      type: List[str]
+    
+  json_parameters:
+    -    
+      
+    
+- method_name: get_users_saved_shows
+  doc: "Get a list of shows saved in the current Spotify user’s library."
+  http_method: get
+  endpoint: "f'https://api.spotify.com/v1/me/shows'"
+  returns: Union[PagingObject[SavedShowObject], ErrorObject]
+  scope:
+    - user-library-read
+      
+  path_parameters:
+    -
+      
+  query_parameters:
+    - COUNTRY[market]
+    - LIMIT[shows,20,1,50]
+    - OFFSET[show]
+    
+  json_parameters:
+    -  
+    
+    
+- method_name: save_tracks_for_shows
+  doc: "Save one or more shows to current Spotify user’s library."
+  http_method: put
+  endpoint: "f'https://api.spotify.com/v1/me/shows'"
+  returns: Optional[ErrorObject]
+  scope:
+    - user-library-modify
+      
+  path_parameters:
+    -
+      
+  query_parameters:
+    - name: ids
+      doc: "A list of strings of Spotify IDs of the shows to be saved. A maximum of 50 IDs can be sent in one request."
+      required: true
+      type: List[str]
+    
+  json_parameters:
+    -  
+    
+    
+- method_name: remove_users_saved_shows
+  doc: "Delete one or more shows from current Spotify user’s library."
+  http_method: delete
+  endpoint: "f'https://api.spotify.com/v1/me/shows'"
+  returns: Optional[ErrorObject]
+  scope:
+    - user-library-modify
+      
+  path_parameters:
+    -
+      
+  query_parameters:
+    - name: ids
+      doc: "A list of strings of Spotify IDs of the shows to be removed. A maximum of 50 IDs can be sent in one request."
+      required: true
+      type: List[str]
+    - COUNTRY[market]
+    
+  json_parameters:
+    -  
+    
+    
+- method_name: check_users_saved_shows
+  doc: "Check if one or more shows is already saved in the current Spotify user’s library."
+  http_method: get
+  endpoint: "f'https://api.spotify.com/v1/me/shows/contains'"
+  returns: Union[List[bool], ErrorObject]
+  scope:
+    - user-library-read
+      
+  path_parameters:
+    -
+      
+  query_parameters:
+    - name: ids
+      doc: "A list of strings of Spotify IDs of the shows to be checked. A maximum of 50 IDs can be sent in one request."
+      required: true
+      type: List[str]
+    
+  json_parameters:
+    -    
+      
+# end region
+  
+# region Markets API
+    
+- method_name: get_avaliable_markets
+  doc: "Get the list of strings of the countries in which Spotify is available, identified by their ISO 3166-1 alpha-2 country code with additional country codes for special territories."
+  http_method: get
+  endpoint: "f'https://api.spotify.com/v1/markets'"
+  returns: Union[List[str], ErrorObject]
+  scope:
+    -
+      
+  path_parameters:
+    -
+      
+  query_parameters:
+    - 
+    
+  json_parameters:
+    -    
+      
+      
+# end region
+  
+# region Personalization API
+    
+- method_name: get_a_users_top_artists_and_tracks
+  doc: "Get the current user’s top artists or tracks based on calculated affinity."
+  http_method: get
+  endpoint: "f'https://api.spotify.com/v1/me/top/{type_}'"
+  returns: Union[PagingObject[Union[ArtistObject, TrackObject]], ErrorObject]
+  scope:
+    - user-top-read
+      
+  path_parameters:
+    - name: type_
+      doc: "The type of entity to return. Valid values: 'artists' or 'tracks'."
+      required: true
+      type: str
+      
+  query_parameters:
+    - name: time_range
+      doc: "Over what time frame the affinities are computed. Valid values: 'long_term' (calculated from several years of data and including all new data as it becomes available), 'medium_term' (approximately last 6 months), 'short_term' (approximately last 4 weeks). Default: 'medium_term'."
+      required: false
+      type: str
+    - LIMIT[entities,20,1,50]
+    - OFFSET[entity]
+
+  json_parameters:
+    -  
+      
+      
+# end region
+  
+# region Player API
+
+- method_name: get_information_about_the_users_current_playback
+  doc: "Get information about the user’s current playback state, including track or episode, progress, and active device."
+  http_method: get
+  endpoint: "f'https://api.spotify.com/v1/me/player'"
+  # TODO: Add a PlaybackStateObject to contain this information?
+  returns: Union[dict, ErrorObject]
+  scope:
+    - 
+      
+  path_parameters:
+    - 
+      
+  query_parameters:
+    - COUNTRY[market]
+  # TODO: Add additional_types parameter? Seems unnecessary maybe?
+
+  json_parameters:
+    -
+
+
+- method_name: transfer_a_users_playback
+  doc: "Transfer playback to a new device and determine if it should start playing."
+  http_method: get
+  endpoint: "f'https://api.spotify.com/v1/me/player'"
+  returns: Optional[ErrorObject]
+  scope:
+    - user-modify-playback-state
+      
+  path_parameters:
+    - 
+      
+  query_parameters:
+    - 
+  
+  json_parameters:
+    # TODO: device id needs to be converted to a list. Probably.
+    - name: device_id
+      doc: "ID of the device on which playback should be transferred"
+      required: true
+      type: str
+    - name: play
+      doc: "If True, playback will be ensured on the new device. Otherwise it will keep the current playback state. Default: False."
+      required: false
+      type: bool
+
+
+- method_name: get_a_users_available_devices
+  doc: "Get a list of user's current available devices with information including their id, name, type, and volume percent."
+  http_method: get
+  endpoint: "f'https://api.spotify.com/v1/me/player/devices'"
+  # TODO: Make a device object?
+  returns: Union[List[Optional[dict]], ErrorObject]
+  scope:
+    - user-read-playback-state
+      
+  path_parameters:
+    - 
+      
+  query_parameters:
+    - 
+  
+  json_parameters:
+    - 
+
+
+- method_name: get_the_users_currently_playing_track
+  doc: "Get the object currently being played on the user’s Spotify account."
+  http_method: get
+  endpoint: "f'	https://api.spotify.com/v1/me/player/currently-playing'"
+  # TODO: Make playing object to contain this data?
+  returns: Union[Optional[dict]], ErrorObject]
+  scope:
+    - user-read-currently-playing
+    - user-read-playback-state
+    
+  path_parameters:
+    - 
+      
+  query_parameters:
+  # TODO: Add a default of 'from_token'.
+    - COUNTRY[market, True]
+    # TODO: Add additional_types parameter? Seems unnecessary maybe?
+  
+  json_parameters:
+    - 
+
+
+
+- method_name: start_or_resume_a_users_playback
+  doc: "Start a new context or resume current playback on the user’s active device. A new context can be chosen by providing a value for the parameters context_uri or uris (note: you cannot provide both a context_uri and uris parameter). \n\nThe context_uri is the uri code for a list object such as an album. The uris is a list of individual uri codes for individual objects such as tracks so it is like you are providing a playlist. Additionally offset and position_ms can be provided to choose which track to play within the context and the position to start it at. \n\nWarning: Due to the asynchronous nature of the issuance of the command, you should use the method get_information_about_the_users_current_playback to check that your issued command was handled correctly by the player."
+  http_method: put
+  endpoint: "f'https://api.spotify.com/v1/me/player/play'"
+  returns: Optional[ErrorObject]
+  scope:
+    - user-modify-playback-state
+    
+  path_parameters:
+    - 
+      
+  query_parameters:
+    - name: device_id
+      doc: "The id of the device this command is targeting. If not supplied, the user’s currently active device is the target."
+      required: false
+      type: str
+  
+  json_parameters:
+    - name: context_uri
+      doc: "The uri of the context to be played. This can be any list type such as an album, playlist, show, etc."
+      required: false
+      type: str
+    - name: uris
+      doc: "A list of uris to be used as the context. These must be individual types like tracks or episodes."
+      required: false
+      type: List[str]
+      # TODO: offset must be sent as an object {"position": 1}
+    - name: offset
+      doc: "The index of position to play within the context. For example if the context_uri were an album, an offset of 3 would begin play at the 4th track on the album. The index begins at 0. Default: 0."
+      required: false
+      type: int
+    - name: position_ms
+      doc: "The playback position in milliseconds to start/resume playback at. Default: 0."
+      required: false
+      type: int
+      
+
+- method_name: pause_a_users_playback
+  doc: "Pause the playback on the user's account. \n\nWarning: Due to the asynchronous nature of the issuance of the command, you should use the method get_information_about_the_users_current_playback to check that your issued command was handled correctly by the player."
+  http_method: put
+  endpoint: "f'https://api.spotify.com/v1/me/player/pause'"
+  returns: Optional[ErrorObject]
+  scope:
+    - user-modify-playback-state
+    
+  path_parameters:
+    - 
+      
+  query_parameters:
+    - name: device_id
+      doc: "The id of the device this command is targeting. If not supplied, the user’s currently active device is the target."
+      required: false
+      type: str
+  
+  json_parameters:
+    -
+      

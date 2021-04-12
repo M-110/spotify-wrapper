@@ -41,7 +41,7 @@ def generate_preset_param(param: str) -> dict:
         doc_string = "An ISO 3166-1 alpha-2 country code or the string 'from_token'."
         param_type = 'str'
         param_name = args[0]
-        required = False
+        required = bool(args[1:])
     elif param_name == 'LIMIT':
         doc_string = 'The maximum number of {} to return.  Default: {}. Minimum: {}. Maximum: {}.'.format(*args)
         param_type = 'int'
