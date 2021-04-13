@@ -1,9 +1,10 @@
 ﻿---
+# TODO Remove f string and make parser add f string if '{' is in the url string.
 # region Albums API
 - method_name: get_multiple_albums
   doc: "Get Spotify catalog information for multiple albums identified by their Spotify IDs."
   http_method: get
-  endpoint: https://api.spotify.com/v1/albums
+  endpoint: f'https://api.spotify.com/v1/albums'
   returns: List[Optional[AlbumObject]]
   scope:
     -
@@ -1276,4 +1277,763 @@
   
   json_parameters:
     -
+      
+
+- method_name: skip_users_playback_to_next_track
+  doc: "Skips to next track in the user’s queue. \n\nWarning: Due to the asynchronous nature of the issuance of the command, you should use the method get_information_about_the_users_current_playback to check that your issued command was handled correctly by the player."
+  http_method: post
+  endpoint: "f'https://api.spotify.com/v1/me/player/next'"
+  returns: Optional[ErrorObject]
+  scope:
+    - user-modify-playback-state
+    
+  path_parameters:
+    - 
+      
+  query_parameters:
+    - name: device_id
+      doc: "The id of the device this command is targeting. If not supplied, the user’s currently active device is the target."
+      required: false
+      type: str
+  
+  json_parameters:
+    -
+      
+
+- method_name: seek_to_position_in_currently_playing_track
+  doc: "Seeks to the given position in the user's currently playing track. \n\nWarning: Due to the asynchronous nature of the issuance of the command, you should use the method get_information_about_the_users_current_playback to check that your issued command was handled correctly by the player."
+  http_method: put
+  endpoint: "f'https://api.spotify.com/v1/me/player/seek'"
+  returns: Optional[ErrorObject]
+  scope:
+    - user-modify-playback-state
+    
+  path_parameters:
+    - 
+      
+  query_parameters:
+    - name: position_ms
+      doc: "The position in milliseconds to seek to. Must be a positive number. Passing in a position that is greater than the length of the track will cause the player to start playing the next song."
+      required: true
+      type: int
+    - name: device_id
+      doc: "The id of the device this command is targeting. If not supplied, the user’s currently active device is the target."
+      required: false
+      type: str
+  
+  json_parameters:
+    -
+      
+
+- method_name: set_repeat_mode_on_users_playback
+  doc: "Set the repeat mode for the user’s playback. Options are repeat-track, repeat-context, and off. \n\nWarning: Due to the asynchronous nature of the issuance of the command, you should use the method get_information_about_the_users_current_playback to check that your issued command was handled correctly by the player."
+  http_method: put
+  endpoint: "f'https://api.spotify.com/v1/me/player/repeat'"
+  returns: Optional[ErrorObject]
+  scope:
+    - user-modify-playback-state
+    
+  path_parameters:
+    - 
+      
+  query_parameters:
+    - name: state
+      doc: "The state to set the repeat mode to. Valid values are 'track', 'context' and 'off'. 'track' will repeat the current track. 'context' will repeat the current context. 'off' will turn repeat off."
+      required: true
+      type: str
+    - name: device_id
+      doc: "The id of the device this command is targeting. If not supplied, the user’s currently active device is the target."
+      required: false
+      type: str
+  
+  json_parameters:
+    -
+      
+
+- method_name: set_volume_for_users_playback
+  doc: "Set the volume for the user's current playback device. \n\nWarning: Due to the asynchronous nature of the issuance of the command, you should use the method get_information_about_the_users_current_playback to check that your issued command was handled correctly by the player."
+  http_method: put
+  endpoint: "f'https://api.spotify.com/v1/me/player/volume'"
+  returns: Optional[ErrorObject]
+  scope:
+    - user-modify-playback-state
+    
+  path_parameters:
+    - 
+      
+  query_parameters:
+    - name: volume_percent
+      doc: "The volume to set. Must be a value from 0 to 100 inclusive."
+      required: true
+      type: int
+    - name: device_id
+      doc: "The id of the device this command is targeting. If not supplied, the user’s currently active device is the target."
+      required: false
+      type: str
+  
+  json_parameters:
+    -
+      
+
+- method_name: toggle_shuffle_for_users_playback
+  doc: "Toggle shuffle on or off for user’s playback. \n\nWarning: Due to the asynchronous nature of the issuance of the command, you should use the method get_information_about_the_users_current_playback to check that your issued command was handled correctly by the player."
+  http_method: put
+  endpoint: "f'https://api.spotify.com/v1/me/player/shuffle'"
+  returns: Optional[ErrorObject]
+  scope:
+    - user-modify-playback-state
+    
+  path_parameters:
+    - 
+      
+  query_parameters:
+    - name: state
+      doc: "The state to set the shuffle mode to. If True, shuffle will be turned on. If False, shuffle will be turned off."
+      required: true
+      type: bool
+    - name: device_id
+      doc: "The id of the device this command is targeting. If not supplied, the user’s currently active device is the target."
+      required: false
+      type: str
+  
+  json_parameters:
+    -
+      
+
+- method_name: get_current_users_recently_played_tracks
+  doc: "Get tracks from the current user’s recently played tracks. Note: Currently does not support podcast episodes."
+  http_method: get
+  endpoint: "f'https://api.spotify.com/v1/me/player/recently-played'"
+  returns: Union[PagingObject[PlayHistoryObject], ErrorObject]
+  scope:
+    - user-modify-playback-state
+    
+  path_parameters:
+    - 
+      
+  query_parameters:
+    - LIMIT[items,20,1,50]
+    - name: after
+      doc: "A Unix timestamp in milliseconds. Returns all items after (but not including) this cursor position. If after is specified, before must not be specified."
+      required: false
+      type: int
+    - name: before
+      doc: "A Unix timestamp in milliseconds. Returns all items before (but not including) this cursor position. If before is specified, after must not be specified."
+      required: false
+      type: int
+  
+  json_parameters:
+    -
+      
+
+- method_name: add_an_item_to_queue
+  doc: "Add an item to the end of the user’s current playback queue."
+  http_method: post
+  endpoint: "f'https://api.spotify.com/v1/me/player/queue'"
+  returns: Optional[ErrorObject]
+  scope:
+    - user-modify-playback-state
+    
+  path_parameters:
+    - 
+      
+  query_parameters:
+    - name: uri
+      doc: "The uri of the item to add to the queue. Must be a track or an episode uri."
+      required: true
+      type: str
+    - name: device_id
+      doc: "The id of the device this command is targeting. If not supplied, the user’s currently active device is the target."
+      required: false
+      type: str
+      
+  json_parameters:
+    -
+
+      
+# endregion
+  
+# region Playlists API
+    
+      
+
+- method_name: get_a_list_of_current_users_playlists
+  doc: "Get a list of the playlists owned or followed by the current Spotify user."
+  http_method: get
+  endpoint: "f'https://api.spotify.com/v1/me/playlists'"
+  returns: Union[PagingObject[SimplifiedPlaylistObject], ErrorObject]
+  scope:
+    - playlist-read-private
+    - playlist-read-collaborative
+    
+  path_parameters:
+    - 
+      
+  query_parameters:
+    - LIMIT[playlists,20,1,50]
+    - OFFSET[playlist]
+      
+  json_parameters:
+    -
+      
+
+- method_name: get_a_list_of_a_users_playlists
+  doc: "Get a list of the playlists owned or followed by a Spotify user."
+  http_method: get
+  endpoint: "f'https://api.spotify.com/v1/users/{user_id}/playlists'"
+  returns: Union[PagingObject[SimplifiedPlaylistObject], ErrorObject]
+  scope:
+    - playlist-read-private
+    - playlist-read-collaborative
+    
+  path_parameters:
+    - name: user_id
+      doc: "The user's Spotify user ID."
+      required: true
+      type: str
+      
+  query_parameters:
+    - LIMIT[playlists,20,1,50]
+    - OFFSET[playlist]
+      
+  json_parameters:
+    -
+      
+      
+- method_name: create_a_playlist
+  doc: "Create an empty playlist for a Spotify user."
+  http_method: post
+  endpoint: "f'https://api.spotify.com/v1/users/{user_id}/playlists'"
+  returns: Union[PlaylistObject, ErrorObject]
+  scope:
+    - playlist-modify-public
+    - playlist-modify-private
+    
+  path_parameters:
+    - name: user_id
+      doc: "The user's Spotify user ID."
+      required: true
+      type: str
+      
+  query_parameters:
+    - 
+      
+  json_parameters:
+    - name: name
+      doc: 'The name for the new playlist, for example "Your Coolest Playlist". This name does not need to be unique; a user may have several playlists with the same name.'
+      required: true
+      type: str
+    - name: public
+      doc: "If True, the playlist will be public. If False, the playlist will be private. Default: True."
+      required: false
+      type: bool
+    - name: collaborative
+      doc: "If True, the playlist will be collaborative. If False, it won't be collaborative. Default: False. Note: To create a collaborative playlist you must also set public to False."
+      required: false
+      type: bool
+    - name: description
+      doc: "The playlist description that will be displayed on Spotify clients."
+      required: false
+      type: str
+      
+      
+- method_name: get_a_playlist
+  doc: "Get a playlist owned by a Spotify user."
+  http_method: get
+  endpoint: "f'https://api.spotify.com/v1/playlists/{playlist_id}'"
+  returns: Union[PlaylistObject, ErrorObject]
+  scope:
+    - 
+    
+  path_parameters:
+    - name: playlist_id
+      doc: "The Spotify ID for the playlist."
+      required: true
+      type: str
+      
+  query_parameters:
+    - COUNTRY[market]
+    - name: fields
+      # TODO: What the heck? This seems bad. Maybe I should simplify this interface. Why is it even important to filter this rather than return the full object?
+      doc: "Filters for the query: a comma-separated list of the fields to return. If omitted, all fields are returned. For example, to get just the playlist’’s description and URI: fields=description,uri. A dot separator can be used to specify non-reoccurring fields, while parentheses can be used to specify reoccurring fields within objects. For example, to get just the added date and user ID of the adder: fields=tracks.items(added_at,added_by.id). Use multiple parentheses to drill down into nested objects, for example: fields=tracks.items(track(name,href,album(name,href))). Fields can be excluded by prefixing them with an exclamation mark, for example: fields=tracks.items(track(name,href,album(!name,href)))."
+      required: false
+      type: str
+      # TODO: Add additional_types parameter? Seems unnecessary maybe?
+      
+  json_parameters:
+    -  
+      
+      
+- method_name: change_a_playlists_details
+  doc: "Change a playlist's name and public private state. The user must own the playlist."
+  http_method: put
+  endpoint: "f'https://api.spotify.com/v1/playlists/{playlist_id}'"
+  returns: Optional[ErrorObject]
+  scope:
+    - playlist-modify-public
+    - playlist-modify-private
+    
+  path_parameters:
+    - name: playlist_id
+      doc: "The Spotify ID for the playlist."
+      required: true
+      type: str
+      
+  query_parameters:
+    - 
+      
+  json_parameters:
+    - name: name
+      doc: 'The new name for the playlist, for example "Your Coolest Playlist Version 2". This name does not need to be unique; a user may have several playlists with the same name.'
+      required: true
+      type: str
+    - name: public
+      doc: "If True, the playlist will be public. If False, the playlist will be private. Default: True."
+      required: false
+      type: bool
+    - name: collaborative
+      doc: "If True, the playlist will be collaborative. If False, it won't be collaborative. Default: False. Note: To create a collaborative playlist you must also set public to False."
+      required: false
+      type: bool
+    - name: description
+      doc: "The playlist description that will be displayed on Spotify clients."
+      required: false
+      type: str
+      
+      
+- method_name: get_a_playlists_items
+  doc: "Get full details of the items of a playlist owned by a Spotify user."
+  http_method: get
+  endpoint: "f'https://api.spotify.com/v1/playlists/{playlist_id}/tracks'"
+  returns: Union[PagingObject[Union[TrackObject, EpisodeObject]], ErrorObject]
+  scope:
+    - 
+    
+  path_parameters:
+    - name: playlist_id
+      doc: "The Spotify ID for the playlist."
+      required: true
+      type: str
+      
+  query_parameters:
+    - COUNTRY[market]
+    - name: fields
+      # TODO: What the heck? This seems bad. Maybe I should simplify this interface. Why is it even important to filter this rather than return the full object?
+      doc: "Filters for the query: a comma-separated list of the fields to return. If omitted, all fields are returned. For example, to get just the playlist’’s description and URI: fields=description,uri. A dot separator can be used to specify non-reoccurring fields, while parentheses can be used to specify reoccurring fields within objects. For example, to get just the added date and user ID of the adder: fields=tracks.items(added_at,added_by.id). Use multiple parentheses to drill down into nested objects, for example: fields=tracks.items(track(name,href,album(name,href))). Fields can be excluded by prefixing them with an exclamation mark, for example: fields=tracks.items(track(name,href,album(!name,href)))."
+      required: false
+      type: str
+    - LIMIT[items,100,1,100]
+    - OFFSET[item]
+      # TODO: Add additional_types parameter? Seems unnecessary maybe?
+      
+  json_parameters:
+    -  
+      
+      
+- method_name: add_items_to_a_playlist
+  doc: "Add one or more items to a user’s playlist."
+  http_method: post
+  endpoint: "f'https://api.spotify.com/v1/playlists/{playlist_id}/tracks'"
+  returns: Optional[ErrorObject]
+  scope:
+    - playlist-modify-public
+    - playlist-modify-private
+    
+  path_parameters:
+    - name: playlist_id
+      doc: "The Spotify ID for the playlist."
+      required: true
+      type: str
+      
+  query_parameters:
+    - COUNTRY[market]
+    - name: position
+      doc: "The position to insert the items, a zero-based index. For example, to insert the items in the first position: position=0; to insert the items in the third position: position=2 . If omitted, the items will be appended to the playlist. Items are added in the order they are listed in the uris."
+      required: false
+      type: int
+      
+  json_parameters:
+    - name: uris
+      doc: "A list of Spotify URIs to be added. They can be tracks or episode URIs. A maximum of 100 items can be added per request."
+      required: false
+      type: List[str]
+      
+      
+  # TODO: Weird that these two separate operations share an endpoint. I could separate the method into two, or preserve the original API syntax. Maybe this should be part of a larger project to simplify the entire API.
+- method_name: reorder_or_replace_a_playlists_items
+  doc: "Either reorder or replace items in a playlist depending on the request’s parameters. To reorder items, include range_start, insert_before, range_length and snapshot_id in the request’s body. To replace items, include uris as either a query parameter or in the request’s body. Replacing items in a playlist will overwrite its existing items. This operation can be used for replacing or clearing items in a playlist. \n\nNote: Replace and reorder are mutually exclusive operations which share the same endpoint, but have different parameters. These operations cannot be applied together in a single request."
+  http_method: put
+  endpoint: "f'https://api.spotify.com/v1/playlists/{playlist_id}/tracks'"
+  # TODO: This is a good example of a method where a return doc string would help a lot.
+  returns: Union[str, ErrorObject]
+  scope:
+    - playlist-modify-public
+    - playlist-modify-private
+    
+  path_parameters:
+    - name: playlist_id
+      doc: "The Spotify ID for the playlist."
+      required: true
+      type: str
+      
+  query_parameters:
+    - 
+ # TODO: This is either really confusing or I'm just getting a headache from the COVID vaccine.
+  json_parameters:
+    - name: uris
+      doc: "A list of Spotify URIs to replace the playlist with. They can be tracks or episode URIs. A maximum of 100 items can be added per request."
+      required: false
+      type: List[str]
+    - name: range_start
+      doc: "The position of the first item to be reordered."
+      required: false
+      type: int
+    - name: insert_before
+      doc: "The position where the items should be inserted. To reorder the items to the end of the playlist, simply set insert_before to the position after the last item. To reorder the first item to the last position in a playlist with 10 items, set range_start to 0, and insert_before to 10. To reorder the last item in a playlist with 10 items to the start of the playlist, set range_start to 9, and insert_before to 0."
+      required: false
+      type: int
+    - name: range_length
+      doc: "The amount of items to be reordered. Default: 1."
+      required: false
+      type: int
+    - name: snapshot_id
+      doc: "The playlist's snapshot ID against which you want to make the changes."
+      required: false
+      type: str
+      
+      
+- method_name: remove_items_from_a_playlist
+  doc: "Remove one of more items from a user's playlist."
+  http_method: delete
+  endpoint: "f'https://api.spotify.com/v1/playlists/{playlist_id}/tracks'"
+  # TODO: This is a good example of a method where a return doc string would help a lot.
+  returns: Union[str, ErrorObject]
+  scope:
+    - playlist-modify-public
+    - playlist-modify-private
+    
+  path_parameters:
+    - name: playlist_id
+      doc: "The Spotify ID for the playlist."
+      required: true
+      type: str
+      
+  query_parameters:
+    - 
+      
+  json_parameters:
+    - name: tracks
+      doc: "A list of Spotify URIs to be removed. They can be tracks or episode URIs. A maximum of 100 items can be removed per request."
+      required: false
+      type: List[str]
+    - name: snapshot_id
+      doc: "The playlist’s snapshot ID against which you want to make the changes. The API will validate that the specified items exist and in the specified positions and make the changes, even if more recent changes have been made to the playlist."
+      required: false
+      type: str
+      
+      
+- method_name: get_a_playlist_cover_image
+  doc: "Get the current image associated with a specific playlist."
+  http_method: get
+  endpoint: "f'https://api.spotify.com/v1/playlists/{playlist_id}/images'"
+  returns: Union[ImageObject, ErrorObject]
+  scope:
+    - 
+    
+  path_parameters:
+    - name: playlist_id
+      doc: "The Spotify ID for the playlist."
+      required: true
+      type: str
+      
+  query_parameters:
+    - 
+      
+  json_parameters:
+    - 
+      
+  # TODO: How does this image stuff work?
+- method_name: upload_a_custom_playlist_cover_image
+  doc: "Replace the image used to represent a specific playlist."
+  http_method: put
+  endpoint: "f'https://api.spotify.com/v1/playlists/{playlist_id}/images'"
+  returns: Union[ImageObject, ErrorObject]
+  scope:
+    - ugc-image-upload
+    - playlist-modify-public
+    - playlist-modify-private
+    
+  path_parameters:
+    - name: playlist_id
+      doc: "The Spotify ID for the playlist."
+      required: true
+      type: str
+    # TODO: This will definitely take some additional parsing. It should be sent as content-type image/jpeg.
+    - name: image
+      doc: "The image to be uploaded."
+      required: true
+      type:  ImageObject
+      
+  query_parameters:
+    - 
+      
+  json_parameters:
+    - 
+      
+# endregion
+    
+# region Search API
+    
+      
+- method_name: search_for_an_item
+  # TODO: Add more extensive documentation for making queries.
+  doc: "Get Spotify Catalog information about albums, artists, playlists, tracks, shows or episodes that match a keyword string."
+  http_method: get
+  endpoint: "f'https://api.spotify.com/v1/search'"
+  returns: Union[PagingObject[Union[ArtistObject, SimplifiedAlbumObject, TrackObject, SimplifiedShowObject, SimplifiedEpisodeObject]], ErrorObject]
+  scope:
+    - 
+    
+  path_parameters:
+    - name: q
+      doc: "Search query keywords and optional field filters and operators"
+      required: true
+      type: str
+    - name: type_
+      doc: "A list of strings of the item types to search across. Valid types are: 'album', 'artist', 'playlist', 'track', 'show' and 'episode'."
+      required: true
+      type:  List[str]
+    - COUNTRY[market]
+    - name: limit
+      doc: "Maximum number of results to return. Default: 20. Minimum: 1. Maximum: 50. Note: The limit is applied within each type, not the total response. For example, if the limit value is 3 and the type is ['artist', 'album'], the response contains 3 artists and 3 albums."
+      required: false
+      type:  int
+    - name: offset
+      doc: "The index of the first result to return. Default: 0. Maximum: 1,000. Use with limit to get the next page of search results."
+      required: false
+      type:  int
+      # TODO: No idea what this externally hosted audio is. Why is this not just a bool?
+    - name: include_external
+      doc: "Possible values: 'audio'. If 'audio' is specified the response will include any relevant audio content that is hosted externally. By default external content is filtered out from responses."
+      required: false
+      type:  str
+    
+      
+  query_parameters:
+    - 
+      
+  json_parameters:
+    -  
+      
+# endregion
+    
+# region Shows API
+      
+
+- method_name: get_multiple_shows
+  doc: "Get Spotify catalog information for several shows based on their Spotify IDs."
+  http_method: get
+  endpoint: "f'https://api.spotify.com/v1/shows'"
+  returns: Union[List[Optional[SimplifiedShowObject]], ErrorObject]
+  scope:
+    - 
+      
+  path_parameters:
+    -
+      
+  query_parameters:
+    - name: ids
+      doc: "A list of strings of the Spotify IDs for the shows. Maximum: 50 IDs."
+      required: true
+      type: List[str]
+    - COUNTRY[market]
+    
+  json_parameters:
+    - 
+      
+
+- method_name: get_a_show
+  doc: "Get Spotify catalog information for a single show identified by its unique Spotify ID."
+  http_method: get
+  endpoint: "f'https://api.spotify.com/v1/shows/{id_}'"
+  returns: Union[ShowObject, ErrorObject]
+  scope:
+    - 
+      
+  path_parameters:
+    - ID_[show]
+      
+  query_parameters:
+    - COUNTRY[market]
+    
+  json_parameters:
+    -
+      
+      
+
+- method_name: get_a_shows_episodes
+  doc: "Get Spotify catalog information about a show’s episodes. Optional parameters can be used to limit the number of episodes returned."
+  http_method: get
+  endpoint: "f'https://api.spotify.com/v1/shows/{id_}/episodes'"
+  returns: Union[PagingObect[SimplifiedEpisodeObject], ErrorObject]
+  scope:
+    - 
+      
+  path_parameters:
+    - ID_[show]
+      
+  query_parameters:
+    - COUNTRY[market]
+    - LIMIT[episodes,20,1,50]
+    - OFFSET[episode]
+    
+  json_parameters:
+    -   
+
+      
+# endregion
+    
+# region Tracks API
+      
+
+- method_name: get_several_tracks
+  doc: "Get Spotify catalog information for multiple tracks based on their Spotify IDs."
+  http_method: get
+  endpoint: "f'https://api.spotify.com/v1/tracks'"
+  returns: Union[List[Optional[TrackObject]], ErrorObject]
+  scope:
+    - 
+      
+  path_parameters:
+    -
+      
+  query_parameters:
+    - name: ids
+      doc: "A list of strings of the Spotify IDs for the tracks. Maximum: 50 IDs."
+      required: true
+      type: List[str]
+    - COUNTRY[market]
+    
+  json_parameters:
+    - 
+      
+
+- method_name: get_a_track
+  doc: "Get Spotify catalog information for a single track identified by its unique Spotify ID."
+  http_method: get
+  endpoint: "f'https://api.spotify.com/v1/tracks/{id}'"
+  returns: Union[TrackObject, ErrorObject]
+  scope:
+    - 
+      
+  path_parameters:
+    - ID_[track]
+      
+  query_parameters:
+    - COUNTRY[market]
+    
+  json_parameters:
+    - 
+      
+
+- method_name: get_audio_features_for_several_tracks
+  doc: "Get audio features for multiple tracks based on their Spotify IDs."
+  http_method: get
+  endpoint: "f'https://api.spotify.com/v1/audio-features'"
+  returns: Union[List[Optional[AudioFeaturesObject]], ErrorObject]
+  scope:
+    - 
+      
+  path_parameters:
+    -  
+      
+  query_parameters:
+    - name: ids
+      doc: "A list of strings of the Spotify IDs for the tracks. Maximum: 100 IDs."
+      required: true
+      type: List[str]
+    
+  json_parameters:
+    -  
+      
+
+- method_name: get_audio_features_for_a_track
+  doc: "Get audio feature information for a single track identified by its unique Spotify ID."
+  http_method: get
+  endpoint: "f'https://api.spotify.com/v1/audio-features/{id}'"
+  returns: Union[AudioFeaturesObject, ErrorObject]
+  scope:
+    - 
+      
+  path_parameters:
+    -  
+      
+  query_parameters:
+    - ID_[track]
+    
+  json_parameters:
+    - 
+      
+
+- method_name: get_audio_analysis_for_a_track
+  doc: "Get a detailed audio analysis for a single track identified by its unique Spotify ID."
+  http_method: get
+  endpoint: "f'https://api.spotify.com/v1/audio-analysis/{id}'"
+  # TODO: This object isn't listed in the object index. Must be added.
+  returns: Union[AudioAnalysisObject, ErrorObject]
+  scope:
+    - 
+      
+  path_parameters:
+    -  
+      
+  query_parameters:
+    - ID_[track]
+    
+  json_parameters:
+    - 
+      
+# endregion
+    
+# region  Users Profile API
+
+
+- method_name: get_current_users_profile
+  doc: "Get detailed profile information about the current user (including the current user’s username)."
+  http_method: get
+  endpoint: "f'https://api.spotify.com/v1/me'"
+  returns: Union[UserObject, ErrorObject]
+  scope:
+    - user-read-email
+    - user-read-private
+      
+  path_parameters:
+    -  
+      
+  query_parameters:
+    - 
+    
+  json_parameters:
+    - 
+
+
+- method_name: get_a_users_profile
+  doc: "Get public profile information about a Spotify user."
+  http_method: get
+  endpoint: "f'https://api.spotify.com/v1/users/{user_id}'"
+  returns: Union[UserObject, ErrorObject]
+  scope:
+    -  
+      
+  path_parameters:
+    -  ID_[user]
+      
+  query_parameters:
+    - 
+    
+  json_parameters:
+    - 
+      
+
+# endregion
       
