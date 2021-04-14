@@ -1,7 +1,8 @@
-from server_pkce_flow import get_new_credentials
-from utilities import requires
 import requests
-
+from typing import Optional
+from .authorization_flow.server_pkce_flow import get_new_credentials
+from .object_library import AlbumObject
+from .utilities import requires
 
 # from object_index import AlbumObject
 
@@ -35,8 +36,14 @@ class SpotifyAPI:
     def headers(self):
         return self._headers
 
-    def _get(self, endpoint):
-        return requests.get(endpoint, headers=self.headers)
+    def _get(self, url, query_params, json_body):
+        query_params ={key: value for key, value in query_params.items() if value is not None}
+        print(f'{url=}')
+        print(f'{query_params=}')
+        print(f'{json_body=}')
+        result = requests.get(url, params=query_params, headers=self.headers)
+        print(result.text)
+        return result
 
     def _put(self, endpoint):
         return requests.put(endpoint, headers=self.headers)
@@ -52,16 +59,27 @@ class SpotifyAPI:
     def play_next_song(self):
         return self._post('https://api.spotify.com/v1/me/player/next')
 
-    def get_album(self):
-        return self._get('https://api.spotify.com/v1/albums/4aawyAB9vmqN3uQ7FjRGTy')
+    def get_an_album(self, id_: str, market: str = None) -> Optional[AlbumObject]:
+        """
+        Get Spotify catalog information for a single album.
+
+        Args:
+            id_: The Spotify ID of the album.
+            market: Optional; An ISO 3166-1 alpha-2 country code or the string
+              'from_token'.
+        """
+        url = f'https://api.spotify.com/v1/albums/{id_}'
+        query_params = {'market': market}
+        json_body = {}
+        response = self._get(url, query_params, json_body)
+        return AlbumObject(response.text)
 
     def get_a_category(self, category_id, country):
         return requests.get(f'https://api.spotify.com/v1/browse/categories/{category_id}',
                             params={'country': country},
                             headers=self.headers)
 
+# s = SpotifyAPI()
 
-s = SpotifyAPI()
-
-r = s.get_a_category('dinner', 'SE')
-print(r.request.url)
+# r = s.get_a_category('dinner', 'SE')
+# print(r.request.url)

@@ -103,17 +103,20 @@ def _get_authorization(code_challenge: str):
 def _token_request():
     global authorization_code
     authorization_code = request.args.get('code', None)
-
+    
+    # TODO: Change this?
+    # If the state did not match, quit the app.
     if state != request.args.get('state'):
         print('State did not match... Quitting.')
         quit()
-
+    
+    # Once the code is retrieved, the temporary flask server can be shut down.
     request.environ.get('werkzeug.server.shutdown')()
 
     if authorization_code is None:
         return "Something went wrong. Where is the code?"
     else:
-        return f"<h1>WE GOT IT, WE GOT THE CODE!! IT IS:</h1> <br> {authorization_code}"
+        return "Code Received. You may close this window."
 
 
 def _get_token_json(code_verifier: bytes):

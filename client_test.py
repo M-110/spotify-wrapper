@@ -1,4 +1,4 @@
-﻿from server_pkce_flow import create_token
+﻿from spotipy.authorization_flow.server_pkce_flow import create_token
 import requests
 
 
