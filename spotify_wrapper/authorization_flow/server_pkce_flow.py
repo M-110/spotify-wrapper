@@ -1,15 +1,13 @@
-from webbrowser import open_new
-from flask import Flask, request
+import base64
+from hashlib import sha256
+from http.server import BaseHTTPRequestHandler, HTTPServer
+import json
+import random
 import requests
 from string import ascii_letters
-import random
-from hashlib import sha256
-import base64
-import json
-from urllib.parse import urlencode
 from typing import Tuple, Optional
-
-app = Flask(__name__)
+from urllib.parse import urlencode, parse_qs, urlsplit
+from webbrowser import open_new
 
 authorization_code: Optional[str] = None
 credentials: Optional[dict] = None
@@ -32,7 +30,7 @@ SCOPE: str = ' '.join(['ugc-image-upload',
                        'user-library-modify',
                        'user-library-read',
                        'user-read-email',
-                       'user-read-private',])
+                       'user-read-private', ])
 
 
 def _missing_credentials() -> bool:
@@ -77,11 +75,37 @@ def _construct_authorize_url(code_challenge: str) -> str:
         scope=SCOPE))
 
 
+class TempServer(BaseHTTPRequestHandler):
+    """A temporary local server that will receive the token from Spotify."""
+
+    def do_GET(self):
+        self.send_response(200)
+        self.send_header("Content-type", "text/html")
+        self.end_headers()
+        query = parse_qs(urlsplit(self.path).query)
+
+        global authorization_code
+        authorization_code = query['code'][0]
+        response_state = query['state'][0]
+        if response_state != state:
+            raise ValueError("State did not match.")
+        self.wfile.write(bytes("<h1>Token received. You may close this window.</h1>", "utf-8"))
+        raise KeyboardInterrupt
+
+    def log_message(self, *_):
+        """Override log method to disable requests being logged in the console."""
+        return
+
+
 def _get_authorization(code_challenge: str):
     """Get the authorization code and store as the global variable 'authorization_code'.
     
     This will open a browser for the client to authorize the app, and run a
-    local Flask server to receive the code.
+    local HTTP server to receive the code.
+    
+    This is meant to remove all responsibility from the user for handling the
+    code. And instead allow them to just click the authorization button and the
+    package will handle the rest.
     """
     authorize_url: str = _construct_authorize_url(code_challenge)
 
@@ -91,32 +115,16 @@ def _get_authorization(code_challenge: str):
     # Run a temporary server to receive the code from Spotify which will
     # be sent to localhost:8080/get_token/ through the redirect URI
     # after the client approves authorization.
-    app.run(port=8080)
+    server = HTTPServer(("localhost", 8080), TempServer)
+    try:
+        server.serve_forever()
+    except:
+        server.server_close()
 
     # Once the server receives a response, the _token_request function will
     # be called which will store the authorization_code as a global variable
     # and then the server will shut itself down and this code will continue.
     return
-
-
-@app.route('/get_token/')
-def _token_request():
-    global authorization_code
-    authorization_code = request.args.get('code', None)
-    
-    # TODO: Change this?
-    # If the state did not match, quit the app.
-    if state != request.args.get('state'):
-        print('State did not match... Quitting.')
-        quit()
-    
-    # Once the code is retrieved, the temporary flask server can be shut down.
-    request.environ.get('werkzeug.server.shutdown')()
-
-    if authorization_code is None:
-        return "Something went wrong. Where is the code?"
-    else:
-        return "Code Received. You may close this window."
 
 
 def _get_token_json(code_verifier: bytes):
@@ -171,4 +179,5 @@ def get_new_credentials() -> dict:
     if _confirm_token_in_credentials():
         return credentials
     else:
-        raise ValueError("Something went wrong with the credentials. Could not find authorization token.")
+        raise ValueError("Something went wrong with the credentials. Could not "
+                         "find authorization token.")
