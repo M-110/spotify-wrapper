@@ -219,5 +219,6 @@ def yaml_to_methods(filename):
     return output
 
 
-class_output = yaml_to_methods('methods_2.yaml')
-print(class_output)
+if __name__ == "__main__":
+    class_output = yaml_to_methods('methods.yaml')
+    print(class_output)

@@ -1,97 +1,2039 @@
 ﻿---
-# 1. Albums API
-# 
-- name: Albums API
-  doc: "Album Object Doc String."
-  methods:
-    - name: get_multiple_albums
-      doc: "Get Spotify catalog information for multiple albums identified by their Spotify IDs."
-      required_scopes:
-      params:
-        - name: ids
-          doc: "A list of the Spotify IDs for the albums. Maximum 20 IDs"
-          required: true
-          type: List[str]
-        - name: market
-          doc: "An ISO 3166-1 alpha-2 country code."
-          required: false
-          type: str
-          validators:
-            - name: validate_country_code
-              params: 
-      http_method: get
-      endpoint_base: https://api.spotify.com/v1/albums
-      endpoint_path_param: None
-      endpoint_query_params:
-        - name: ids
-          constructor: "','.join(ids)"
-        - name: market
-          constructor: market
-          
-      return: List[Optional[AlbumObject]]
+# TODO Remove f string and make parser add f string if '{' is in the url string.
+# region Albums API
+- method_name: get_multiple_albums
+  doc: "Get Spotify catalog information for multiple albums identified by their Spotify IDs."
+  http_method: get
+  endpoint: f'https://api.spotify.com/v1/albums'
+  returns: List[Optional[AlbumObject]]
+  scope:
+    -
       
-    - name: get_an_album
-      doc: "Get Spotify catalog information for a single album by its Spotify ID."
-      required_scopes: 
-      params:
-        - name: id_
-          doc: "A list of the Spotify IDs for the albums. Maximum 20 IDs"
-          required: true
-          type: str
-        - name: market
-          doc: "An ISO 3166-1 alpha-2 country code."
-          required: false
-          type: str
-        validators:
-          - name: validate_country_code
-            params: 
-      http_method: get
-      endpoint_base: https://api.spotify.com/v1/albums/
-      endpoint_path_param: id_
-      endpoint_query_params:
-        - name: market
-          constructor: market
-      return: AlbumObject
+  path_parameters:
+    -
       
-    - name: get_an_albums_tracks
-      doc: "Get Spotify catalog information about an album’s tracks. Optional parameters can be used to limit the number of tracks returned."
-      required_scopes: 
-        - 'fake-scope'
-        - 'fake-second-scope'
-      params:
-      - name: id_
-        doc: "A list of the Spotify IDs for the albums. Maximum 20 IDs"
-        required: true
-        type: str
-      - name: market
-        doc: "An ISO 3166-1 alpha-2 country code."
-        required: false
-        type: str
-        validators:
-          - name: validate_country_code
-            params: 
-      - name: limit
-        doc: "The maximum number of tracks to return. Default: 20. Minimum: 1. Maximum: 50."
-        required: false
-        type: int
-        validators:
-          - name: validate_type
-            params: int
-          - name: validate_range
-            params: 1, 50      
-      - name: offset
-        doc: "The index of the first track to return. Default: 0 (the first object). Use with limit to get the next set of tracks."
-        required: false
-        type: int
-      http_method: get
-      endpoint_base: https://api.spotify.com/v1/albums/
-      endpoint_path_params: "f'{id_}/tracks'"
-      endpoint_query_params:
-        - name: market
-          constructor: market
-        - name: limit
-          constructor: str(limit)
-        - name: offset
-          constructor: str(offset)
-        #TODO: API Reference claims this return, but this doesn't sound right. I think it's
-      return: AlbumObject 
+  query_parameters:
+    - name: ids
+      doc: "A list of strings of the Spotify IDs for the albums. Maximum: 20 IDs."
+      required: true
+      type: List[str]
+    - COUNTRY[market]
+    
+  json_parameters:
+    -
+    
+    
+- method_name: get_an_album
+  doc: "Get Spotify catalog information for a single album."
+  http_method: get
+  endpoint: "f'https://api.spotify.com/v1/albums/{id_}'"
+  returns: Optional[AlbumObject]
+  scope:
+    -
+      
+  path_parameters:
+    - ID_[album]
+      
+  query_parameters:
+    - COUNTRY[market]
+    
+  json_parameters:
+    -
+    
+    
+- method_name: get_an_albums_tracks
+  doc: "Get Spotify catalog information about an album’s tracks. Optional parameters can be used to limit the number of tracks returned."
+  http_method: get
+  endpoint: "f'https://api.spotify.com/v1/albums/{id_}/tracks'"
+  returns: Optional[AlbumObject]
+  scope:
+    - 
+      
+  path_parameters:
+    - ID_[album]
+      
+  query_parameters:
+    - COUNTRY[market]
+    - LIMIT[tracks,20,1,50]
+    - OFFSET[track]
+    
+  json_parameters:
+    -
+      
+# endregion
+      
+# region Artists API
+      
+- method_name: get_multiple_artists
+  doc: "Get Spotify catalog information for several artists based on their Spotify IDs."
+  http_method: get
+  endpoint: "f'https://api.spotify.com/v1/artists'"
+  returns: List[Optional[ArtistObject]]
+  scope:
+    - 
+      
+  path_parameters:
+    -
+      
+  query_parameters:
+    - name: ids
+      doc: "A list of strings of the Spotify IDs for the artists. Maximum: 50 IDs."
+      required: true
+      type: List[str]
+    
+  json_parameters:
+    - 
+     
+
+- method_name: get_an_artist
+  doc: "Get Spotify catalog information for a single artist identified by their unique Spotify ID."
+  http_method: get
+  endpoint: "f'https://api.spotify.com/v1/artists/{id_}'"
+  returns: Union[ArtistObject, ErrorObject]
+  scope:
+    - 
+      
+  path_parameters:
+    - ID_[artist]
+      
+  query_parameters:
+    - 
+    
+  json_parameters:
+    - 
+
+
+- method_name: get_an_artists_top_tracks
+  doc: "Get Spotify catalog information about an artist’s top tracks by country."
+  http_method: get
+  endpoint: "f'https://api.spotify.com/v1/artists/{id}/top-tracks'"
+  returns: Union[List[TrackObject], ErrorObject]
+  scope:
+    - 
+      
+  path_parameters:
+    - ID_[artist]
+      
+  query_parameters:
+    - name: market
+      doc: "An ISO 3166-1 alpha-2 country code or the string 'from_token'."
+      required: true
+      type: str
+    
+  json_parameters:
+    -    
+
+
+- method_name: get_an_artists_related_artists
+  doc: "Get Spotify catalog information about artists similar to a given artist. Similarity is based on analysis of the Spotify community’s listening history."
+  http_method: get
+  endpoint: "f'https://api.spotify.com/v1/artists/{id}/related-artists'"
+  returns: Union[List[ArtistObject], ErrorObject]
+  scope:
+    - 
+      
+  path_parameters:
+    - ID_[artist]
+      
+  query_parameters:
+    -
+    
+  json_parameters:
+    -    
+
+
+- method_name: get_an_artists_albums
+  doc: "Get Spotify catalog information about an artist’s albums."
+  http_method: get
+  endpoint: "f'https://api.spotify.com/v1/artists/{id}/albums'"
+  returns: Union[PagingObject[SimplifiedAlbumObject], ErrorObject]
+  scope:
+    - 
+      
+  path_parameters:
+    - ID_[artist]
+      
+  query_parameters:
+    - name: include_groups
+      doc: "A list of strings of the keywords that will be used to filter the response. If not supplied, all album types will be returned. Valid keywords are 'album', 'single', 'appears_on', and 'compilation'."
+      required: false
+      type: List[str]
+    - COUNTRY[market]
+    - LIMIT[albums,20,1,50]
+    - OFFSET[album]
+    
+  json_parameters:
+    -    
+
+# endregion
+
+# region Browse API
+
+- method_name: get_all_new_releases
+  doc: "Get a list of new album releases featured in Spotify (shown, for example, on a Spotify player’s “Browse” tab)."
+  http_method: get
+  endpoint: "f'https://api.spotify.com/v1/browse/new-releases'"
+  returns: Union[PagingObject[SimplifiedAlbumObject], ErrorObject]
+  scope:
+    - 
+      
+  path_parameters:
+    -
+      
+  query_parameters:
+    - COUNTRY[country]
+    - LIMIT[albums,20,1,50]
+    - OFFSET[album]
+    
+  json_parameters:
+    -    
+    
+
+- method_name: get_all_featured_playlists
+  doc: "Get a list of Spotify featured playlists (shown, for example, on a Spotify player’s ‘Browse’ tab)."
+  http_method: get
+  endpoint: "f'https://api.spotify.com/v1/browse/featured-playlists'"
+  returns: Union[PagingObject[SimplifiedPlaylistObject], ErrorObject]
+  scope:
+    - 
+      
+  path_parameters:
+    -
+      
+  query_parameters:
+    - COUNTRY[country]
+    - LOCALE
+    - name: timestamp
+      doc: "A timestamp in ISO 8601 format: yyyy-MM-ddTHH:mm:ss. Use this parameter to specify the user’s local time to get results tailored for that specific date and time in the day. If not provided, the response defaults to the current UTC time. Example: “2014-10-23T09:00:00” for a user whose local time is 9AM. If there were no featured playlists (or there is no data) at the specified time, the response will revert to the current UTC time."
+      required: false
+      type: str
+    - LIMIT[albums,20,1,50]
+    - OFFSET[album]
+    
+  json_parameters:
+    -  
+    
+
+- method_name: get_all_categories
+  doc: "Get a list of categories used to tag items in Spotify (on, for example, the Spotify player’s “Browse” tab)."
+  http_method: get
+  endpoint: "f'https://api.spotify.com/v1/browse/categories'"
+  returns: Union[PagingObject[CategoryObject], ErrorObject]
+  scope:
+    - 
+      
+  path_parameters:
+    -
+      
+  query_parameters:
+    - COUNTRY[country]
+    - LOCALE
+    - name: timestamp
+      doc: "A timestamp in ISO 8601 format: yyyy-MM-ddTHH:mm:ss. Use this parameter to specify the user’s local time to get results tailored for that specific date and time in the day. If not provided, the response defaults to the current UTC time. Example: “2014-10-23T09:00:00” for a user whose local time is 9AM. If there were no featured playlists (or there is no data) at the specified time, the response will revert to the current UTC time."
+      required: false
+      type: str
+    - LIMIT[albums,20,1,50]
+    - OFFSET[category]
+    
+  json_parameters:
+    -   
+    
+
+- method_name: get_a_category
+  doc: "Get a single category used to tag items in Spotify (on, for example, the Spotify player’s “Browse” tab)."
+  http_method: get
+  endpoint: "f'https://api.spotify.com/v1/browse/categories/{category_id}'"
+  returns: Union[CategoryObject, ErrorObject]
+  scope:
+    - 
+      
+  path_parameters:
+    - name: category_id
+      doc: "The Spotify category ID for the category."
+      required: true
+      type: str
+      
+  query_parameters:
+    - COUNTRY[country]
+    - LOCALE
+    
+  json_parameters:
+    -    
+    
+
+- method_name: get_a_categorys_playlists
+  doc: "Get a list of Spotify playlists tagged with a particular category."
+  http_method: get
+  endpoint: "f'https://api.spotify.com/v1/browse/categories/{category_id}/playlists'"
+  returns: Union[PagingObject[SimplifiedPlaylistObject], ErrorObject]
+  scope:
+    - 
+      
+  path_parameters:
+    - name: category_id
+      doc: "The Spotify category ID for the category."
+      required: true
+      type: str
+      
+  query_parameters:
+    - COUNTRY[country]
+    - LOCALE
+    - LIMIT[albums,20,1,50]
+    - OFFSET[playlist]
+    
+  json_parameters:
+    -    
+    
+
+- method_name: get_recommendations
+  doc: "Recommendations are generated based on the available information for a given seed entity and matched against similar artists and tracks. If there is sufficient information about the provided seeds, a list of tracks will be returned together with pool size details."
+  http_method: get
+  endpoint: "f'https://api.spotify.com/v1/recommendations'"
+  returns: Union[RecommendationsObject, ErrorObject]
+  scope:
+    - 
+      
+  path_parameters:
+    -
+      
+  query_parameters:
+    - name: seed_artists
+      doc: "A list of strings of Spotify IDs for seed artists. Up to 5 seed values may be provided in any combination of seed_artists, seed_tracks and seed_genres."
+      required: true
+      type: List[str]
+    - name: seed_genres
+      doc: "A list of strings of Spotify IDs for seed genres. Up to 5 seed values may be provided in any combination of seed_artists, seed_tracks and seed_genres."
+      required: true
+      type: List[str]
+    - name: seed_tracks
+      doc: "A list of strings of Spotify IDs for seed tracks. Up to 5 seed values may be provided in any combination of seed_artists, seed_tracks and seed_genres."
+      required: true
+      type: List[str]
+      
+    - name: limit
+      doc: "The target size of the list of recommended tracks. For seeds with unusually small pools or when highly restrictive filtering is applied, it may be impossible to generate the requested number of recommended tracks. Debugging information for such cases is available in the response. Default: 20. Minimum: 1. Maximum: 100."
+      required: false
+      type: int
+    - name: market
+      doc: "An ISO 3166-1 alpha-2 country code or the string from_token. Provide this parameter if you want to apply Track Relinking. Because min_*, max_* and target_* are applied to pools before relinking, the generated results may not precisely match the filters applied. Original, non-relinked tracks are available via the linked_from attribute of the relinked track response."
+      required: false
+      type: str
+      
+    - name: min_acousticness
+      doc: "Restricts results to tracks with attribute greater than min. Acousticness is a confidence measure from 0.0 to 1.0 of whether the track is acoustic. 1.0 represents high confidence the track is acoustic."
+      required: false
+      type: float
+    - name: max_acousticness
+      doc: "Restricts results to tracks with attribute less than max. Acousticness is a confidence measure from 0.0 to 1.0 of whether the track is acoustic. 1.0 represents high confidence the track is acoustic."
+      required: false
+      type: float
+    - name: target_acousticness
+      doc: "Tracks near target attribute will be preferred. Acousticness is a confidence measure from 0.0 to 1.0 of whether the track is acoustic. 1.0 represents high confidence the track is acoustic."
+      required: false
+      type: float
+    - name: min_danceability
+      doc: "Restricts results to tracks with attribute greater than min. Danceability describes how suitable a track is for dancing based on a combination of musical elements including tempo, rhythm stability, beat strength, and overall regularity. A value of 0.0 is least danceable and 1.0 is most danceable."
+      required: false
+      type: float
+    - name: max_danceability
+      doc: "Restricts results to tracks with attribute less than max. Danceability describes how suitable a track is for dancing based on a combination of musical elements including tempo, rhythm stability, beat strength, and overall regularity. A value of 0.0 is least danceable and 1.0 is most danceable."
+      required: false
+      type: float
+    - name: target_danceability
+      doc: "Tracks near target attribute will be preferred. Danceability describes how suitable a track is for dancing based on a combination of musical elements including tempo, rhythm stability, beat strength, and overall regularity. A value of 0.0 is least danceable and 1.0 is most danceable."
+      required: false
+      type: float
+    - name: min_duration_ms
+      doc: "Restricts results to tracks with duration greater than min duration (in milliseconds)."
+      required: false
+      type: int
+    - name: max_duration_ms
+      doc: "Restricts results to tracks with duration less than max duration (in milliseconds)."
+      required: false
+      type: int
+    - name: target_duration_ms
+      doc: "Tracks near target duration will be preferred (in milliseconds)."
+      required: false
+      type: int
+    - name: min_energy
+      doc: "Restricts results to tracks with attribute greater than min. Energy is a measure from 0.0 to 1.0 and represents a perceptual measure of intensity and activity. Typically, energetic tracks feel fast, loud, and noisy. For example, death metal has high energy, while a Bach prelude scores low on the scale. Perceptual features contributing to this attribute include dynamic range, perceived loudness, timbre, onset rate, and general entropy."
+      required: false
+      type: float
+    - name: max_energy
+      doc: "Restricts results to tracks with attribute less than max. Energy is a measure from 0.0 to 1.0 and represents a perceptual measure of intensity and activity. Typically, energetic tracks feel fast, loud, and noisy. For example, death metal has high energy, while a Bach prelude scores low on the scale. Perceptual features contributing to this attribute include dynamic range, perceived loudness, timbre, onset rate, and general entropy."
+      required: false
+      type: float
+    - name: target_energy
+      doc: "Tracks near target attribute will be preferred. Energy is a measure from 0.0 to 1.0 and represents a perceptual measure of intensity and activity. Typically, energetic tracks feel fast, loud, and noisy. For example, death metal has high energy, while a Bach prelude scores low on the scale. Perceptual features contributing to this attribute include dynamic range, perceived loudness, timbre, onset rate, and general entropy."
+      required: false
+      type: float
+    - name: min_instrumentalness
+      doc: "Restricts results to tracks with attribute greater than min. Predicts whether a track contains no vocals. “Ooh” and “aah” sounds are treated as instrumental in this context. Rap or spoken word tracks are clearly “vocal”. The closer the instrumentalness value is to 1.0, the greater likelihood the track contains no vocal content. Values above 0.5 are intended to represent instrumental tracks, but confidence is higher as the value approaches 1.0."
+      required: false
+      type: float
+    - name: max_instrumentalness
+      doc: "Restricts results to tracks with attribute less than max. Predicts whether a track contains no vocals. “Ooh” and “aah” sounds are treated as instrumental in this context. Rap or spoken word tracks are clearly “vocal”. The closer the instrumentalness value is to 1.0, the greater likelihood the track contains no vocal content. Values above 0.5 are intended to represent instrumental tracks, but confidence is higher as the value approaches 1.0."
+      required: false
+      type: float
+    - name: target_instrumentalness
+      doc: "Tracks near target attribute will be preferred. Predicts whether a track contains no vocals. “Ooh” and “aah” sounds are treated as instrumental in this context. Rap or spoken word tracks are clearly “vocal”. The closer the instrumentalness value is to 1.0, the greater likelihood the track contains no vocal content. Values above 0.5 are intended to represent instrumental tracks, but confidence is higher as the value approaches 1.0."
+      required: false
+      type: float
+    - name: min_key
+      doc: "Restricts results to tracks with attribute greater than min. The key the track is in. Integers map to pitches using standard Pitch Class notation . E.g. 0 = C, 1 = C♯/D♭, 2 = D, and so on."
+      required: false
+      type: int
+    - name: max_key
+      doc: "Restricts results to tracks with attribute less than max. The key the track is in. Integers map to pitches using standard Pitch Class notation . E.g. 0 = C, 1 = C♯/D♭, 2 = D, and so on."
+      required: false
+      type: int
+    - name: target_key
+      doc: "Tracks near target attribute will be preferred. The key the track is in. Integers map to pitches using standard Pitch Class notation . E.g. 0 = C, 1 = C♯/D♭, 2 = D, and so on."
+      required: false
+      type: int
+    - name: min_liveness
+      doc: "Restricts results to tracks with attribute greater than min. Detects the presence of an audience in the recording. Higher liveness values represent an increased probability that the track was performed live. A value above 0.8 provides strong likelihood that the track is live."
+      required: false
+      type: float
+    - name: max_liveness
+      doc: "Restricts results to tracks with attribute less than max. Detects the presence of an audience in the recording. Higher liveness values represent an increased probability that the track was performed live. A value above 0.8 provides strong likelihood that the track is live."
+      required: false
+      type: float
+    - name: target_liveness
+      doc: "Tracks near target attribute will be preferred. Detects the presence of an audience in the recording. Higher liveness values represent an increased probability that the track was performed live. A value above 0.8 provides strong likelihood that the track is live."
+      required: false
+      type: float
+    - name: min_loudness
+      doc: "Restricts results to tracks with attribute greater than min. The overall loudness of a track in decibels (dB). Loudness values are averaged across the entire track and are useful for comparing relative loudness of tracks. Loudness is the quality of a sound that is the primary psychological correlate of physical strength (amplitude). Values typical range between -60 and 0 db."
+      required: false
+      type: float
+    - name: max_loudness
+      doc: "Restricts results to tracks with attribute less than max. The overall loudness of a track in decibels (dB). Loudness values are averaged across the entire track and are useful for comparing relative loudness of tracks. Loudness is the quality of a sound that is the primary psychological correlate of physical strength (amplitude). Values typical range between -60 and 0 db."
+      required: false
+      type: float
+    - name: target_loudness
+      doc: "Tracks near target attribute will be preferred. The overall loudness of a track in decibels (dB). Loudness values are averaged across the entire track and are useful for comparing relative loudness of tracks. Loudness is the quality of a sound that is the primary psychological correlate of physical strength (amplitude). Values typical range between -60 and 0 db."
+      required: false
+      type: float
+    - name: min_mode
+      doc: "Restricts results to tracks with attribute greater than min. Mode indicates the modality (major or minor) of a track, the type of scale from which its melodic content is derived. Major is represented by 1 and minor is 0."
+      required: false
+      type: int
+    - name: max_mode
+      doc: "Restricts results to tracks with attribute less than max. Mode indicates the modality (major or minor) of a track, the type of scale from which its melodic content is derived. Major is represented by 1 and minor is 0."
+      required: false
+      type: int
+    - name: target_mode
+      doc: "Tracks near target attribute will be preferred. Mode indicates the modality (major or minor) of a track, the type of scale from which its melodic content is derived. Major is represented by 1 and minor is 0."
+      required: false
+      type: int
+    - name: min_popularity
+      doc: "Restricts results to tracks with attribute greater than min. The popularity of the track. The value will be between 0 and 100, with 100 being the most popular. The popularity is calculated by algorithm and is based, in the most part, on the total number of plays the track has had and how recent those plays are."
+      required: false
+      type: int
+    - name: max_popularity
+      doc: "Restricts results to tracks with attribute less than max. The popularity of the track. The value will be between 0 and 100, with 100 being the most popular. The popularity is calculated by algorithm and is based, in the most part, on the total number of plays the track has had and how recent those plays are."
+      required: false
+      type: int
+    - name: target_popularity
+      doc: "Tracks near target attribute will be preferred. The popularity of the track. The value will be between 0 and 100, with 100 being the most popular. The popularity is calculated by algorithm and is based, in the most part, on the total number of plays the track has had and how recent those plays are."
+      required: false
+      type: int
+    - name: min_speechiness
+      doc: "Restricts results to tracks with attribute greater than min. Speechiness detects the presence of spoken words in a track. The more exclusively speech-like the recording (e.g. talk show, audio book, poetry), the closer to 1.0 the attribute value. Values above 0.66 describe tracks that are probably made entirely of spoken words. Values between 0.33 and 0.66 describe tracks that may contain both music and speech, either in sections or layered, including such cases as rap music. Values below 0.33 most likely represent music and other non-speech-like tracks."
+      required: false
+      type: float
+    - name: max_speechiness
+      doc: "Restricts results to tracks with attribute less than max. Speechiness detects the presence of spoken words in a track. The more exclusively speech-like the recording (e.g. talk show, audio book, poetry), the closer to 1.0 the attribute value. Values above 0.66 describe tracks that are probably made entirely of spoken words. Values between 0.33 and 0.66 describe tracks that may contain both music and speech, either in sections or layered, including such cases as rap music. Values below 0.33 most likely represent music and other non-speech-like tracks."
+      required: false
+      type: float
+    - name: target_speechiness
+      doc: "Tracks near target attribute will be preferred. Speechiness detects the presence of spoken words in a track. The more exclusively speech-like the recording (e.g. talk show, audio book, poetry), the closer to 1.0 the attribute value. Values above 0.66 describe tracks that are probably made entirely of spoken words. Values between 0.33 and 0.66 describe tracks that may contain both music and speech, either in sections or layered, including such cases as rap music. Values below 0.33 most likely represent music and other non-speech-like tracks."
+      required: false
+      type: float
+    - name: min_tempo
+      doc: "Restricts results to tracks with attribute greater than min. The overall estimated tempo of a track in beats per minute (BPM). In musical terminology, tempo is the speed or pace of a given piece and derives directly from the average beat duration."
+      required: false
+      type: float
+    - name: max_tempo
+      doc: "Restricts results to tracks with attribute less than max. The overall estimated tempo of a track in beats per minute (BPM). In musical terminology, tempo is the speed or pace of a given piece and derives directly from the average beat duration." 
+      required: false
+      type: float
+    - name: target_tempo
+      doc: "Tracks near target attribute will be preferred. The overall estimated tempo of a track in beats per minute (BPM). In musical terminology, tempo is the speed or pace of a given piece and derives directly from the average beat duration."
+      required: false
+      type: float
+    - name: min_time_signature
+      doc: "Restricts results to tracks with attribute greater than min. An estimated overall time signature of a track. The time signature (meter) is a notational convention to specify how many beats are in each bar (or measure)."
+      required: false
+      type: int
+    - name: max_time_signature
+      doc: "Restricts results to tracks with attribute less than max. An estimated overall time signature of a track. The time signature (meter) is a notational convention to specify how many beats are in each bar (or measure)."
+      required: false
+      type: int
+    - name: target_time_signature
+      doc: "Tracks near target attribute will be preferred. An estimated overall time signature of a track. The time signature (meter) is a notational convention to specify how many beats are in each bar (or measure)."
+      required: false
+      type: int 
+    - name: min_valence
+      doc: "Restricts results to tracks with attribute greater than min. A measure from 0.0 to 1.0 describing the musical positiveness conveyed by a track. Tracks with high valence sound more positive (e.g. happy, cheerful, euphoric), while tracks with low valence sound more negative (e.g. sad, depressed, angry)."
+      required: false
+      type: float
+    - name: max_valence
+      doc: "Restricts results to tracks with attribute less than max. A measure from 0.0 to 1.0 describing the musical positiveness conveyed by a track. Tracks with high valence sound more positive (e.g. happy, cheerful, euphoric), while tracks with low valence sound more negative (e.g. sad, depressed, angry)."
+      required: false
+      type: float
+    - name: target_valence
+      doc: "Tracks near target attribute will be preferred. A measure from 0.0 to 1.0 describing the musical positiveness conveyed by a track. Tracks with high valence sound more positive (e.g. happy, cheerful, euphoric), while tracks with low valence sound more negative (e.g. sad, depressed, angry)."
+      required: false
+      type: float
+
+  json_parameters:
+    -    
+      
+
+- method_name: get_recommendation_genres
+  doc: "Retrieve a list of available genres seed parameter values for recommendations."
+  http_method: get
+  endpoint: "f'https://api.spotify.com/v1/recommendations/available-genre-seeds'"
+  # TODO: What do recommendations look like?
+  returns: Union[RecommendationsObject, ErrorObject]
+  scope:
+    - 
+      
+  path_parameters:
+    - 
+      
+  query_parameters:
+    -  
+    
+  json_parameters:
+    -    
+  
+# endregion    
+  
+# region Episodes API
+
+      
+
+- method_name: get_multiple_episodes
+  doc: "Get Spotify catalog information for several episodes based on their Spotify IDs."
+  http_method: get
+  endpoint: "f'https://api.spotify.com/v1/episodes'"
+  returns: Union[List[Optional[EpisodeObject]], ErrorObject]
+  scope:
+    - 
+      
+  path_parameters:
+    -
+      
+  query_parameters:
+    - name: ids
+      doc: "A list of strings of the Spotify IDs for the episodes. Maximum: 50 IDs."
+      required: true
+      type: List[str]
+    - COUNTRY[market]
+    
+  json_parameters:
+    - 
+      
+
+- method_name: get_an_episode
+  doc: "Get Spotify catalog information for a single episode identified by its unique Spotify ID."
+  http_method: get
+  endpoint: "f'https://api.spotify.com/v1/episodes/{id_}'"
+  returns: Union[EpisodeObject, ErrorObject]
+  scope:
+    - 
+      
+  path_parameters:
+    - ID_[episode]
+      
+  query_parameters:
+    - COUNTRY[market]
+    
+  json_parameters:
+    - 
+    
+
+# endregion
+    
+# Region Follow API
+    
+
+- method_name: follow_a_playlist
+  doc: "Add the current user as a follower of a playlist."
+  http_method: put
+  endpoint: "f'https://api.spotify.com/v1/playlists/{playlist_id}/followers'"
+  returns: Optional[ErrorObject]
+  scope:
+    - user-follow-modify
+    - playlist-modify-private
+      
+  path_parameters:
+    - name: playlist_id
+      doc: "The Spotify ID of the playlist. Any playlist can be followed, regardless of its public/private status, as long as you know its playlist ID."
+      required: true
+      type: str
+      
+  query_parameters:
+    -  
+    
+  json_parameters:
+    - name: public
+      doc: "If True the playlist will be included in user’s public playlists, if False it will remain private. Defaults to True."
+      required: true
+      type: bool
+    
+
+- method_name: unfollow_playlist
+  doc: "Remove the current user as a follower of a playlist."
+  http_method: delete
+  endpoint: "f'https://api.spotify.com/v1/playlists/{playlist_id}/followers'"
+  returns: Optional[ErrorObject]
+  scope:
+    - playlist-modify-public
+    - playlist-modify-private
+      
+  path_parameters:
+    - name: playlist_id
+      doc: "The Spotify ID of the playlist to be unfollowed."
+      required: true
+      type: str
+      
+  query_parameters:
+    -  
+    
+  json_parameters:
+    -  
+    
+
+- method_name: check_if_users_follow_a_playlist
+  doc: "Check to see if one or more Spotify users are following a specified playlist."
+  http_method: get
+  endpoint: "f'https://api.spotify.com/v1/playlists/{playlist_id}/followers/contains'"
+  returns: Union[List[bool], ErrorObject]
+  scope:
+    - playlist-read-private
+      
+  path_parameters:
+    - name: playlist_id
+      doc: "The Spotify ID of the playlist."
+      required: true
+      type: str
+      
+  query_parameters:
+    - name: ids
+      doc: "A list of strings of Spotify User IDs; the ids of the users you want to check to see if they follow the playlist. Maximum: 5 ids."
+      required: true
+      type: List[str]
+    
+  json_parameters:
+    -  
+
+    
+- method_name: get_users_followed_artists
+  doc: "Get the current user’s followed artists."
+  http_method: get
+  endpoint: "f'https://api.spotify.com/v1/me/following'"
+  returns: Union[PagingObject[ArtistObject], ErrorObject]
+  scope:
+    - user-follow-modify
+      
+  path_parameters:
+    - 
+      
+  # TODO: Make 'artist' a default value
+  query_parameters:
+    - name: type_
+      doc: "The ID type: currently only 'artist' is supported."
+      required: true
+      type: str
+    - name: after
+      doc: "The last artist ID retrieved from the previous request."
+      required: false
+      type: str
+    - LIMIT[artists,20,1,50]
+       
+    
+  json_parameters:
+    -  
+
+    
+- method_name: follow_artists_or_users
+  doc: "Add the current user as a follower of one or more artists or other Spotify users."
+  http_method: put
+  endpoint: "f'https://api.spotify.com/v1/me/following'"
+  returns: Optional[ErrorObject]
+  scope:
+    - user-follow-modify
+      
+  path_parameters:
+    - 
+      
+  # TODO: Docs claim json body ids is also required, but probably wrong?
+  query_parameters:
+    - name: type_
+      doc: "The ID type: 'artist' or 'user'."
+      required: true
+      type: str
+    - name: ids
+      doc: "A list of strings of Spotify IDs of the artists or users to be followed. A maximum of 50 IDs can be sent in one request."
+      required: true
+      type: List[str]
+       
+    
+  json_parameters:
+    -  
+      
+      
+- method_name: unfollow_artists_or_users
+  doc: "Remove the current user as a follower of one or more artists or other Spotify users."
+  http_method: delete
+  endpoint: "f'https://api.spotify.com/v1/me/following'"
+  returns: Optional[ErrorObject]
+  scope:
+    - user-follow-modify
+      
+  path_parameters:
+    - 
+      
+  # TODO: Docs claim json body ids is also required, but probably wrong?
+  query_parameters:
+    - name: type_
+      doc: "The ID type: 'artist' or 'user'."
+      required: true
+      type: str
+    - name: ids
+      doc: "A list of strings of Spotify IDs of the artists or users to be unfollowed. A maximum of 50 IDs can be sent in one request."
+      required: true
+      type: List[str]
+       
+    
+  json_parameters:
+    -  
+      
+      
+- method_name: get_following_state_for_artists_or_users
+  doc: "Check to see if the current user is following one or more artists or other Spotify users.."
+  http_method: get
+  endpoint: "f'https://api.spotify.com/v1/me/following/contains'"
+  returns: Union[List[bool], ErrorObject]
+  scope:
+    - user-follow-read
+      
+  path_parameters:
+    - 
+      
+  # TODO: Docs claim json body ids is also required, but probably wrong?
+  query_parameters:
+    - name: type_
+      doc: "The ID type: 'artist' or 'user'."
+      required: true
+      type: str
+    - name: ids
+      doc: "A list of strings of Spotify IDs of the artists or users to be checked. A maximum of 50 IDs can be sent in one request."
+      required: true
+      type: List[str]
+       
+    
+  json_parameters:
+    -  
+      
+# end region
+  
+# region Library API
+    
+  # TODO: "Each album object is accompanied by a timestamp (added_at) to show when it was added. There is also an etag in the header that can be used in future conditional requests."?
+- method_name: get_users_saved_albums
+  doc: "Get a list of the albums saved in the current Spotify user’s ‘Your Music’ library."
+  http_method: get
+  endpoint: "f'https://api.spotify.com/v1/me/albums'"
+  returns: Union[PagingObject[SavedAlbumObject], ErrorObject]
+  scope:
+    - user-library-read
+      
+  path_parameters:
+    -
+      
+  query_parameters:
+    - LIMIT[albums,20,1,50]
+    - OFFSET[album]
+    - COUNTRY[market]
+    
+  json_parameters:
+    -    
+    
+    
+- method_name: save_albums_for_current_user
+  doc: "Save one or more albums to the current user’s ‘Your Music’ library."
+  http_method: put
+  endpoint: "f'https://api.spotify.com/v1/me/albums'"
+  returns: Optional[ErrorObject]
+  scope:
+    - user-library-modify
+      
+  path_parameters:
+    -
+      
+  query_parameters:
+    - name: ids
+      doc: "A list of strings of Spotify IDs of the albums to be saved. A maximum of 50 IDs can be sent in one request."
+      required: true
+      type: List[str]
+    
+  json_parameters:
+    -    
+    
+    
+- method_name: remove_albums_for_current_user
+  doc: "Remove one or more albums from the current user’s ‘Your Music’ library."
+  http_method: delete
+  endpoint: "f'https://api.spotify.com/v1/me/albums'"
+  returns: Optioanl[ErrorObject]
+  scope:
+    - user-library-modify
+      
+  path_parameters:
+    -
+      
+  query_parameters:
+    - name: ids
+      doc: "A list of strings of Spotify IDs of the albums to be removed. A maximum of 50 IDs can be sent in one request."
+      required: true
+      type: List[str]
+    
+  json_parameters:
+    -    
+    
+    
+- method_name: check_users_saved_albums
+  doc: "Check if one or more albums is already saved in the current Spotify user’s ‘Your Music’ library."
+  http_method: get
+  endpoint: "f'https://api.spotify.com/v1/me/albums/contains'"
+  returns: Union[List[bool], ErrorObject]
+  scope:
+    - user-library-read
+      
+  path_parameters:
+    -
+      
+  query_parameters:
+    - name: ids
+      doc: "A list of strings of Spotify IDs of the albums to be checked. A maximum of 50 IDs can be sent in one request."
+      required: true
+      type: List[str]
+    
+  json_parameters:
+    -    
+    
+    
+- method_name: get_users_saved_tracks
+  doc: "Get a list of the songs saved in the current Spotify user’s ‘Your Music’ library."
+  http_method: get
+  endpoint: "f'https://api.spotify.com/v1/me/tracks'"
+  returns: Union[PagingObject[SavedTrackObject], ErrorObject]
+  scope:
+    - user-library-read
+      
+  path_parameters:
+    -
+      
+  query_parameters:
+    - COUNTRY[market]
+    - LIMIT[tracks,20,1,50]
+    - OFFSET[track]
+    
+  json_parameters:
+    -  
+    
+    
+- method_name: save_tracks_for_users
+  doc: "Save one or more tracks to the current user’s ‘Your Music’ library."
+  http_method: put
+  endpoint: "f'https://api.spotify.com/v1/me/tracks'"
+  returns: Optional[ErrorObject]
+  scope:
+    - user-library-modify
+      
+  path_parameters:
+    -
+      
+  query_parameters:
+    - name: ids
+      doc: "A list of strings of Spotify IDs of the tracks to be saved. A maximum of 50 IDs can be sent in one request."
+      required: true
+      type: List[str]
+    
+  json_parameters:
+    -  
+    
+    
+- method_name: remove_users_saved_tracks
+  doc: "Remove one or more tracks from the current user’s ‘Your Music’ library."
+  http_method: delete
+  endpoint: "f'https://api.spotify.com/v1/me/tracks'"
+  returns: Optional[ErrorObject]
+  scope:
+    - user-library-modify
+      
+  path_parameters:
+    -
+      
+  query_parameters:
+    - name: ids
+      doc: "A list of strings of Spotify IDs of the tracks to be removed. A maximum of 50 IDs can be sent in one request."
+      required: true
+      type: List[str]
+    
+  json_parameters:
+    -  
+    
+    
+- method_name: check_users_saved_tracks
+  doc: "Check if one or more tracks is already saved in the current Spotify user’s ‘Your Music’ library."
+  http_method: get
+  endpoint: "f'https://api.spotify.com/v1/me/tracks/contains'"
+  returns: Union[List[bool], ErrorObject]
+  scope:
+    - user-library-read
+      
+  path_parameters:
+    -
+      
+  query_parameters:
+    - name: ids
+      doc: "A list of strings of Spotify IDs of the tracks to be checked. A maximum of 50 IDs can be sent in one request."
+      required: true
+      type: List[str]
+    
+  json_parameters:
+    -    
+    
+    
+- method_name: get_users_saved_episodes
+  doc: "Get a list of the episodes saved in the current Spotify user’s library. (This API endpoint is in beta and could change without warning)"
+  http_method: get
+  endpoint: "f'https://api.spotify.com/v1/me/episodes'"
+  returns: Union[PagingObject[SavedEpisodeObject], ErrorObject]
+  scope:
+    - user-library-read
+      
+  path_parameters:
+    -
+      
+  query_parameters:
+    - COUNTRY[market]
+    - LIMIT[episodes,20,1,50]
+    - OFFSET[episode]
+    
+  json_parameters:
+    -  
+    
+    
+- method_name: save_tracks_for_users
+  doc: "Save one or more episodes to the current user’s library. (This API endpoint is in beta and could change without warning)"
+  http_method: put
+  endpoint: "f'https://api.spotify.com/v1/me/episodes'"
+  returns: Optional[ErrorObject]
+  scope:
+    - user-library-modify
+      
+  path_parameters:
+    -
+      
+  query_parameters:
+    - name: ids
+      doc: "A list of strings of Spotify IDs of the episodes to be saved. A maximum of 50 IDs can be sent in one request."
+      required: true
+      type: List[str]
+    
+  json_parameters:
+    -  
+    
+    
+- method_name: remove_users_saved_tracks
+  doc: "Remove one or more episodes from the current user’s library. (This API endpoint is in beta and could change without warning)"
+  http_method: delete
+  endpoint: "f'https://api.spotify.com/v1/me/episodes'"
+  returns: Optional[ErrorObject]
+  scope:
+    - user-library-modify
+      
+  path_parameters:
+    -
+      
+  query_parameters:
+    - name: ids
+      doc: "A list of strings of Spotify IDs of the episodes to be removed. A maximum of 50 IDs can be sent in one request."
+      required: true
+      type: List[str]
+    
+  json_parameters:
+    -  
+    
+    
+- method_name: check_users_saved_tracks
+  doc: "Check if one or more episodes is already saved in the current Spotify user’s ‘Your Episodes’ library. (This API endpoint is in beta and could change without warning)"
+  http_method: get
+  endpoint: "f'https://api.spotify.com/v1/me/episodes/contains'"
+  returns: Union[List[bool], ErrorObject]
+  scope:
+    - user-library-read
+      
+  path_parameters:
+    -
+      
+  query_parameters:
+    - name: ids
+      doc: "A list of strings of Spotify IDs of the episodes to be checked. A maximum of 50 IDs can be sent in one request."
+      required: true
+      type: List[str]
+    
+  json_parameters:
+    -    
+      
+    
+- method_name: get_users_saved_shows
+  doc: "Get a list of shows saved in the current Spotify user’s library."
+  http_method: get
+  endpoint: "f'https://api.spotify.com/v1/me/shows'"
+  returns: Union[PagingObject[SavedShowObject], ErrorObject]
+  scope:
+    - user-library-read
+      
+  path_parameters:
+    -
+      
+  query_parameters:
+    - COUNTRY[market]
+    - LIMIT[shows,20,1,50]
+    - OFFSET[show]
+    
+  json_parameters:
+    -  
+    
+    
+- method_name: save_tracks_for_shows
+  doc: "Save one or more shows to current Spotify user’s library."
+  http_method: put
+  endpoint: "f'https://api.spotify.com/v1/me/shows'"
+  returns: Optional[ErrorObject]
+  scope:
+    - user-library-modify
+      
+  path_parameters:
+    -
+      
+  query_parameters:
+    - name: ids
+      doc: "A list of strings of Spotify IDs of the shows to be saved. A maximum of 50 IDs can be sent in one request."
+      required: true
+      type: List[str]
+    
+  json_parameters:
+    -  
+    
+    
+- method_name: remove_users_saved_shows
+  doc: "Delete one or more shows from current Spotify user’s library."
+  http_method: delete
+  endpoint: "f'https://api.spotify.com/v1/me/shows'"
+  returns: Optional[ErrorObject]
+  scope:
+    - user-library-modify
+      
+  path_parameters:
+    -
+      
+  query_parameters:
+    - name: ids
+      doc: "A list of strings of Spotify IDs of the shows to be removed. A maximum of 50 IDs can be sent in one request."
+      required: true
+      type: List[str]
+    - COUNTRY[market]
+    
+  json_parameters:
+    -  
+    
+    
+- method_name: check_users_saved_shows
+  doc: "Check if one or more shows is already saved in the current Spotify user’s library."
+  http_method: get
+  endpoint: "f'https://api.spotify.com/v1/me/shows/contains'"
+  returns: Union[List[bool], ErrorObject]
+  scope:
+    - user-library-read
+      
+  path_parameters:
+    -
+      
+  query_parameters:
+    - name: ids
+      doc: "A list of strings of Spotify IDs of the shows to be checked. A maximum of 50 IDs can be sent in one request."
+      required: true
+      type: List[str]
+    
+  json_parameters:
+    -    
+      
+# end region
+  
+# region Markets API
+    
+- method_name: get_avaliable_markets
+  doc: "Get the list of strings of the countries in which Spotify is available, identified by their ISO 3166-1 alpha-2 country code with additional country codes for special territories."
+  http_method: get
+  endpoint: "f'https://api.spotify.com/v1/markets'"
+  returns: Union[List[str], ErrorObject]
+  scope:
+    -
+      
+  path_parameters:
+    -
+      
+  query_parameters:
+    - 
+    
+  json_parameters:
+    -    
+      
+      
+# end region
+  
+# region Personalization API
+    
+- method_name: get_a_users_top_artists_and_tracks
+  doc: "Get the current user’s top artists or tracks based on calculated affinity."
+  http_method: get
+  endpoint: "f'https://api.spotify.com/v1/me/top/{type_}'"
+  returns: Union[PagingObject[Union[ArtistObject, TrackObject]], ErrorObject]
+  scope:
+    - user-top-read
+      
+  path_parameters:
+    - name: type_
+      doc: "The type of entity to return. Valid values: 'artists' or 'tracks'."
+      required: true
+      type: str
+      
+  query_parameters:
+    - name: time_range
+      doc: "Over what time frame the affinities are computed. Valid values: 'long_term' (calculated from several years of data and including all new data as it becomes available), 'medium_term' (approximately last 6 months), 'short_term' (approximately last 4 weeks). Default: 'medium_term'."
+      required: false
+      type: str
+    - LIMIT[entities,20,1,50]
+    - OFFSET[entity]
+
+  json_parameters:
+    -  
+      
+      
+# end region
+  
+# region Player API
+
+- method_name: get_information_about_the_users_current_playback
+  doc: "Get information about the user’s current playback state, including track or episode, progress, and active device."
+  http_method: get
+  endpoint: "f'https://api.spotify.com/v1/me/player'"
+  # TODO: Add a PlaybackStateObject to contain this information?
+  returns: Union[dict, ErrorObject]
+  scope:
+    - 
+      
+  path_parameters:
+    - 
+      
+  query_parameters:
+    - COUNTRY[market]
+  # TODO: Add additional_types parameter? Seems unnecessary maybe?
+
+  json_parameters:
+    -
+
+
+- method_name: transfer_a_users_playback
+  doc: "Transfer playback to a new device and determine if it should start playing."
+  http_method: get
+  endpoint: "f'https://api.spotify.com/v1/me/player'"
+  returns: Optional[ErrorObject]
+  scope:
+    - user-modify-playback-state
+      
+  path_parameters:
+    - 
+      
+  query_parameters:
+    - 
+  
+  json_parameters:
+    # TODO: device id needs to be converted to a list. Probably.
+    - name: device_id
+      doc: "ID of the device on which playback should be transferred"
+      required: true
+      type: str
+    - name: play
+      doc: "If True, playback will be ensured on the new device. Otherwise it will keep the current playback state. Default: False."
+      required: false
+      type: bool
+
+
+- method_name: get_a_users_available_devices
+  doc: "Get a list of user's current available devices with information including their id, name, type, and volume percent."
+  http_method: get
+  endpoint: "f'https://api.spotify.com/v1/me/player/devices'"
+  # TODO: Make a device object?
+  returns: Union[List[Optional[dict]], ErrorObject]
+  scope:
+    - user-read-playback-state
+      
+  path_parameters:
+    - 
+      
+  query_parameters:
+    - 
+  
+  json_parameters:
+    - 
+
+
+- method_name: get_the_users_currently_playing_track
+  doc: "Get the object currently being played on the user’s Spotify account."
+  http_method: get
+  endpoint: "f'	https://api.spotify.com/v1/me/player/currently-playing'"
+  # TODO: Make playing object to contain this data?
+  returns: Union[Optional[dict]], ErrorObject]
+  scope:
+    - user-read-currently-playing
+    - user-read-playback-state
+    
+  path_parameters:
+    - 
+      
+  query_parameters:
+  # TODO: Add a default of 'from_token'.
+    - COUNTRY[market, True]
+    # TODO: Add additional_types parameter? Seems unnecessary maybe?
+  
+  json_parameters:
+    - 
+
+
+
+- method_name: start_or_resume_a_users_playback
+  doc: "Start a new context or resume current playback on the user’s active device. A new context can be chosen by providing a value for the parameters context_uri or uris (note: you cannot provide both a context_uri and uris parameter). \n\nThe context_uri is the uri code for a list object such as an album. The uris is a list of individual uri codes for individual objects such as tracks so it is like you are providing a playlist. Additionally offset and position_ms can be provided to choose which track to play within the context and the position to start it at. \n\nWarning: Due to the asynchronous nature of the issuance of the command, you should use the method get_information_about_the_users_current_playback to check that your issued command was handled correctly by the player."
+  http_method: put
+  endpoint: "f'https://api.spotify.com/v1/me/player/play'"
+  returns: Optional[ErrorObject]
+  scope:
+    - user-modify-playback-state
+    
+  path_parameters:
+    - 
+      
+  query_parameters:
+    - name: device_id
+      doc: "The id of the device this command is targeting. If not supplied, the user’s currently active device is the target."
+      required: false
+      type: str
+  
+  json_parameters:
+    - name: context_uri
+      doc: "The uri of the context to be played. This can be any list type such as an album, playlist, show, etc."
+      required: false
+      type: str
+    - name: uris
+      doc: "A list of uris to be used as the context. These must be individual types like tracks or episodes."
+      required: false
+      type: List[str]
+      # TODO: offset must be sent as an object {"position": 1}
+    - name: offset
+      doc: "The index of position to play within the context. For example if the context_uri were an album, an offset of 3 would begin play at the 4th track on the album. The index begins at 0. Default: 0."
+      required: false
+      type: int
+    - name: position_ms
+      doc: "The playback position in milliseconds to start/resume playback at. Default: 0."
+      required: false
+      type: int
+      
+
+- method_name: pause_a_users_playback
+  doc: "Pause the playback on the user's account. \n\nWarning: Due to the asynchronous nature of the issuance of the command, you should use the method get_information_about_the_users_current_playback to check that your issued command was handled correctly by the player."
+  http_method: put
+  endpoint: "f'https://api.spotify.com/v1/me/player/pause'"
+  returns: Optional[ErrorObject]
+  scope:
+    - user-modify-playback-state
+    
+  path_parameters:
+    - 
+      
+  query_parameters:
+    - name: device_id
+      doc: "The id of the device this command is targeting. If not supplied, the user’s currently active device is the target."
+      required: false
+      type: str
+  
+  json_parameters:
+    -
+      
+
+- method_name: skip_users_playback_to_next_track
+  doc: "Skips to next track in the user’s queue. \n\nWarning: Due to the asynchronous nature of the issuance of the command, you should use the method get_information_about_the_users_current_playback to check that your issued command was handled correctly by the player."
+  http_method: post
+  endpoint: "f'https://api.spotify.com/v1/me/player/next'"
+  returns: Optional[ErrorObject]
+  scope:
+    - user-modify-playback-state
+    
+  path_parameters:
+    - 
+      
+  query_parameters:
+    - name: device_id
+      doc: "The id of the device this command is targeting. If not supplied, the user’s currently active device is the target."
+      required: false
+      type: str
+  
+  json_parameters:
+    -
+      
+
+- method_name: seek_to_position_in_currently_playing_track
+  doc: "Seeks to the given position in the user's currently playing track. \n\nWarning: Due to the asynchronous nature of the issuance of the command, you should use the method get_information_about_the_users_current_playback to check that your issued command was handled correctly by the player."
+  http_method: put
+  endpoint: "f'https://api.spotify.com/v1/me/player/seek'"
+  returns: Optional[ErrorObject]
+  scope:
+    - user-modify-playback-state
+    
+  path_parameters:
+    - 
+      
+  query_parameters:
+    - name: position_ms
+      doc: "The position in milliseconds to seek to. Must be a positive number. Passing in a position that is greater than the length of the track will cause the player to start playing the next song."
+      required: true
+      type: int
+    - name: device_id
+      doc: "The id of the device this command is targeting. If not supplied, the user’s currently active device is the target."
+      required: false
+      type: str
+  
+  json_parameters:
+    -
+      
+
+- method_name: set_repeat_mode_on_users_playback
+  doc: "Set the repeat mode for the user’s playback. Options are repeat-track, repeat-context, and off. \n\nWarning: Due to the asynchronous nature of the issuance of the command, you should use the method get_information_about_the_users_current_playback to check that your issued command was handled correctly by the player."
+  http_method: put
+  endpoint: "f'https://api.spotify.com/v1/me/player/repeat'"
+  returns: Optional[ErrorObject]
+  scope:
+    - user-modify-playback-state
+    
+  path_parameters:
+    - 
+      
+  query_parameters:
+    - name: state
+      doc: "The state to set the repeat mode to. Valid values are 'track', 'context' and 'off'. 'track' will repeat the current track. 'context' will repeat the current context. 'off' will turn repeat off."
+      required: true
+      type: str
+    - name: device_id
+      doc: "The id of the device this command is targeting. If not supplied, the user’s currently active device is the target."
+      required: false
+      type: str
+  
+  json_parameters:
+    -
+      
+
+- method_name: set_volume_for_users_playback
+  doc: "Set the volume for the user's current playback device. \n\nWarning: Due to the asynchronous nature of the issuance of the command, you should use the method get_information_about_the_users_current_playback to check that your issued command was handled correctly by the player."
+  http_method: put
+  endpoint: "f'https://api.spotify.com/v1/me/player/volume'"
+  returns: Optional[ErrorObject]
+  scope:
+    - user-modify-playback-state
+    
+  path_parameters:
+    - 
+      
+  query_parameters:
+    - name: volume_percent
+      doc: "The volume to set. Must be a value from 0 to 100 inclusive."
+      required: true
+      type: int
+    - name: device_id
+      doc: "The id of the device this command is targeting. If not supplied, the user’s currently active device is the target."
+      required: false
+      type: str
+  
+  json_parameters:
+    -
+      
+
+- method_name: toggle_shuffle_for_users_playback
+  doc: "Toggle shuffle on or off for user’s playback. \n\nWarning: Due to the asynchronous nature of the issuance of the command, you should use the method get_information_about_the_users_current_playback to check that your issued command was handled correctly by the player."
+  http_method: put
+  endpoint: "f'https://api.spotify.com/v1/me/player/shuffle'"
+  returns: Optional[ErrorObject]
+  scope:
+    - user-modify-playback-state
+    
+  path_parameters:
+    - 
+      
+  query_parameters:
+    - name: state
+      doc: "The state to set the shuffle mode to. If True, shuffle will be turned on. If False, shuffle will be turned off."
+      required: true
+      type: bool
+    - name: device_id
+      doc: "The id of the device this command is targeting. If not supplied, the user’s currently active device is the target."
+      required: false
+      type: str
+  
+  json_parameters:
+    -
+      
+
+- method_name: get_current_users_recently_played_tracks
+  doc: "Get tracks from the current user’s recently played tracks. Note: Currently does not support podcast episodes."
+  http_method: get
+  endpoint: "f'https://api.spotify.com/v1/me/player/recently-played'"
+  returns: Union[PagingObject[PlayHistoryObject], ErrorObject]
+  scope:
+    - user-modify-playback-state
+    
+  path_parameters:
+    - 
+      
+  query_parameters:
+    - LIMIT[items,20,1,50]
+    - name: after
+      doc: "A Unix timestamp in milliseconds. Returns all items after (but not including) this cursor position. If after is specified, before must not be specified."
+      required: false
+      type: int
+    - name: before
+      doc: "A Unix timestamp in milliseconds. Returns all items before (but not including) this cursor position. If before is specified, after must not be specified."
+      required: false
+      type: int
+  
+  json_parameters:
+    -
+      
+
+- method_name: add_an_item_to_queue
+  doc: "Add an item to the end of the user’s current playback queue."
+  http_method: post
+  endpoint: "f'https://api.spotify.com/v1/me/player/queue'"
+  returns: Optional[ErrorObject]
+  scope:
+    - user-modify-playback-state
+    
+  path_parameters:
+    - 
+      
+  query_parameters:
+    - name: uri
+      doc: "The uri of the item to add to the queue. Must be a track or an episode uri."
+      required: true
+      type: str
+    - name: device_id
+      doc: "The id of the device this command is targeting. If not supplied, the user’s currently active device is the target."
+      required: false
+      type: str
+      
+  json_parameters:
+    -
+
+      
+# endregion
+  
+# region Playlists API
+    
+      
+
+- method_name: get_a_list_of_current_users_playlists
+  doc: "Get a list of the playlists owned or followed by the current Spotify user."
+  http_method: get
+  endpoint: "f'https://api.spotify.com/v1/me/playlists'"
+  returns: Union[PagingObject[SimplifiedPlaylistObject], ErrorObject]
+  scope:
+    - playlist-read-private
+    - playlist-read-collaborative
+    
+  path_parameters:
+    - 
+      
+  query_parameters:
+    - LIMIT[playlists,20,1,50]
+    - OFFSET[playlist]
+      
+  json_parameters:
+    -
+      
+
+- method_name: get_a_list_of_a_users_playlists
+  doc: "Get a list of the playlists owned or followed by a Spotify user."
+  http_method: get
+  endpoint: "f'https://api.spotify.com/v1/users/{user_id}/playlists'"
+  returns: Union[PagingObject[SimplifiedPlaylistObject], ErrorObject]
+  scope:
+    - playlist-read-private
+    - playlist-read-collaborative
+    
+  path_parameters:
+    - name: user_id
+      doc: "The user's Spotify user ID."
+      required: true
+      type: str
+      
+  query_parameters:
+    - LIMIT[playlists,20,1,50]
+    - OFFSET[playlist]
+      
+  json_parameters:
+    -
+      
+      
+- method_name: create_a_playlist
+  doc: "Create an empty playlist for a Spotify user."
+  http_method: post
+  endpoint: "f'https://api.spotify.com/v1/users/{user_id}/playlists'"
+  returns: Union[PlaylistObject, ErrorObject]
+  scope:
+    - playlist-modify-public
+    - playlist-modify-private
+    
+  path_parameters:
+    - name: user_id
+      doc: "The user's Spotify user ID."
+      required: true
+      type: str
+      
+  query_parameters:
+    - 
+      
+  json_parameters:
+    - name: name
+      doc: 'The name for the new playlist, for example "Your Coolest Playlist". This name does not need to be unique; a user may have several playlists with the same name.'
+      required: true
+      type: str
+    - name: public
+      doc: "If True, the playlist will be public. If False, the playlist will be private. Default: True."
+      required: false
+      type: bool
+    - name: collaborative
+      doc: "If True, the playlist will be collaborative. If False, it won't be collaborative. Default: False. Note: To create a collaborative playlist you must also set public to False."
+      required: false
+      type: bool
+    - name: description
+      doc: "The playlist description that will be displayed on Spotify clients."
+      required: false
+      type: str
+      
+      
+- method_name: get_a_playlist
+  doc: "Get a playlist owned by a Spotify user."
+  http_method: get
+  endpoint: "f'https://api.spotify.com/v1/playlists/{playlist_id}'"
+  returns: Union[PlaylistObject, ErrorObject]
+  scope:
+    - 
+    
+  path_parameters:
+    - name: playlist_id
+      doc: "The Spotify ID for the playlist."
+      required: true
+      type: str
+      
+  query_parameters:
+    - COUNTRY[market]
+    - name: fields
+      # TODO: What the heck? This seems bad. Maybe I should simplify this interface. Why is it even important to filter this rather than return the full object?
+      doc: "Filters for the query: a comma-separated list of the fields to return. If omitted, all fields are returned. For example, to get just the playlist’’s description and URI: fields=description,uri. A dot separator can be used to specify non-reoccurring fields, while parentheses can be used to specify reoccurring fields within objects. For example, to get just the added date and user ID of the adder: fields=tracks.items(added_at,added_by.id). Use multiple parentheses to drill down into nested objects, for example: fields=tracks.items(track(name,href,album(name,href))). Fields can be excluded by prefixing them with an exclamation mark, for example: fields=tracks.items(track(name,href,album(!name,href)))."
+      required: false
+      type: str
+      # TODO: Add additional_types parameter? Seems unnecessary maybe?
+      
+  json_parameters:
+    -  
+      
+      
+- method_name: change_a_playlists_details
+  doc: "Change a playlist's name and public private state. The user must own the playlist."
+  http_method: put
+  endpoint: "f'https://api.spotify.com/v1/playlists/{playlist_id}'"
+  returns: Optional[ErrorObject]
+  scope:
+    - playlist-modify-public
+    - playlist-modify-private
+    
+  path_parameters:
+    - name: playlist_id
+      doc: "The Spotify ID for the playlist."
+      required: true
+      type: str
+      
+  query_parameters:
+    - 
+      
+  json_parameters:
+    - name: name
+      doc: 'The new name for the playlist, for example "Your Coolest Playlist Version 2". This name does not need to be unique; a user may have several playlists with the same name.'
+      required: true
+      type: str
+    - name: public
+      doc: "If True, the playlist will be public. If False, the playlist will be private. Default: True."
+      required: false
+      type: bool
+    - name: collaborative
+      doc: "If True, the playlist will be collaborative. If False, it won't be collaborative. Default: False. Note: To create a collaborative playlist you must also set public to False."
+      required: false
+      type: bool
+    - name: description
+      doc: "The playlist description that will be displayed on Spotify clients."
+      required: false
+      type: str
+      
+      
+- method_name: get_a_playlists_items
+  doc: "Get full details of the items of a playlist owned by a Spotify user."
+  http_method: get
+  endpoint: "f'https://api.spotify.com/v1/playlists/{playlist_id}/tracks'"
+  returns: Union[PagingObject[Union[TrackObject, EpisodeObject]], ErrorObject]
+  scope:
+    - 
+    
+  path_parameters:
+    - name: playlist_id
+      doc: "The Spotify ID for the playlist."
+      required: true
+      type: str
+      
+  query_parameters:
+    - COUNTRY[market]
+    - name: fields
+      # TODO: What the heck? This seems bad. Maybe I should simplify this interface. Why is it even important to filter this rather than return the full object?
+      doc: "Filters for the query: a comma-separated list of the fields to return. If omitted, all fields are returned. For example, to get just the playlist’’s description and URI: fields=description,uri. A dot separator can be used to specify non-reoccurring fields, while parentheses can be used to specify reoccurring fields within objects. For example, to get just the added date and user ID of the adder: fields=tracks.items(added_at,added_by.id). Use multiple parentheses to drill down into nested objects, for example: fields=tracks.items(track(name,href,album(name,href))). Fields can be excluded by prefixing them with an exclamation mark, for example: fields=tracks.items(track(name,href,album(!name,href)))."
+      required: false
+      type: str
+    - LIMIT[items,100,1,100]
+    - OFFSET[item]
+      # TODO: Add additional_types parameter? Seems unnecessary maybe?
+      
+  json_parameters:
+    -  
+      
+      
+- method_name: add_items_to_a_playlist
+  doc: "Add one or more items to a user’s playlist."
+  http_method: post
+  endpoint: "f'https://api.spotify.com/v1/playlists/{playlist_id}/tracks'"
+  returns: Optional[ErrorObject]
+  scope:
+    - playlist-modify-public
+    - playlist-modify-private
+    
+  path_parameters:
+    - name: playlist_id
+      doc: "The Spotify ID for the playlist."
+      required: true
+      type: str
+      
+  query_parameters:
+    - COUNTRY[market]
+    - name: position
+      doc: "The position to insert the items, a zero-based index. For example, to insert the items in the first position: position=0; to insert the items in the third position: position=2 . If omitted, the items will be appended to the playlist. Items are added in the order they are listed in the uris."
+      required: false
+      type: int
+      
+  json_parameters:
+    - name: uris
+      doc: "A list of Spotify URIs to be added. They can be tracks or episode URIs. A maximum of 100 items can be added per request."
+      required: false
+      type: List[str]
+      
+      
+  # TODO: Weird that these two separate operations share an endpoint. I could separate the method into two, or preserve the original API syntax. Maybe this should be part of a larger project to simplify the entire API.
+- method_name: reorder_or_replace_a_playlists_items
+  doc: "Either reorder or replace items in a playlist depending on the request’s parameters. To reorder items, include range_start, insert_before, range_length and snapshot_id in the request’s body. To replace items, include uris as either a query parameter or in the request’s body. Replacing items in a playlist will overwrite its existing items. This operation can be used for replacing or clearing items in a playlist. \n\nNote: Replace and reorder are mutually exclusive operations which share the same endpoint, but have different parameters. These operations cannot be applied together in a single request."
+  http_method: put
+  endpoint: "f'https://api.spotify.com/v1/playlists/{playlist_id}/tracks'"
+  # TODO: This is a good example of a method where a return doc string would help a lot.
+  returns: Union[str, ErrorObject]
+  scope:
+    - playlist-modify-public
+    - playlist-modify-private
+    
+  path_parameters:
+    - name: playlist_id
+      doc: "The Spotify ID for the playlist."
+      required: true
+      type: str
+      
+  query_parameters:
+    - 
+ # TODO: This is either really confusing or I'm just getting a headache from the COVID vaccine.
+  json_parameters:
+    - name: uris
+      doc: "A list of Spotify URIs to replace the playlist with. They can be tracks or episode URIs. A maximum of 100 items can be added per request."
+      required: false
+      type: List[str]
+    - name: range_start
+      doc: "The position of the first item to be reordered."
+      required: false
+      type: int
+    - name: insert_before
+      doc: "The position where the items should be inserted. To reorder the items to the end of the playlist, simply set insert_before to the position after the last item. To reorder the first item to the last position in a playlist with 10 items, set range_start to 0, and insert_before to 10. To reorder the last item in a playlist with 10 items to the start of the playlist, set range_start to 9, and insert_before to 0."
+      required: false
+      type: int
+    - name: range_length
+      doc: "The amount of items to be reordered. Default: 1."
+      required: false
+      type: int
+    - name: snapshot_id
+      doc: "The playlist's snapshot ID against which you want to make the changes."
+      required: false
+      type: str
+      
+      
+- method_name: remove_items_from_a_playlist
+  doc: "Remove one of more items from a user's playlist."
+  http_method: delete
+  endpoint: "f'https://api.spotify.com/v1/playlists/{playlist_id}/tracks'"
+  # TODO: This is a good example of a method where a return doc string would help a lot.
+  returns: Union[str, ErrorObject]
+  scope:
+    - playlist-modify-public
+    - playlist-modify-private
+    
+  path_parameters:
+    - name: playlist_id
+      doc: "The Spotify ID for the playlist."
+      required: true
+      type: str
+      
+  query_parameters:
+    - 
+      
+  json_parameters:
+    - name: tracks
+      doc: "A list of Spotify URIs to be removed. They can be tracks or episode URIs. A maximum of 100 items can be removed per request."
+      required: false
+      type: List[str]
+    - name: snapshot_id
+      doc: "The playlist’s snapshot ID against which you want to make the changes. The API will validate that the specified items exist and in the specified positions and make the changes, even if more recent changes have been made to the playlist."
+      required: false
+      type: str
+      
+      
+- method_name: get_a_playlist_cover_image
+  doc: "Get the current image associated with a specific playlist."
+  http_method: get
+  endpoint: "f'https://api.spotify.com/v1/playlists/{playlist_id}/images'"
+  returns: Union[ImageObject, ErrorObject]
+  scope:
+    - 
+    
+  path_parameters:
+    - name: playlist_id
+      doc: "The Spotify ID for the playlist."
+      required: true
+      type: str
+      
+  query_parameters:
+    - 
+      
+  json_parameters:
+    - 
+      
+  # TODO: How does this image stuff work?
+- method_name: upload_a_custom_playlist_cover_image
+  doc: "Replace the image used to represent a specific playlist."
+  http_method: put
+  endpoint: "f'https://api.spotify.com/v1/playlists/{playlist_id}/images'"
+  returns: Union[ImageObject, ErrorObject]
+  scope:
+    - ugc-image-upload
+    - playlist-modify-public
+    - playlist-modify-private
+    
+  path_parameters:
+    - name: playlist_id
+      doc: "The Spotify ID for the playlist."
+      required: true
+      type: str
+    # TODO: This will definitely take some additional parsing. It should be sent as content-type image/jpeg.
+    - name: image
+      doc: "The image to be uploaded."
+      required: true
+      type:  ImageObject
+      
+  query_parameters:
+    - 
+      
+  json_parameters:
+    - 
+      
+# endregion
+    
+# region Search API
+    
+      
+- method_name: search_for_an_item
+  # TODO: Add more extensive documentation for making queries.
+  doc: "Get Spotify Catalog information about albums, artists, playlists, tracks, shows or episodes that match a keyword string."
+  http_method: get
+  endpoint: "f'https://api.spotify.com/v1/search'"
+  returns: Union[PagingObject[Union[ArtistObject, SimplifiedAlbumObject, TrackObject, SimplifiedShowObject, SimplifiedEpisodeObject]], ErrorObject]
+  scope:
+    - 
+    
+  path_parameters:
+    - name: q
+      doc: "Search query keywords and optional field filters and operators"
+      required: true
+      type: str
+    - name: type_
+      doc: "A list of strings of the item types to search across. Valid types are: 'album', 'artist', 'playlist', 'track', 'show' and 'episode'."
+      required: true
+      type:  List[str]
+    - COUNTRY[market]
+    - name: limit
+      doc: "Maximum number of results to return. Default: 20. Minimum: 1. Maximum: 50. Note: The limit is applied within each type, not the total response. For example, if the limit value is 3 and the type is ['artist', 'album'], the response contains 3 artists and 3 albums."
+      required: false
+      type:  int
+    - name: offset
+      doc: "The index of the first result to return. Default: 0. Maximum: 1,000. Use with limit to get the next page of search results."
+      required: false
+      type:  int
+      # TODO: No idea what this externally hosted audio is. Why is this not just a bool?
+    - name: include_external
+      doc: "Possible values: 'audio'. If 'audio' is specified the response will include any relevant audio content that is hosted externally. By default external content is filtered out from responses."
+      required: false
+      type:  str
+    
+      
+  query_parameters:
+    - 
+      
+  json_parameters:
+    -  
+      
+# endregion
+    
+# region Shows API
+      
+
+- method_name: get_multiple_shows
+  doc: "Get Spotify catalog information for several shows based on their Spotify IDs."
+  http_method: get
+  endpoint: "f'https://api.spotify.com/v1/shows'"
+  returns: Union[List[Optional[SimplifiedShowObject]], ErrorObject]
+  scope:
+    - 
+      
+  path_parameters:
+    -
+      
+  query_parameters:
+    - name: ids
+      doc: "A list of strings of the Spotify IDs for the shows. Maximum: 50 IDs."
+      required: true
+      type: List[str]
+    - COUNTRY[market]
+    
+  json_parameters:
+    - 
+      
+
+- method_name: get_a_show
+  doc: "Get Spotify catalog information for a single show identified by its unique Spotify ID."
+  http_method: get
+  endpoint: "f'https://api.spotify.com/v1/shows/{id_}'"
+  returns: Union[ShowObject, ErrorObject]
+  scope:
+    - 
+      
+  path_parameters:
+    - ID_[show]
+      
+  query_parameters:
+    - COUNTRY[market]
+    
+  json_parameters:
+    -
+      
+      
+
+- method_name: get_a_shows_episodes
+  doc: "Get Spotify catalog information about a show’s episodes. Optional parameters can be used to limit the number of episodes returned."
+  http_method: get
+  endpoint: "f'https://api.spotify.com/v1/shows/{id_}/episodes'"
+  returns: Union[PagingObect[SimplifiedEpisodeObject], ErrorObject]
+  scope:
+    - 
+      
+  path_parameters:
+    - ID_[show]
+      
+  query_parameters:
+    - COUNTRY[market]
+    - LIMIT[episodes,20,1,50]
+    - OFFSET[episode]
+    
+  json_parameters:
+    -   
+
+      
+# endregion
+    
+# region Tracks API
+      
+
+- method_name: get_several_tracks
+  doc: "Get Spotify catalog information for multiple tracks based on their Spotify IDs."
+  http_method: get
+  endpoint: "f'https://api.spotify.com/v1/tracks'"
+  returns: Union[List[Optional[TrackObject]], ErrorObject]
+  scope:
+    - 
+      
+  path_parameters:
+    -
+      
+  query_parameters:
+    - name: ids
+      doc: "A list of strings of the Spotify IDs for the tracks. Maximum: 50 IDs."
+      required: true
+      type: List[str]
+    - COUNTRY[market]
+    
+  json_parameters:
+    - 
+      
+
+- method_name: get_a_track
+  doc: "Get Spotify catalog information for a single track identified by its unique Spotify ID."
+  http_method: get
+  endpoint: "f'https://api.spotify.com/v1/tracks/{id}'"
+  returns: Union[TrackObject, ErrorObject]
+  scope:
+    - 
+      
+  path_parameters:
+    - ID_[track]
+      
+  query_parameters:
+    - COUNTRY[market]
+    
+  json_parameters:
+    - 
+      
+
+- method_name: get_audio_features_for_several_tracks
+  doc: "Get audio features for multiple tracks based on their Spotify IDs."
+  http_method: get
+  endpoint: "f'https://api.spotify.com/v1/audio-features'"
+  returns: Union[List[Optional[AudioFeaturesObject]], ErrorObject]
+  scope:
+    - 
+      
+  path_parameters:
+    -  
+      
+  query_parameters:
+    - name: ids
+      doc: "A list of strings of the Spotify IDs for the tracks. Maximum: 100 IDs."
+      required: true
+      type: List[str]
+    
+  json_parameters:
+    -  
+      
+
+- method_name: get_audio_features_for_a_track
+  doc: "Get audio feature information for a single track identified by its unique Spotify ID."
+  http_method: get
+  endpoint: "f'https://api.spotify.com/v1/audio-features/{id}'"
+  returns: Union[AudioFeaturesObject, ErrorObject]
+  scope:
+    - 
+      
+  path_parameters:
+    -  
+      
+  query_parameters:
+    - ID_[track]
+    
+  json_parameters:
+    - 
+      
+
+- method_name: get_audio_analysis_for_a_track
+  doc: "Get a detailed audio analysis for a single track identified by its unique Spotify ID."
+  http_method: get
+  endpoint: "f'https://api.spotify.com/v1/audio-analysis/{id}'"
+  # TODO: This object isn't listed in the object index. Must be added.
+  returns: Union[AudioAnalysisObject, ErrorObject]
+  scope:
+    - 
+      
+  path_parameters:
+    -  
+      
+  query_parameters:
+    - ID_[track]
+    
+  json_parameters:
+    - 
+      
+# endregion
+    
+# region  Users Profile API
+
+
+- method_name: get_current_users_profile
+  doc: "Get detailed profile information about the current user (including the current user’s username)."
+  http_method: get
+  endpoint: "f'https://api.spotify.com/v1/me'"
+  returns: Union[UserObject, ErrorObject]
+  scope:
+    - user-read-email
+    - user-read-private
+      
+  path_parameters:
+    -  
+      
+  query_parameters:
+    - 
+    
+  json_parameters:
+    - 
+
+
+- method_name: get_a_users_profile
+  doc: "Get public profile information about a Spotify user."
+  http_method: get
+  endpoint: "f'https://api.spotify.com/v1/users/{user_id}'"
+  returns: Union[UserObject, ErrorObject]
+  scope:
+    -  
+      
+  path_parameters:
+    -  ID_[user]
+      
+  query_parameters:
+    - 
+    
+  json_parameters:
+    - 
+      
+
+# endregion
+      
