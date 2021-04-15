@@ -22,17 +22,17 @@ class SpotifyObject:
             self._json_dict = json.loads(json_object)
 
         self._set_attributes(self._json_dict)
-
+        
     def __repr__(self):
         return f'{self.__class__.__name__}({self._json_dict})'
-
+    
     def __str__(self):
         return str(self._json_dict)
 
     def _set_attributes(self, json_dict: dict):
         ...
-
-
+    
+    
 def union_parser(classes: list, value: dict) -> Optional[SpotifyObject]:
     ...
 
@@ -41,7 +41,6 @@ class PagingObject(Sequence, Generic[T], SpotifyObject):
     """
     PagingObject doc string...
     """
-
     def __init__(self, json_object: Optional[str, dict], item_type: T):
         super().__init__(json_object)
         self.item_type = item_type

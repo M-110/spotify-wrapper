@@ -1,32 +1,23 @@
-﻿import yaml
+﻿import re
+
+import yaml
 import textwrap
 
 # TODO: Image upload?
 
-header_template = '''{requires_decorator}
-def {method_name}({params}) -> {return_type}:
-    """
-{method_doc}
-    """
-    url = {url}
-    query_params = {query_params}
-    json_body = {json_body}
-    response = self._{http_method}(url, query_params, json_body)
-'''
-
-args_docstring_template = '''
-Args:
-{args}
-'''
-
-prop_template = '''
-    @property
-    def {attr_name}(self) -> {attr_return}:
+method_template = '''{requires_decorator}
+    def {method_name}({params}) -> {return_type}:
         """
-{attr_doc}
+    {method_doc}
         """
-        return self._json_dict['{attr_name}']
-'''
+        url = {url}
+        query_params = {query_params}
+        json_body = {json_body}
+        response, error = self._{http_method}(url, query_params, json_body)
+        if error:
+            return ErrorObject(response.text)
+        {return_line}
+    '''
 
 
 def generate_preset_param(param: str) -> dict:
@@ -134,6 +125,16 @@ def generate_requires_decorator(scope: list) -> str:
         return '\n@requires(' + ', '.join([f'{s!r}' for s in scope]) + ')'
     else:
         return ''
+    
+    
+    # TODO: Allow for multiple object type returns
+def generate_return_line(return_type):
+    objects = re.findall(r'\w*Object', return_type)
+    is_array = 'List' in return_type
+    if not is_array:
+        return f'return {objects[0]}(response.text)'
+    else:
+        return f'return self._convert_array_to_list(response.text, {objects[0]})'
 
 
 def class_wrap(class_text: str):
@@ -154,26 +155,6 @@ def attr_wrap(attr_text: str):
         for line in attr_text.splitlines())
 
 
-def yaml_to_class(filename):
-    with open(filename, 'r', encoding='utf-8') as yaml_file:
-        yaml_dict = yaml.load(yaml_file, Loader=yaml.Loader)
-
-    output = ''
-
-    for class_ in yaml_dict:
-        header = header_template.format(class_name=class_['name'],
-                                        class_doc=class_wrap(class_['doc']))
-        output += header
-        for attr in class_['attrs']:
-            prop = prop_template.format(attr_name=attr['name'],
-                                        attr_doc=attr_wrap(attr['doc']),
-                                        attr_return=attr['return'])
-            output += prop
-        output += '\n'
-
-    return output
-
-
 def parse_yaml_method(method: dict):
     name = method['method_name']
     doc = method['doc']
@@ -188,6 +169,7 @@ def parse_yaml_method(method: dict):
     param_declarations = generate_param_declarations(params_dict)
     params_docstring = generate_params_docstring(params_dict)
     requires_decorator = generate_requires_decorator(scope)
+    return_line = generate_return_line(returns)
     url = endpoint
 
     query_params = '{' + ', '.join([f"{param['name']!r}: {param['name']}"
@@ -196,7 +178,7 @@ def parse_yaml_method(method: dict):
     json_body = '{' + ', '.join([f"{param['name']!r}: {param['name']}"
                                  for param in params_dict['json_params']
                                  if param is not None]) + '}'
-    output = header_template.format(requires_decorator=requires_decorator,
+    output = method_template.format(requires_decorator=requires_decorator,
                                     method_name=name,
                                     params=param_declarations,
                                     return_type=returns,
@@ -204,7 +186,8 @@ def parse_yaml_method(method: dict):
                                     url=url,
                                     query_params=query_params,
                                     json_body=json_body,
-                                    http_method=http_method)
+                                    http_method=http_method,
+                                    return_line=return_line)
     return output
 
 
@@ -215,10 +198,16 @@ def yaml_to_methods(filename):
     output = ''
 
     for method in yaml_dict:
-        print(parse_yaml_method(method))
+        output += parse_yaml_method(method)
     return output
 
 
-if __name__ == "__main__":
+def translate_yaml_to_methods(file_out: str):
     class_output = yaml_to_methods('methods.yaml')
-    print(class_output)
+    with open(file_out, 'w', encoding='utf8') as lib:
+        lib.write(class_output)
+    print(f'Saved as {file_out!r}')
+
+
+if __name__ == "__main__":
+    translate_yaml_to_methods('core.py')

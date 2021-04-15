@@ -89,14 +89,14 @@ def yaml_to_class(filename):
     return output
 
 
-def main():
+def translate_yaml_to_classes(file_out: str):
     class_output = yaml_to_class('objects.yaml')
-    with open('boiler_plate.py', encoding='utf-8') as boiler:
-        with open('object_library.py', 'w', encoding='utf8') as lib:
+    with open('object_library_boiler_plate.py', encoding='utf-8') as boiler:
+        with open(file_out, 'w', encoding='utf8') as lib:
             lib.writelines(boiler)
             lib.write(class_output)
-    print('Saved as \'object_library.py\'')
+    print(f'Saved as {file_out!r}')
 
 
 if __name__ == "__main__":
-    main()
+    translate_yaml_to_classes('..\\spotify_wrapper\\object_library.py')
