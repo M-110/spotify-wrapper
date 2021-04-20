@@ -15,7 +15,7 @@ method_template = '''{requires_decorator}
         json_body = {json_body}
         response, error = self._{http_method}(url, query_params, json_body)
         if error:
-            return ErrorObject(response.text)
+            return ErrorObject(response)
         {return_line}
     '''
 
@@ -131,10 +131,14 @@ def generate_requires_decorator(scope: list) -> str:
 def generate_return_line(return_type):
     objects = re.findall(r'\w*Object', return_type)
     is_array = 'List' in return_type
-    if not is_array:
-        return f'return {objects[0]}(response.text)'
-    else:
+    is_paging_object = 'PagingObject' in return_type
+    if is_array:
         return f'return self._convert_array_to_list(response.text, {objects[0]})'
+    elif is_paging_object:
+        return f'return PagingObject(response.text, {objects[1]})'
+    else:
+        return f'return {objects[0]}(response.text)'
+        
 
 
 def class_wrap(class_text: str):

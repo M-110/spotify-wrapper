@@ -45,7 +45,7 @@
   doc: "Get Spotify catalog information about an album’s tracks. Optional parameters can be used to limit the number of tracks returned."
   http_method: get
   endpoint: "f'https://api.spotify.com/v1/albums/{id_}/tracks'"
-  returns: Union[Optional[AlbumObject], ErrorObject]
+  returns: Union[PagingObject[SimplifiedTrackObject], ErrorObject]
   scope:
     - 
       
@@ -68,7 +68,7 @@
   doc: "Get Spotify catalog information for several artists based on their Spotify IDs."
   http_method: get
   endpoint: "f'https://api.spotify.com/v1/artists'"
-  returns: List[Optional[ArtistObject]]
+  returns: Union[List[Optional[ArtistObject], ErrorObject]
   scope:
     - 
       
@@ -106,7 +106,7 @@
 - method_name: get_an_artists_top_tracks
   doc: "Get Spotify catalog information about an artist’s top tracks by country."
   http_method: get
-  endpoint: "f'https://api.spotify.com/v1/artists/{id}/top-tracks'"
+  endpoint: "f'https://api.spotify.com/v1/artists/{id_}/top-tracks'"
   returns: Union[List[TrackObject], ErrorObject]
   scope:
     - 
@@ -127,7 +127,7 @@
 - method_name: get_an_artists_related_artists
   doc: "Get Spotify catalog information about artists similar to a given artist. Similarity is based on analysis of the Spotify community’s listening history."
   http_method: get
-  endpoint: "f'https://api.spotify.com/v1/artists/{id}/related-artists'"
+  endpoint: "f'https://api.spotify.com/v1/artists/{id_}/related-artists'"
   returns: Union[List[ArtistObject], ErrorObject]
   scope:
     - 
@@ -145,7 +145,7 @@
 - method_name: get_an_artists_albums
   doc: "Get Spotify catalog information about an artist’s albums."
   http_method: get
-  endpoint: "f'https://api.spotify.com/v1/artists/{id}/albums'"
+  endpoint: "f'https://api.spotify.com/v1/artists/{id_}/albums'"
   returns: Union[PagingObject[SimplifiedAlbumObject], ErrorObject]
   scope:
     - 
@@ -1921,7 +1921,7 @@
 - method_name: get_a_track
   doc: "Get Spotify catalog information for a single track identified by its unique Spotify ID."
   http_method: get
-  endpoint: "f'https://api.spotify.com/v1/tracks/{id}'"
+  endpoint: "f'https://api.spotify.com/v1/tracks/{id_}'"
   returns: Union[TrackObject, ErrorObject]
   scope:
     - 
@@ -1960,7 +1960,7 @@
 - method_name: get_audio_features_for_a_track
   doc: "Get audio feature information for a single track identified by its unique Spotify ID."
   http_method: get
-  endpoint: "f'https://api.spotify.com/v1/audio-features/{id}'"
+  endpoint: "f'https://api.spotify.com/v1/audio-features/{id_}'"
   returns: Union[AudioFeaturesObject, ErrorObject]
   scope:
     - 
@@ -1978,7 +1978,7 @@
 - method_name: get_audio_analysis_for_a_track
   doc: "Get a detailed audio analysis for a single track identified by its unique Spotify ID."
   http_method: get
-  endpoint: "f'https://api.spotify.com/v1/audio-analysis/{id}'"
+  endpoint: "f'https://api.spotify.com/v1/audio-analysis/{id_}'"
   # TODO: This object isn't listed in the object index. Must be added.
   returns: Union[AudioAnalysisObject, ErrorObject]
   scope:

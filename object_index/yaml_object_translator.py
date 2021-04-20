@@ -1,3 +1,5 @@
+from typing import List
+
 import yaml
 import textwrap
 
@@ -7,6 +9,11 @@ class {class_name}Object(SpotifyObject):
 {class_doc}
     """
 '''
+
+repr_template = """
+    def __repr__(self):
+{repr_return}
+"""
 
 prop_template = '''
     @property
@@ -56,8 +63,8 @@ def parse_return_type(return_type: str, attr_name: str):
         return f"return union_parser([{param}], self._json_dict[{attr_name!r}])"
     else:
         return f'return {return_class}(self._json_dict[{attr_name!r}], {param})'
-    
-    
+
+
 def generate_optional_return(target_class, attr_name):
     if target_class == "datetime":
         target_class = "datetime.fromisoformat"
@@ -65,6 +72,34 @@ def generate_optional_return(target_class, attr_name):
             return {target_class}(value)
         return None"""
 
+
+def lookup_attr(class_: dict, attr: str) -> dict:
+    for class_attr in class_['attrs']:
+        if class_attr['name'] == attr:
+            return class_attr
+
+
+def generate_repr_return(class_: dict) -> str:
+    class_name = class_['name']
+    props = []
+    for prop in class_['repr_return']:
+        prop_repr = prop + "={self." + prop
+        attr = lookup_attr(class_, prop)
+        if attr['return'] == 'str':
+            prop_repr += "!r"
+        prop_repr += "}"
+        props.append(prop_repr)
+    return_line = f"return (f'<{class_name}Object {', '.join(props)}>')"
+    return_wrapped = textwrap.fill(return_line,
+                                   width=78,
+                                   initial_indent=' ' * 8,
+                                   subsequent_indent=' ' * 16,
+                                   drop_whitespace=False,
+                                   ).replace('\n                ', '\'\n                f\'')
+    # If one line, remove redundant parentheses
+    if '\n' not in return_wrapped:
+        return_wrapped = return_wrapped.replace('(', '').replace(')', '')
+    return return_wrapped
 
 
 def yaml_to_class(filename):
@@ -76,7 +111,11 @@ def yaml_to_class(filename):
     for class_ in yaml_dict:
         header = header_template.format(class_name=class_['name'],
                                         class_doc=class_wrap(class_['doc']))
-        output += header
+
+        repr_return = generate_repr_return(class_)
+
+        repr_method = repr_template.format(repr_return=repr_return)
+        output += header + repr_method
         for attr in class_['attrs']:
             return_statement = parse_return_type(attr['return'], attr['name'])
             prop = prop_template.format(attr_name=attr['name'],

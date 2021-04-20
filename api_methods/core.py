@@ -15,7 +15,7 @@
         json_body = {}
         response, error = self._get(url, query_params, json_body)
         if error:
-            return ErrorObject(response.text)
+            return ErrorObject(response)
         return self._convert_array_to_list(response.text, AlbumObject)
     
     def get_an_album(self, id_: str, market: str = None) -> Union[Optional[AlbumObject], ErrorObject]:
@@ -32,10 +32,10 @@
         json_body = {}
         response, error = self._get(url, query_params, json_body)
         if error:
-            return ErrorObject(response.text)
+            return ErrorObject(response)
         return AlbumObject(response.text)
     
-    def get_an_albums_tracks(self, id_: str, market: str = None, limit: int = None, offset: int = None) -> Union[Optional[AlbumObject], ErrorObject]:
+    def get_an_albums_tracks(self, id_: str, market: str = None, limit: int = None, offset: int = None) -> Union[PagingObject[SimplifiedTrackObject], ErrorObject]:
         """
         Get Spotify catalog information about an album’s tracks. Optional
     parameters can be used to limit the number of tracks returned.
@@ -53,10 +53,10 @@
         json_body = {}
         response, error = self._get(url, query_params, json_body)
         if error:
-            return ErrorObject(response.text)
-        return AlbumObject(response.text)
+            return ErrorObject(response)
+        return PagingObject(response.text, SimplifiedTrackObject)
     
-    def get_multiple_artists(self, ids: List[str]) -> List[Optional[ArtistObject]]:
+    def get_multiple_artists(self, ids: List[str]) -> Union[List[Optional[ArtistObject], ErrorObject]:
         """
         Get Spotify catalog information for several artists based on their Spotify
     IDs.
@@ -70,7 +70,7 @@
         json_body = {}
         response, error = self._get(url, query_params, json_body)
         if error:
-            return ErrorObject(response.text)
+            return ErrorObject(response)
         return self._convert_array_to_list(response.text, ArtistObject)
     
     def get_an_artist(self, id_: str) -> Union[ArtistObject, ErrorObject]:
@@ -86,7 +86,7 @@
         json_body = {}
         response, error = self._get(url, query_params, json_body)
         if error:
-            return ErrorObject(response.text)
+            return ErrorObject(response)
         return ArtistObject(response.text)
     
     def get_an_artists_top_tracks(self, id_: str, market: str) -> Union[List[TrackObject], ErrorObject]:
@@ -97,12 +97,12 @@
         id_: The Spotify ID of the artist.
         market: An ISO 3166-1 alpha-2 country code or the string 'from_token'.
         """
-        url = f'https://api.spotify.com/v1/artists/{id}/top-tracks'
+        url = f'https://api.spotify.com/v1/artists/{id_}/top-tracks'
         query_params = {'market': market}
         json_body = {}
         response, error = self._get(url, query_params, json_body)
         if error:
-            return ErrorObject(response.text)
+            return ErrorObject(response)
         return self._convert_array_to_list(response.text, TrackObject)
     
     def get_an_artists_related_artists(self, id_: str) -> Union[List[ArtistObject], ErrorObject]:
@@ -114,12 +114,12 @@
     Args:
         id_: The Spotify ID of the artist.
         """
-        url = f'https://api.spotify.com/v1/artists/{id}/related-artists'
+        url = f'https://api.spotify.com/v1/artists/{id_}/related-artists'
         query_params = {}
         json_body = {}
         response, error = self._get(url, query_params, json_body)
         if error:
-            return ErrorObject(response.text)
+            return ErrorObject(response)
         return self._convert_array_to_list(response.text, ArtistObject)
     
     def get_an_artists_albums(self, id_: str, include_groups: List[str] = None, market: str = None, limit: int = None, offset: int = None) -> Union[PagingObject[SimplifiedAlbumObject], ErrorObject]:
@@ -138,13 +138,13 @@
           Minimum: 1. Maximum: 50.
         offset: Optional; The index of the first album to return. Default: 0.
         """
-        url = f'https://api.spotify.com/v1/artists/{id}/albums'
+        url = f'https://api.spotify.com/v1/artists/{id_}/albums'
         query_params = {'include_groups': include_groups, 'market': market, 'limit': limit, 'offset': offset}
         json_body = {}
         response, error = self._get(url, query_params, json_body)
         if error:
-            return ErrorObject(response.text)
-        return PagingObject(response.text)
+            return ErrorObject(response)
+        return PagingObject(response.text, SimplifiedAlbumObject)
     
     def get_all_new_releases(self, country: str = None, limit: int = None, offset: int = None) -> Union[PagingObject[SimplifiedAlbumObject], ErrorObject]:
         """
@@ -163,8 +163,8 @@
         json_body = {}
         response, error = self._get(url, query_params, json_body)
         if error:
-            return ErrorObject(response.text)
-        return PagingObject(response.text)
+            return ErrorObject(response)
+        return PagingObject(response.text, SimplifiedAlbumObject)
     
     def get_all_featured_playlists(self, country: str = None, locale: str = None, timestamp: str = None, limit: int = None, offset: int = None) -> Union[PagingObject[SimplifiedPlaylistObject], ErrorObject]:
         """
@@ -199,8 +199,8 @@
         json_body = {}
         response, error = self._get(url, query_params, json_body)
         if error:
-            return ErrorObject(response.text)
-        return PagingObject(response.text)
+            return ErrorObject(response)
+        return PagingObject(response.text, SimplifiedPlaylistObject)
     
     def get_all_categories(self, country: str = None, locale: str = None, timestamp: str = None, limit: int = None, offset: int = None) -> Union[PagingObject[CategoryObject], ErrorObject]:
         """
@@ -236,8 +236,8 @@
         json_body = {}
         response, error = self._get(url, query_params, json_body)
         if error:
-            return ErrorObject(response.text)
-        return PagingObject(response.text)
+            return ErrorObject(response)
+        return PagingObject(response.text, CategoryObject)
     
     def get_a_category(self, category_id: str, country: str = None, locale: str = None) -> Union[CategoryObject, ErrorObject]:
         """
@@ -263,7 +263,7 @@
         json_body = {}
         response, error = self._get(url, query_params, json_body)
         if error:
-            return ErrorObject(response.text)
+            return ErrorObject(response)
         return CategoryObject(response.text)
     
     def get_a_categorys_playlists(self, category_id: str, country: str = None, locale: str = None, limit: int = None, offset: int = None) -> Union[PagingObject[SimplifiedPlaylistObject], ErrorObject]:
@@ -293,8 +293,8 @@
         json_body = {}
         response, error = self._get(url, query_params, json_body)
         if error:
-            return ErrorObject(response.text)
-        return PagingObject(response.text)
+            return ErrorObject(response)
+        return PagingObject(response.text, SimplifiedPlaylistObject)
     
     def get_recommendations(self, seed_artists: List[str], seed_genres: List[str], seed_tracks: List[str], limit: int = None, market: str = None, min_acousticness: float = None, max_acousticness: float = None, target_acousticness: float = None, min_danceability: float = None, max_danceability: float = None, target_danceability: float = None, min_duration_ms: int = None, max_duration_ms: int = None, target_duration_ms: int = None, min_energy: float = None, max_energy: float = None, target_energy: float = None, min_instrumentalness: float = None, max_instrumentalness: float = None, target_instrumentalness: float = None, min_key: int = None, max_key: int = None, target_key: int = None, min_liveness: float = None, max_liveness: float = None, target_liveness: float = None, min_loudness: float = None, max_loudness: float = None, target_loudness: float = None, min_mode: int = None, max_mode: int = None, target_mode: int = None, min_popularity: int = None, max_popularity: int = None, target_popularity: int = None, min_speechiness: float = None, max_speechiness: float = None, target_speechiness: float = None, min_tempo: float = None, max_tempo: float = None, target_tempo: float = None, min_time_signature: int = None, max_time_signature: int = None, target_time_signature: int = None, min_valence: float = None, max_valence: float = None, target_valence: float = None) -> Union[RecommendationsObject, ErrorObject]:
         """
@@ -548,7 +548,7 @@
         json_body = {}
         response, error = self._get(url, query_params, json_body)
         if error:
-            return ErrorObject(response.text)
+            return ErrorObject(response)
         return RecommendationsObject(response.text)
     
     def get_recommendation_genres(self) -> Union[RecommendationsObject, ErrorObject]:
@@ -561,7 +561,7 @@
         json_body = {}
         response, error = self._get(url, query_params, json_body)
         if error:
-            return ErrorObject(response.text)
+            return ErrorObject(response)
         return RecommendationsObject(response.text)
     
     def get_multiple_episodes(self, ids: List[str], market: str = None) -> Union[List[Optional[EpisodeObject]], ErrorObject]:
@@ -580,7 +580,7 @@
         json_body = {}
         response, error = self._get(url, query_params, json_body)
         if error:
-            return ErrorObject(response.text)
+            return ErrorObject(response)
         return self._convert_array_to_list(response.text, EpisodeObject)
     
     def get_an_episode(self, id_: str, market: str = None) -> Union[EpisodeObject, ErrorObject]:
@@ -598,7 +598,7 @@
         json_body = {}
         response, error = self._get(url, query_params, json_body)
         if error:
-            return ErrorObject(response.text)
+            return ErrorObject(response)
         return EpisodeObject(response.text)
     
 @requires('user-follow-modify', 'playlist-modify-private')
@@ -618,7 +618,7 @@
         json_body = {'public': public}
         response, error = self._put(url, query_params, json_body)
         if error:
-            return ErrorObject(response.text)
+            return ErrorObject(response)
         return ErrorObject(response.text)
     
 @requires('playlist-modify-public', 'playlist-modify-private')
@@ -634,7 +634,7 @@
         json_body = {}
         response, error = self._delete(url, query_params, json_body)
         if error:
-            return ErrorObject(response.text)
+            return ErrorObject(response)
         return ErrorObject(response.text)
     
 @requires('playlist-read-private')
@@ -653,7 +653,7 @@
         json_body = {}
         response, error = self._get(url, query_params, json_body)
         if error:
-            return ErrorObject(response.text)
+            return ErrorObject(response)
         return self._convert_array_to_list(response.text, ErrorObject)
     
 @requires('user-follow-modify')
@@ -673,8 +673,8 @@
         json_body = {}
         response, error = self._get(url, query_params, json_body)
         if error:
-            return ErrorObject(response.text)
-        return PagingObject(response.text)
+            return ErrorObject(response)
+        return PagingObject(response.text, ArtistObject)
     
 @requires('user-follow-modify')
     def follow_artists_or_users(self, type_: str, ids: List[str]) -> Optional[ErrorObject]:
@@ -692,7 +692,7 @@
         json_body = {}
         response, error = self._put(url, query_params, json_body)
         if error:
-            return ErrorObject(response.text)
+            return ErrorObject(response)
         return ErrorObject(response.text)
     
 @requires('user-follow-modify')
@@ -711,7 +711,7 @@
         json_body = {}
         response, error = self._delete(url, query_params, json_body)
         if error:
-            return ErrorObject(response.text)
+            return ErrorObject(response)
         return ErrorObject(response.text)
     
 @requires('user-follow-read')
@@ -730,7 +730,7 @@
         json_body = {}
         response, error = self._get(url, query_params, json_body)
         if error:
-            return ErrorObject(response.text)
+            return ErrorObject(response)
         return self._convert_array_to_list(response.text, ErrorObject)
     
 @requires('user-library-read')
@@ -751,8 +751,8 @@
         json_body = {}
         response, error = self._get(url, query_params, json_body)
         if error:
-            return ErrorObject(response.text)
-        return PagingObject(response.text)
+            return ErrorObject(response)
+        return PagingObject(response.text, SavedAlbumObject)
     
 @requires('user-library-modify')
     def save_albums_for_current_user(self, ids: List[str]) -> Optional[ErrorObject]:
@@ -768,7 +768,7 @@
         json_body = {}
         response, error = self._put(url, query_params, json_body)
         if error:
-            return ErrorObject(response.text)
+            return ErrorObject(response)
         return ErrorObject(response.text)
     
 @requires('user-library-modify')
@@ -785,7 +785,7 @@
         json_body = {}
         response, error = self._delete(url, query_params, json_body)
         if error:
-            return ErrorObject(response.text)
+            return ErrorObject(response)
         return ErrorObject(response.text)
     
 @requires('user-library-read')
@@ -803,7 +803,7 @@
         json_body = {}
         response, error = self._get(url, query_params, json_body)
         if error:
-            return ErrorObject(response.text)
+            return ErrorObject(response)
         return self._convert_array_to_list(response.text, ErrorObject)
     
 @requires('user-library-read')
@@ -824,8 +824,8 @@
         json_body = {}
         response, error = self._get(url, query_params, json_body)
         if error:
-            return ErrorObject(response.text)
-        return PagingObject(response.text)
+            return ErrorObject(response)
+        return PagingObject(response.text, SavedTrackObject)
     
 @requires('user-library-modify')
     def save_tracks_for_users(self, ids: List[str]) -> Optional[ErrorObject]:
@@ -841,7 +841,7 @@
         json_body = {}
         response, error = self._put(url, query_params, json_body)
         if error:
-            return ErrorObject(response.text)
+            return ErrorObject(response)
         return ErrorObject(response.text)
     
 @requires('user-library-modify')
@@ -858,7 +858,7 @@
         json_body = {}
         response, error = self._delete(url, query_params, json_body)
         if error:
-            return ErrorObject(response.text)
+            return ErrorObject(response)
         return ErrorObject(response.text)
     
 @requires('user-library-read')
@@ -876,7 +876,7 @@
         json_body = {}
         response, error = self._get(url, query_params, json_body)
         if error:
-            return ErrorObject(response.text)
+            return ErrorObject(response)
         return self._convert_array_to_list(response.text, ErrorObject)
     
 @requires('user-library-read')
@@ -898,8 +898,8 @@
         json_body = {}
         response, error = self._get(url, query_params, json_body)
         if error:
-            return ErrorObject(response.text)
-        return PagingObject(response.text)
+            return ErrorObject(response)
+        return PagingObject(response.text, SavedEpisodeObject)
     
 @requires('user-library-modify')
     def save_tracks_for_users(self, ids: List[str]) -> Optional[ErrorObject]:
@@ -916,7 +916,7 @@
         json_body = {}
         response, error = self._put(url, query_params, json_body)
         if error:
-            return ErrorObject(response.text)
+            return ErrorObject(response)
         return ErrorObject(response.text)
     
 @requires('user-library-modify')
@@ -934,7 +934,7 @@
         json_body = {}
         response, error = self._delete(url, query_params, json_body)
         if error:
-            return ErrorObject(response.text)
+            return ErrorObject(response)
         return ErrorObject(response.text)
     
 @requires('user-library-read')
@@ -953,7 +953,7 @@
         json_body = {}
         response, error = self._get(url, query_params, json_body)
         if error:
-            return ErrorObject(response.text)
+            return ErrorObject(response)
         return self._convert_array_to_list(response.text, ErrorObject)
     
 @requires('user-library-read')
@@ -973,8 +973,8 @@
         json_body = {}
         response, error = self._get(url, query_params, json_body)
         if error:
-            return ErrorObject(response.text)
-        return PagingObject(response.text)
+            return ErrorObject(response)
+        return PagingObject(response.text, SavedShowObject)
     
 @requires('user-library-modify')
     def save_tracks_for_shows(self, ids: List[str]) -> Optional[ErrorObject]:
@@ -990,7 +990,7 @@
         json_body = {}
         response, error = self._put(url, query_params, json_body)
         if error:
-            return ErrorObject(response.text)
+            return ErrorObject(response)
         return ErrorObject(response.text)
     
 @requires('user-library-modify')
@@ -1009,7 +1009,7 @@
         json_body = {}
         response, error = self._delete(url, query_params, json_body)
         if error:
-            return ErrorObject(response.text)
+            return ErrorObject(response)
         return ErrorObject(response.text)
     
 @requires('user-library-read')
@@ -1027,7 +1027,7 @@
         json_body = {}
         response, error = self._get(url, query_params, json_body)
         if error:
-            return ErrorObject(response.text)
+            return ErrorObject(response)
         return self._convert_array_to_list(response.text, ErrorObject)
     
     def get_avaliable_markets(self) -> Union[List[str], ErrorObject]:
@@ -1041,7 +1041,7 @@
         json_body = {}
         response, error = self._get(url, query_params, json_body)
         if error:
-            return ErrorObject(response.text)
+            return ErrorObject(response)
         return self._convert_array_to_list(response.text, ErrorObject)
     
 @requires('user-top-read')
@@ -1066,8 +1066,8 @@
         json_body = {}
         response, error = self._get(url, query_params, json_body)
         if error:
-            return ErrorObject(response.text)
-        return PagingObject(response.text)
+            return ErrorObject(response)
+        return PagingObject(response.text, ArtistObject)
     
     def get_information_about_the_users_current_playback(self, market: str = None) -> Union[dict, ErrorObject]:
         """
@@ -1083,7 +1083,7 @@
         json_body = {}
         response, error = self._get(url, query_params, json_body)
         if error:
-            return ErrorObject(response.text)
+            return ErrorObject(response)
         return ErrorObject(response.text)
     
 @requires('user-modify-playback-state')
@@ -1102,7 +1102,7 @@
         json_body = {'device_id': device_id, 'play': play}
         response, error = self._get(url, query_params, json_body)
         if error:
-            return ErrorObject(response.text)
+            return ErrorObject(response)
         return ErrorObject(response.text)
     
 @requires('user-read-playback-state')
@@ -1116,7 +1116,7 @@
         json_body = {}
         response, error = self._get(url, query_params, json_body)
         if error:
-            return ErrorObject(response.text)
+            return ErrorObject(response)
         return self._convert_array_to_list(response.text, ErrorObject)
     
 @requires('user-read-currently-playing', 'user-read-playback-state')
@@ -1132,7 +1132,7 @@
         json_body = {}
         response, error = self._get(url, query_params, json_body)
         if error:
-            return ErrorObject(response.text)
+            return ErrorObject(response)
         return ErrorObject(response.text)
     
 @requires('user-modify-playback-state')
@@ -1172,7 +1172,7 @@
         json_body = {'context_uri': context_uri, 'uris': uris, 'offset': offset, 'position_ms': position_ms}
         response, error = self._put(url, query_params, json_body)
         if error:
-            return ErrorObject(response.text)
+            return ErrorObject(response)
         return ErrorObject(response.text)
     
 @requires('user-modify-playback-state')
@@ -1193,7 +1193,7 @@
         json_body = {}
         response, error = self._put(url, query_params, json_body)
         if error:
-            return ErrorObject(response.text)
+            return ErrorObject(response)
         return ErrorObject(response.text)
     
 @requires('user-modify-playback-state')
@@ -1214,7 +1214,7 @@
         json_body = {}
         response, error = self._post(url, query_params, json_body)
         if error:
-            return ErrorObject(response.text)
+            return ErrorObject(response)
         return ErrorObject(response.text)
     
 @requires('user-modify-playback-state')
@@ -1239,7 +1239,7 @@
         json_body = {}
         response, error = self._put(url, query_params, json_body)
         if error:
-            return ErrorObject(response.text)
+            return ErrorObject(response)
         return ErrorObject(response.text)
     
 @requires('user-modify-playback-state')
@@ -1265,7 +1265,7 @@
         json_body = {}
         response, error = self._put(url, query_params, json_body)
         if error:
-            return ErrorObject(response.text)
+            return ErrorObject(response)
         return ErrorObject(response.text)
     
 @requires('user-modify-playback-state')
@@ -1288,7 +1288,7 @@
         json_body = {}
         response, error = self._put(url, query_params, json_body)
         if error:
-            return ErrorObject(response.text)
+            return ErrorObject(response)
         return ErrorObject(response.text)
     
 @requires('user-modify-playback-state')
@@ -1311,7 +1311,7 @@
         json_body = {}
         response, error = self._put(url, query_params, json_body)
         if error:
-            return ErrorObject(response.text)
+            return ErrorObject(response)
         return ErrorObject(response.text)
     
 @requires('user-modify-playback-state')
@@ -1335,8 +1335,8 @@
         json_body = {}
         response, error = self._get(url, query_params, json_body)
         if error:
-            return ErrorObject(response.text)
-        return PagingObject(response.text)
+            return ErrorObject(response)
+        return PagingObject(response.text, PlayHistoryObject)
     
 @requires('user-modify-playback-state')
     def add_an_item_to_queue(self, uri: str, device_id: str = None) -> Optional[ErrorObject]:
@@ -1354,7 +1354,7 @@
         json_body = {}
         response, error = self._post(url, query_params, json_body)
         if error:
-            return ErrorObject(response.text)
+            return ErrorObject(response)
         return ErrorObject(response.text)
     
 @requires('playlist-read-private', 'playlist-read-collaborative')
@@ -1373,8 +1373,8 @@
         json_body = {}
         response, error = self._get(url, query_params, json_body)
         if error:
-            return ErrorObject(response.text)
-        return PagingObject(response.text)
+            return ErrorObject(response)
+        return PagingObject(response.text, SimplifiedPlaylistObject)
     
 @requires('playlist-read-private', 'playlist-read-collaborative')
     def get_a_list_of_a_users_playlists(self, user_id: str, limit: int = None, offset: int = None) -> Union[PagingObject[SimplifiedPlaylistObject], ErrorObject]:
@@ -1393,8 +1393,8 @@
         json_body = {}
         response, error = self._get(url, query_params, json_body)
         if error:
-            return ErrorObject(response.text)
-        return PagingObject(response.text)
+            return ErrorObject(response)
+        return PagingObject(response.text, SimplifiedPlaylistObject)
     
 @requires('playlist-modify-public', 'playlist-modify-private')
     def create_a_playlist(self, user_id: str, name: str, public: bool = None, collaborative: bool = None, description: str = None) -> Union[PlaylistObject, ErrorObject]:
@@ -1419,7 +1419,7 @@
         json_body = {'name': name, 'public': public, 'collaborative': collaborative, 'description': description}
         response, error = self._post(url, query_params, json_body)
         if error:
-            return ErrorObject(response.text)
+            return ErrorObject(response)
         return PlaylistObject(response.text)
     
     def get_a_playlist(self, playlist_id: str, market: str = None, fields: str = None) -> Union[PlaylistObject, ErrorObject]:
@@ -1448,7 +1448,7 @@
         json_body = {}
         response, error = self._get(url, query_params, json_body)
         if error:
-            return ErrorObject(response.text)
+            return ErrorObject(response)
         return PlaylistObject(response.text)
     
 @requires('playlist-modify-public', 'playlist-modify-private')
@@ -1475,7 +1475,7 @@
         json_body = {'name': name, 'public': public, 'collaborative': collaborative, 'description': description}
         response, error = self._put(url, query_params, json_body)
         if error:
-            return ErrorObject(response.text)
+            return ErrorObject(response)
         return ErrorObject(response.text)
     
     def get_a_playlists_items(self, playlist_id: str, market: str = None, fields: str = None, limit: int = None, offset: int = None) -> Union[PagingObject[Union[TrackObject, EpisodeObject]], ErrorObject]:
@@ -1507,8 +1507,8 @@
         json_body = {}
         response, error = self._get(url, query_params, json_body)
         if error:
-            return ErrorObject(response.text)
-        return PagingObject(response.text)
+            return ErrorObject(response)
+        return PagingObject(response.text, TrackObject)
     
 @requires('playlist-modify-public', 'playlist-modify-private')
     def add_items_to_a_playlist(self, playlist_id: str, market: str = None, position: int = None, uris: List[str] = None) -> Optional[ErrorObject]:
@@ -1532,7 +1532,7 @@
         json_body = {'uris': uris}
         response, error = self._post(url, query_params, json_body)
         if error:
-            return ErrorObject(response.text)
+            return ErrorObject(response)
         return ErrorObject(response.text)
     
 @requires('playlist-modify-public', 'playlist-modify-private')
@@ -1572,7 +1572,7 @@
         json_body = {'uris': uris, 'range_start': range_start, 'insert_before': insert_before, 'range_length': range_length, 'snapshot_id': snapshot_id}
         response, error = self._put(url, query_params, json_body)
         if error:
-            return ErrorObject(response.text)
+            return ErrorObject(response)
         return ErrorObject(response.text)
     
 @requires('playlist-modify-public', 'playlist-modify-private')
@@ -1595,7 +1595,7 @@
         json_body = {'tracks': tracks, 'snapshot_id': snapshot_id}
         response, error = self._delete(url, query_params, json_body)
         if error:
-            return ErrorObject(response.text)
+            return ErrorObject(response)
         return ErrorObject(response.text)
     
     def get_a_playlist_cover_image(self, playlist_id: str) -> Union[ImageObject, ErrorObject]:
@@ -1610,7 +1610,7 @@
         json_body = {}
         response, error = self._get(url, query_params, json_body)
         if error:
-            return ErrorObject(response.text)
+            return ErrorObject(response)
         return ImageObject(response.text)
     
 @requires('ugc-image-upload', 'playlist-modify-public', 'playlist-modify-private')
@@ -1627,7 +1627,7 @@
         json_body = {}
         response, error = self._put(url, query_params, json_body)
         if error:
-            return ErrorObject(response.text)
+            return ErrorObject(response)
         return ImageObject(response.text)
     
     def search_for_an_item(self, q: str, type_: List[str], market: str = None, limit: int = None, offset: int = None, include_external: str = None) -> Union[PagingObject[Union[ArtistObject, SimplifiedAlbumObject, TrackObject, SimplifiedShowObject, SimplifiedEpisodeObject]], ErrorObject]:
@@ -1660,8 +1660,8 @@
         json_body = {}
         response, error = self._get(url, query_params, json_body)
         if error:
-            return ErrorObject(response.text)
-        return PagingObject(response.text)
+            return ErrorObject(response)
+        return PagingObject(response.text, ArtistObject)
     
     def get_multiple_shows(self, ids: List[str], market: str = None) -> Union[List[Optional[SimplifiedShowObject]], ErrorObject]:
         """
@@ -1679,7 +1679,7 @@
         json_body = {}
         response, error = self._get(url, query_params, json_body)
         if error:
-            return ErrorObject(response.text)
+            return ErrorObject(response)
         return self._convert_array_to_list(response.text, SimplifiedShowObject)
     
     def get_a_show(self, id_: str, market: str = None) -> Union[ShowObject, ErrorObject]:
@@ -1697,7 +1697,7 @@
         json_body = {}
         response, error = self._get(url, query_params, json_body)
         if error:
-            return ErrorObject(response.text)
+            return ErrorObject(response)
         return ShowObject(response.text)
     
     def get_a_shows_episodes(self, id_: str, market: str = None, limit: int = None, offset: int = None) -> Union[PagingObect[SimplifiedEpisodeObject], ErrorObject]:
@@ -1719,7 +1719,7 @@
         json_body = {}
         response, error = self._get(url, query_params, json_body)
         if error:
-            return ErrorObject(response.text)
+            return ErrorObject(response)
         return SimplifiedEpisodeObject(response.text)
     
     def get_several_tracks(self, ids: List[str], market: str = None) -> Union[List[Optional[TrackObject]], ErrorObject]:
@@ -1738,7 +1738,7 @@
         json_body = {}
         response, error = self._get(url, query_params, json_body)
         if error:
-            return ErrorObject(response.text)
+            return ErrorObject(response)
         return self._convert_array_to_list(response.text, TrackObject)
     
     def get_a_track(self, id_: str, market: str = None) -> Union[TrackObject, ErrorObject]:
@@ -1751,12 +1751,12 @@
         market: Optional; An ISO 3166-1 alpha-2 country code or the string
           'from_token'.
         """
-        url = f'https://api.spotify.com/v1/tracks/{id}'
+        url = f'https://api.spotify.com/v1/tracks/{id_}'
         query_params = {'market': market}
         json_body = {}
         response, error = self._get(url, query_params, json_body)
         if error:
-            return ErrorObject(response.text)
+            return ErrorObject(response)
         return TrackObject(response.text)
     
     def get_audio_features_for_several_tracks(self, ids: List[str]) -> Union[List[Optional[AudioFeaturesObject]], ErrorObject]:
@@ -1772,7 +1772,7 @@
         json_body = {}
         response, error = self._get(url, query_params, json_body)
         if error:
-            return ErrorObject(response.text)
+            return ErrorObject(response)
         return self._convert_array_to_list(response.text, AudioFeaturesObject)
     
     def get_audio_features_for_a_track(self, id_: str) -> Union[AudioFeaturesObject, ErrorObject]:
@@ -1783,12 +1783,12 @@
     Args:
         id_: The Spotify ID of the track.
         """
-        url = f'https://api.spotify.com/v1/audio-features/{id}'
+        url = f'https://api.spotify.com/v1/audio-features/{id_}'
         query_params = {'id_': id_}
         json_body = {}
         response, error = self._get(url, query_params, json_body)
         if error:
-            return ErrorObject(response.text)
+            return ErrorObject(response)
         return AudioFeaturesObject(response.text)
     
     def get_audio_analysis_for_a_track(self, id_: str) -> Union[AudioAnalysisObject, ErrorObject]:
@@ -1799,12 +1799,12 @@
     Args:
         id_: The Spotify ID of the track.
         """
-        url = f'https://api.spotify.com/v1/audio-analysis/{id}'
+        url = f'https://api.spotify.com/v1/audio-analysis/{id_}'
         query_params = {'id_': id_}
         json_body = {}
         response, error = self._get(url, query_params, json_body)
         if error:
-            return ErrorObject(response.text)
+            return ErrorObject(response)
         return AudioAnalysisObject(response.text)
     
 @requires('user-read-email', 'user-read-private')
@@ -1818,7 +1818,7 @@
         json_body = {}
         response, error = self._get(url, query_params, json_body)
         if error:
-            return ErrorObject(response.text)
+            return ErrorObject(response)
         return UserObject(response.text)
     
     def get_a_users_profile(self, id_: str) -> Union[UserObject, ErrorObject]:
@@ -1833,6 +1833,6 @@
         json_body = {}
         response, error = self._get(url, query_params, json_body)
         if error:
-            return ErrorObject(response.text)
+            return ErrorObject(response)
         return UserObject(response.text)
     

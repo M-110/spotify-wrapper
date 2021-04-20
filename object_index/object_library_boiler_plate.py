@@ -7,6 +7,8 @@ import json
 from collections.abc import Iterable
 from typing import List, Optional, TypeVar, Union, overload, Generic
 
+from .utilities import cached_static_property
+
 T = TypeVar('T')
 
 
@@ -42,6 +44,10 @@ class PagingObject(Sequence, Generic[T], SpotifyObject):
     PagingObject doc string...
     """
     def __init__(self, json_object: Optional[str, dict], item_type: T):
+        json_dict = json.loads(json_object)
+        print(json_dict.keys())
+        if len(json_dict.keys()) < 3:
+            json_object = list(json_dict.values())[-1]
         super().__init__(json_object)
         self.item_type = item_type
 
@@ -50,6 +56,9 @@ class PagingObject(Sequence, Generic[T], SpotifyObject):
 
     def __len__(self):
         return len(self.items)
+    
+    def __repr__(self):
+        return f'<PagingObject items={self.items}>'
 
     @property
     def href(self) -> str:

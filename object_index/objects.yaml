@@ -3,6 +3,10 @@
 # 
 - name: Album
   doc: "Album Object Doc String."
+  repr_return:
+    - name
+    - id
+    - artists
   attrs:
     - name: album_type
       doc: "The type of the album: album, single, or compilation."
@@ -84,6 +88,8 @@
 # TODO: What does this look like??
 - name: AlbumRestriction
   doc: "Album Restriction Object docstring..."
+  repr_return: 
+    - reason
   attrs:
     - name: reason
       doc: "The reason for the restriction. Supported values:
@@ -98,6 +104,8 @@
 # 
 - name: Artist
   doc: "Artist docstring"
+  repr_return:
+    - name
   attrs:
     - name: external_urls
       doc: "Known external URLs for this artist."
@@ -144,6 +152,8 @@
 # 
 - name: AudioFeatures
   doc: "AudioFeatures docstring.."
+  repr_return:
+    - id
   attrs:
     - name: acousticness
       doc: "A confidence measure from 0.0 to 1.0 of whether the track is acoustic. 1.0 represents high confidence the track is acoustic."
@@ -221,6 +231,8 @@
 # 
 - name: Category
   doc: "CategoryObject doc string...."
+  repr_return:
+    - name
   attrs:
     - name: href
       doc: "A link to the Web API endpoint returning full details of the category."
@@ -242,6 +254,8 @@
 # 
 - name: Context
   doc: "ContextObject doc string...."
+  repr_return:
+    - type
   attrs:
     - name: external_urls
       doc: "External URLs for this context."
@@ -264,9 +278,12 @@
 # 
 - name: Copyright
   doc: "Copyright doc string...."
+  repr_return:
+    - text
+    - type
   attrs:
     - name: text
-      doc: "External URLs for this context."
+      doc: "The copyright text for this content."
       return: str
       
     - name: type
@@ -279,6 +296,10 @@
 # 
 - name: CurrentlyPlayingContext
   doc: "CurrentlyPlayingContext doc string...."
+  repr_return:
+    - device
+    - repeat_state
+    - shuffle_state
   attrs:
     - name: actions
       doc: "Allows to update the user interface based on which playback actions are available within the current context."
@@ -325,6 +346,8 @@
 # 
 - name: CurrentlyPlaying
   doc: "CurrentlyPlaying doc string...."
+  repr_return:
+    - item
   attrs:
     - name: context
       doc: "A Context Object. Can be None."
@@ -356,6 +379,8 @@
 # 
 - name: Cursor
   doc: "CursorObject doc string.."
+  repr_return: 
+    - after
   attrs:
     - name: after
       doc: "The cursor to use as key to find the next page of items."
@@ -366,6 +391,10 @@
 # 
 - name: CursorPaging
   doc: "CursorPagingObject doc string..."
+  repr_return: 
+    - items
+    - limit
+    - next
   attrs:
     - name: cursors
       doc: "The cursors used to find the next set of items."
@@ -396,6 +425,10 @@
 # 
 - name: Device
   doc: "DeviceObject doc string..."
+  repr_return:
+    - name
+    - id
+    - type
   attrs:
     - name: id
       doc: "The device ID. This may be None."
@@ -429,6 +462,8 @@
 # 
 - name: Devices
   doc: "DevicesObject doc string..."
+  repr_return: 
+    - devices
   attrs:
     - name: devices
       doc: "A list of 0..n Device objects"
@@ -438,6 +473,17 @@
 # 
 - name: Disallows
   doc: "DisallowsObject doc string..."
+  repr_return: 
+    - interrupting_playback
+    - pausing
+    - resuming
+    - seeking
+    - skipping_next
+    - skipping_prev
+    - toggling_repeat_context
+    - toggling_repeat_track
+    - toggling_shuffle
+    - transferring_playback
   attrs:
     - name: interrupting_playback
       doc: "Interrupting playback. Optional field."
@@ -484,6 +530,10 @@
 # 
 - name: Episode
   doc: "EpisodeObject doc string..."
+  repr_return:
+    - name
+    - show
+    - id
   attrs:
     - name: audio_preview_url
       doc: "A URL to a 30 second preview (MP3 format) of the episode. None if not available."
@@ -561,6 +611,9 @@
 # 
 - name: Error
   doc: "ErrorObject doc string..."
+  repr_return:
+    - message
+    - status
   attrs:
     - name: message
       doc: "A short description of the cause of the error."
@@ -576,6 +629,9 @@
 # 
 - name: ExplicitContentSettings
   doc: "ExplicitContentSettings doc string..."
+  repr_return:
+    - filter_enabled
+    - filter_locked
   attrs:
     - name: filter_enabled
       doc: "When True, indicates that explicit content should not be played."
@@ -592,6 +648,10 @@
 # 
 - name: ExternalId
   doc: "ExternalIdObject doc string..."
+  repr_return:
+    - ean
+    - isrc
+    - upc
   attrs:
     - name: ean
       doc: "International Article Number."
@@ -611,6 +671,8 @@
 # 
 - name: ExternalUrl
   doc: "ExternalUrlObject doc string..."
+  repr_return:
+    - spotify
   attrs:
     - name: spotify
       doc: "The Spotify URL for the object."
@@ -621,6 +683,8 @@
 # TODO: The "href" key is currently not implemented by Spotify in the Web API, but could be in the future.
 - name: Followers
   doc: "FollowersObject doc string..."
+  repr_return:
+    - total
   attrs:
     - name: total
       doc: "The total number of followers."
@@ -630,6 +694,10 @@
 #
 - name: Image
   doc: "ImageObject doc string..."
+  repr_return:
+    - url
+    - height
+    - width
   attrs:
     - name: height
       doc: "The image height in pixels. If unknown: None."
@@ -649,6 +717,9 @@
 #
 - name: LinkedTrack
   doc: "LinkedTrackObject doc string..."
+  repr_return:
+    - id
+    - uri
   attrs:
     - name: external_urls
       doc: "Known external URLs for this track."
@@ -707,6 +778,9 @@
 #
 - name: PlayHistory
   doc: "PlayHistoryObject doc string..."
+  repr_return:
+    - track
+    - played_at
   attrs:
     - name: context
       doc: "The context the track was played from."
@@ -724,6 +798,10 @@
 #
 - name: PlayError
   doc: "PlayErrorObject doc string..."
+  repr_return:
+    - message
+    - reason
+    - status
   attrs:
     - name: message
       doc: "A short description of the cause of the error."
@@ -759,6 +837,10 @@
 #
 - name: Playlist
   doc: "PlayListObject doc string..."
+  repr_return:
+    - name
+    - id
+    - tracks
   attrs:
     - name: collaborative
       doc: "True if the owner allows other users to modify the playlist"
@@ -820,6 +902,8 @@
 #
 - name: PlaylistTrack
   doc: "PlayListTrackObject doc string..."
+  repr_return:
+    - track
   attrs:
     - name: added_at
       doc: "The date and time the track or episode was added. Note that some very old playlists may return None in this field."
@@ -843,6 +927,8 @@
 #
 - name: PlaylistTrackRef
   doc: "PlayListTrackRefObject doc string..."
+  repr_return:
+    - href
   attrs:
     - name: href
       doc: "A link to the Web API endpoint where full details of the playlist’s tracks can be retrieved."
@@ -856,6 +942,10 @@
 #
 - name: PrivateUser
   doc: "PrivateUserObject doc string..."
+  repr_return:
+    - display_name
+    - email
+    - id
   attrs:
     - name: country
       doc: "The country of the user, as set in the user’s account profile. An ISO 3166-1 alpha-2 country code. This field is only available when the current user has granted access to the user-read-private scope."
@@ -912,6 +1002,9 @@
 #
 - name: PublicUser
   doc: "PublicUserObject doc string..."
+  repr_return:
+    - display_name
+    - id
   attrs:
     - name: display_name
       doc: "The name displayed on the user’s profile. None if not available."
@@ -954,6 +1047,9 @@
 #
 - name: RecommendationSeed
   doc: "RecommendationSeedObject doc string..."
+  repr_return:
+    - id
+    - type
   attrs:
     - name: after_filtering_size
       doc: "The number of tracks available after min_* and max_* filters have been applied."
@@ -984,6 +1080,9 @@
 #
 - name: Recommendations
   doc: "RecommendationsObject doc string..."
+  repr_return:
+    - seeds
+    - tracks
   attrs:
     - name: seeds
       doc: "A list of recommendation seed objects."
@@ -998,6 +1097,9 @@
 #
 - name: ResumePoint
   doc: "ResumePointObject doc string..."
+  repr_return:
+    - fully_played
+    - resume_position_ms
   attrs:
     - name: fully_played
       doc: "Whether or not the episode has been fully played by the user."
@@ -1012,6 +1114,9 @@
 #
 - name: SavedAlbum
   doc: "SavedAlbumObject doc string..."
+  repr_return:
+    - album
+    - added_at
   attrs:
     - name: added_at
       doc: "The date and time the album was saved Timestamps are returned in ISO 8601 format as Coordinated Universal Time (UTC) with a zero offset: YYYY-MM-DDTHH:MM:SSZ as datetime objects. "
@@ -1025,6 +1130,9 @@
 #
 - name: SavedEpisode
   doc: "SavedEpisodeObject doc string..."
+  repr_return:
+    - episode
+    - added_at
   attrs:
     - name: added_at
       doc: "The date and time the episode was saved Timestamps are returned in ISO 8601 format as Coordinated Universal Time (UTC) with a zero offset: YYYY-MM-DDTHH:MM:SSZ as datetime objects. "
@@ -1040,6 +1148,9 @@
 #
 - name: SavedShow
   doc: "SavedShowObject doc string..."
+  repr_return:
+    - show
+    - added_at
   attrs:
     - name: added_at
       doc: "The date and time the show was saved Timestamps are returned in ISO 8601 format as Coordinated Universal Time (UTC) with a zero offset: YYYY-MM-DDTHH:MM:SSZ as datetime objects. "
@@ -1053,6 +1164,9 @@
 #
 - name: SavedTrack
   doc: "SavedTrackObject doc string..."
+  repr_return:
+    - track
+    - added_at
   attrs:
     - name: added_at
       doc: "The date and time the track was saved Timestamps are returned in ISO 8601 format as Coordinated Universal Time (UTC) with a zero offset: YYYY-MM-DDTHH:MM:SSZ as datetime objects. "
@@ -1067,6 +1181,10 @@
 # 
 - name: Show
   doc: "ShowObject doc string..."
+  repr_return:
+    - name
+    - id
+    - media_type
   attrs:
     - name: available_markets
       doc: "A list of the countries in which the show can be played, identified by their ISO 3166-1 alpha-2 code."
@@ -1136,6 +1254,10 @@
 # 
 - name: SimplifiedAlbum
   doc: "SimplifiedAlbumObject Doc String."
+  repr_return:
+    - name
+    - artists
+    - id
   attrs:
     - name: album_group
       doc: 'The field is present when getting an artist’s albums. Possible values are “album”, “single”, “compilation”, “appears_on”. Compare to album_type this field represents relationship between the artist and the album.'
@@ -1147,7 +1269,7 @@
       
     - name: artists
       doc: "The artists of the album. Each artist object includes a link in href to more detailed information about the artist."
-      return: List[str]
+      return: List[SimplifiedArtistObject]
       
     - name: available_markets
       doc: "The markets in which the album is available: ISO 3166-1 alpha-2 country codes. Note that an album is considered available in a market when at least 1 of its tracks is available in that market."
@@ -1197,6 +1319,9 @@
 # 
 - name: SimplifiedArtist
   doc: "Artist docstring"
+  repr_return:
+    - name
+    - id
   attrs:
     - name: external_urls
       doc: "Known external URLs for this artist."
@@ -1227,6 +1352,10 @@
 # 
 - name: SimplifiedEpisode
   doc: "SimplifiedEpisodeObject doc string..."
+  repr_return:
+    - name
+    - show
+    - id
   attrs:
     - name: audio_preview_url
       doc: "A URL to a 30 second preview (MP3 format) of the episode. None if not available."
@@ -1305,6 +1434,10 @@
 #
 - name: SimplifiedPlaylist
   doc: "SimplifiedPlayListObject doc string..."
+  repr_return:
+    - name
+    - id
+    - tracks
   attrs:
     - name: collaborative
       doc: "True if the owner allows other users to modify the playlist"
@@ -1363,6 +1496,10 @@
 # 
 - name: SimplifiedShow
   doc: "ShowObject doc string..."
+  repr_return:
+    - name
+    - id
+    - media_type
   attrs:
     - name: available_markets
       doc: "A list of the countries in which the show can be played, identified by their ISO 3166-1 alpha-2 code."
@@ -1429,6 +1566,10 @@
 # 
 - name: SimplifiedTrack
   doc: "SimplifiedTrackObject doc string..."
+  repr_return:
+    - name
+    - id
+    - artists
   attrs:
     - name: artists
       doc: "The artists who performed the track. Each artist object includes a link in href to more detailed information about the artist."
@@ -1503,6 +1644,10 @@
 # 
 - name: Track
   doc: "TrackObject doc string..."
+  repr_return:
+    - name
+    - id
+    - artists
   attrs:
     - name: album
       doc: "The album on which the track appears. The album object includes a link in href to full information about the album."
@@ -1590,6 +1735,8 @@
 # TODO: What does this look like??
 - name: TrackRestriction
   doc: "Track Restriction Object docstring..."
+  repr_return:
+    - reason
   attrs:
     - name: reason
       doc: "The reason for the restriction. Supported values:
@@ -1599,10 +1746,25 @@
             \n\nAdditional reasons may be added in the future."
       return: str
       
-# 4. TuneableTrackObject
+# 47. TuneableTrackObject
 # 
 - name: TuneableTrack
   doc: "TuneableTrackObject docstring.."
+  repr_return:
+    - acousticness
+    - danceability
+    - duration_ms
+    - energy
+    - instrumentalness
+    - key
+    - liveness
+    - loudness
+    - mode
+    - popularity
+    - speechiness
+    - tempo
+    - time_signature
+    - valence
   attrs:
     - name: acousticness
       doc: "A confidence measure from 0.0 to 1.0 of whether the track is acoustic. 1.0 represents high confidence the track is acoustic."

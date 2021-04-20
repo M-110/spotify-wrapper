@@ -1,4 +1,5 @@
 from typing import Callable, List
+from dataclasses import dataclass
 from functools import wraps
 
 
@@ -11,6 +12,7 @@ def requires(scopes: List[str]) -> Callable:
     Args:
         scopes: A list of scopes from the Spotify API.
     """
+
     def decorator(func: Callable) -> Callable:
         @wraps(func)
         def inner(self, *args, **kwargs):
@@ -24,3 +26,20 @@ def requires(scopes: List[str]) -> Callable:
         return inner
 
     return decorator
+
+
+# TODO: It caches result across all instances.
+def cached_static_property(method):
+    cached_result = None
+    @wraps(method)
+    def inner(self):
+        nonlocal cached_result
+        if cached_result is None:
+            cached_result = method(self)
+        return cached_result
+    return property(inner)
+
+
+@dataclass
+class CustomResponse:
+    text: str
