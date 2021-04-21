@@ -5,7 +5,7 @@ from requests.exceptions import ConnectionError
 from typing import Optional, List, Union
 from .authorization_flow.server_pkce_flow import get_new_credentials
 from .object_library import AlbumObject, ErrorObject, SpotifyObject, PagingObject, TrackObject, SimplifiedTrackObject, \
-    ArtistObject, SimplifiedAlbumObject, SimplifiedPlaylistObject
+    ArtistObject, SimplifiedAlbumObject, SimplifiedPlaylistObject, CategoryObject
 from .utilities import requires, CustomResponse
 
 
@@ -292,3 +292,68 @@ class SpotifyAPI:
         if error:
             return ErrorObject(response)
         return PagingObject(response.text, SimplifiedPlaylistObject)
+    
+    def get_all_categories(self, country: str = None, locale: str = None, timestamp: str = None, limit: int = None, offset: int = None) -> Union[PagingObject[CategoryObject], ErrorObject]:
+        """
+        Get a list of categories used to tag items in Spotify (on, for example,
+    the Spotify player’s “Browse” tab).
+
+    Args:
+        country: Optional; An ISO 3166-1 alpha-2 country code or the string
+          'from_token'.
+        locale: Optional; The desired language, consisting of a lowercase ISO
+          639-1 language code and an uppercase ISO 3166-1 alpha-2 country
+          code, joined by an underscore. For example: es_MX, meaning “Spanish
+          (Mexico)”. Provide this parameter if you want the results returned
+          in a particular language (where available). Note that, if locale is
+          not supplied, or if the specified language is not available, all
+          strings will be returned in the Spotify default language (American
+          English). The locale parameter, combined with the country parameter,
+          may give odd results if not carefully matched.
+        timestamp: Optional; A timestamp in ISO 8601 format: yyyy-MM-
+          ddTHH:mm:ss. Use this parameter to specify the user’s local time to
+          get results tailored for that specific date and time in the day. If
+          not provided, the response defaults to the current UTC time.
+          Example: “2014-10-23T09:00:00” for a user whose local time is 9AM.
+          If there were no featured playlists (or there is no data) at the
+          specified time, the response will revert to the current UTC time.
+        limit: Optional; The maximum number of albums to return.  Default: 20.
+          Minimum: 1. Maximum: 50.
+        offset: Optional; The index of the first category to return. Default:
+          0.
+        """
+        url = f'https://api.spotify.com/v1/browse/categories'
+        query_params = {'country': country, 'locale': locale, 'timestamp': timestamp, 'limit': limit, 'offset': offset}
+        json_body = {}
+        response, error = self._get(url, query_params, json_body)
+        if error:
+            return ErrorObject(response)
+        return PagingObject(response.text, CategoryObject)
+
+    def get_a_category(self, category_id: str, country: str = None, locale: str = None) -> Union[
+        CategoryObject, ErrorObject]:
+        """
+        Get a single category used to tag items in Spotify (on, for example, the
+    Spotify player’s “Browse” tab).
+
+    Args:
+        category_id: The Spotify category ID for the category.
+        country: Optional; An ISO 3166-1 alpha-2 country code or the string
+          'from_token'.
+        locale: Optional; The desired language, consisting of a lowercase ISO
+          639-1 language code and an uppercase ISO 3166-1 alpha-2 country
+          code, joined by an underscore. For example: es_MX, meaning “Spanish
+          (Mexico)”. Provide this parameter if you want the results returned
+          in a particular language (where available). Note that, if locale is
+          not supplied, or if the specified language is not available, all
+          strings will be returned in the Spotify default language (American
+          English). The locale parameter, combined with the country parameter,
+          may give odd results if not carefully matched.
+        """
+        url = f'https://api.spotify.com/v1/browse/categories/{category_id}'
+        query_params = {'country': country, 'locale': locale}
+        json_body = {}
+        response, error = self._get(url, query_params, json_body)
+        if error:
+            return ErrorObject(response)
+        return CategoryObject(response.text)

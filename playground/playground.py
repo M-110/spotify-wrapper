@@ -11,4 +11,7 @@ s = SpotifyAPI()
 # a = s.get_an_artists_related_artists('2fqeW1UtOlUpnobQYoRt5s')
 # a = s.get_an_artists_albums('2fqeW1UtOlUpnobQYoRt5s', include_groups=['album', 'single'])
 # a = s.get_all_new_releases(country='US')
-a = s.get_all_featured_playlists()
+# a = s.get_all_featured_playlists()
+# a = s.get_all_categories("US")
+a = s.get_a_category("dinner", "US")
+

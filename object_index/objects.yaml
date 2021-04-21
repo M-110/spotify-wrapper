@@ -923,10 +923,10 @@
       
       
       
-# 28. PlaylistTrackRefObject
+# 28. PlaylistTracksRefObject
 #
-- name: PlaylistTrackRef
-  doc: "PlayListTrackRefObject doc string..."
+- name: PlaylistTracksRef
+  doc: "PlaylistTracksRefObject doc string..."
   repr_return:
     - href
   attrs:
@@ -1437,7 +1437,6 @@
   repr_return:
     - name
     - id
-    - tracks
   attrs:
     - name: collaborative
       doc: "True if the owner allows other users to modify the playlist"
@@ -1481,7 +1480,7 @@
 
     - name: tracks
       doc: "Information about the tracks of the playlist. Note, a track object may be None. This can happen if a track is no longer available."
-      return: List[Optional[PlaylistTrackObject]]
+      return: Optional[PlaylistTracksRefObject]
       
     - name: type
       doc: 'The object type: “playlist”.'

@@ -44,11 +44,11 @@ class PagingObject(Sequence, Generic[T], SpotifyObject):
     PagingObject doc string...
     """
     def __init__(self, json_object: Optional[str, dict], item_type: T):
-        self._json_string = json_object
-        self._json_dict = json.loads(json_object)
-        if len(self._json_dict.keys()) < 3:
-            self._json_dict = list(self._json_dict.values())[-1]
-            
+        json_dict = json.loads(json_object)
+        print(json_dict.keys())
+        if len(json_dict.keys()) < 3:
+            json_object = list(json_dict.values())[-1]
+        super().__init__(json_object)
         self.item_type = item_type
 
     def __getitem__(self, i):
@@ -1637,17 +1637,16 @@ class PlaylistTrackObject(SpotifyObject):
         """
         Information about the track or episode.
         """
-        return "TEMPORARY TRACKOBJECT PLACEHOLDER"
         return union_parser([TrackObject, EpisodeObject], self._json_dict['track'])
 
 
-class PlaylistTrackRefObject(SpotifyObject):
+class PlaylistTracksRefObject(SpotifyObject):
     """
-    PlayListTrackRefObject doc string...
+    PlaylistTracksRefObject doc string...
     """
 
     def __repr__(self):
-        return f'<PlaylistTrackRefObject href={self.href!r}>'
+        return f'<PlaylistTracksRefObject href={self.href!r}>'
 
     @property
     def href(self) -> str:
@@ -2522,7 +2521,7 @@ class SimplifiedPlaylistObject(SpotifyObject):
 
     def __repr__(self):
         return (f'<SimplifiedPlaylistObject name={self.name!r}, '
-                f'id={self.id!r}, tracks={self.tracks}>')
+                f'id={self.id!r}>')
 
     @property
     def collaborative(self) -> bool:
@@ -2606,13 +2605,14 @@ class SimplifiedPlaylistObject(SpotifyObject):
         return str(self._json_dict['snapshot_id'])
 
     @property
-    def tracks(self) -> List[Optional[PlaylistTrackObject]]:
+    def tracks(self) -> Optional[PlaylistTracksRefObject]:
         """
         Information about the tracks of the playlist. Note, a track object may
         be None. This can happen if a track is no longer available.
         """
-        print(self._json_dict['tracks'].keys())
-        return [PlaylistTrackObject(item) for item in self._json_dict['tracks']]
+        if value := self._json_dict.get('tracks'):
+            return PlaylistTracksRefObject(value)
+        return None
 
     @property
     def type(self) -> str:
