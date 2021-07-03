@@ -138,4 +138,4 @@ def translate_yaml_to_classes(file_out: str):
 
 
 if __name__ == "__main__":
-    translate_yaml_to_classes('..\\spotify_wrapper\\object_library.py')
+    translate_yaml_to_classes('../spotify_wrapper/object_library.py')

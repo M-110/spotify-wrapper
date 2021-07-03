@@ -17,7 +17,7 @@ method_template = '''{requires_decorator}
         if error:
             return ErrorObject(response)
         {return_line}
-    '''
+'''
 
 
 def generate_preset_param(param: str) -> dict:
@@ -125,9 +125,10 @@ def generate_requires_decorator(scope: list) -> str:
         return '\n@requires(' + ', '.join([f'{s!r}' for s in scope]) + ')'
     else:
         return ''
-    
-    
+
     # TODO: Allow for multiple object type returns
+
+
 def generate_return_line(return_type):
     objects = re.findall(r'\w*Object', return_type)
     is_array = 'List' in return_type
@@ -138,7 +139,6 @@ def generate_return_line(return_type):
         return f'return PagingObject(response.text, {objects[1]})'
     else:
         return f'return {objects[0]}(response.text)'
-        
 
 
 def class_wrap(class_text: str):
