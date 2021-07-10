@@ -10,15 +10,19 @@ import yaml
 HEADER_TEMPLATE = 'class {class_name}Object(SpotifyObject):\n'
 PROPERTY_TEMPLATE = '\n@property\ndef {attr_name}(self) -> {attr_return}:'
 
+BOILERPLATE_PATH = os.path.join('boilerplate', 'object_library_boiler.py')
+YAML_PATH = os.path.join('yaml_files', 'object_library.yaml')
 
-def create_yaml_dicts(directory: str) -> List[dict]:
-    yaml_path = os.path.join(directory, 'object_library.yaml')
-    with open(yaml_path, encoding='utf8') as yaml_file:
+
+def create_yaml_dicts() -> List[dict]:
+    """Open/convert the object_library.yaml to a dictionary and return it."""
+    with open(YAML_PATH, encoding='utf8') as yaml_file:
         return yaml.load(yaml_file, Loader=yaml.Loader)
 
 
 def create_class(class_dict: dict) -> str:
-    print(class_dict['name'])
+    """Create the python code that will represent the class and return it
+    as a string."""
     class_header = HEADER_TEMPLATE.format(class_name=class_dict['name'])
     class_docstring = create_docstring(class_dict['doc'], 1)
     repr_header = '\ndef __repr__(self):\n'
@@ -27,9 +31,9 @@ def create_class(class_dict: dict) -> str:
     for attr in class_dict['attrs']:
         property_text = create_property(attr)
         property_code.append(property_text)
-    class_statement = class_header + class_docstring + '\n\n'
-    class_methods = repr_header + repr_return_statement + '\n\n' + \
-                    '\n\n'.join(property_code)
+    class_statement = class_header + class_docstring + '\n'
+    class_methods = repr_header + repr_return_statement + '\n' + \
+                    '\n'.join(property_code)
     class_methods = textwrap.indent(class_methods, ' ' * 4)
     return class_statement + class_methods
 
@@ -56,17 +60,16 @@ def create_repr_return(class_dict: dict) -> str:
     props = []
     for prop in class_dict['repr_return']:
         attr = _lookup_attr(class_dict, prop)
-        formatter = '!' if attr['return'] == 'str' else ''
-        prop_repr = prop + '={self.' + formatter + prop + '}'
+        formatter = '!r' if attr['return'] == 'str' else ''
+        prop_repr = prop + '={self.' + prop + formatter + '}'
         props.append(prop_repr)
     prop_values = ', '.join(props)
-    return_line = f'return (f"<{class_name}Object {prop_values}>")'
-    return_wrapped = textwrap.fill(return_line,
-                                   width=66,
-                                   initial_indent=' ' * 4,
-                                   subsequent_indent=' ' * 8)
-    if '\n' not in return_wrapped:
-        return_wrapped = return_wrapped.replace('(', '').replace(')', '')
+    return_line = f"return f'<{class_name}Object {prop_values}>'"
+    return_wrapped = (textwrap.fill(return_line,
+                                    width=66,
+                                    initial_indent=' ' * 4,
+                                    subsequent_indent=' ' * 8)
+                      .replace('\n        ', '\' \\\n           f\''))
     return return_wrapped
 
 
@@ -78,12 +81,13 @@ def _lookup_attr(class_dict: dict, prop: str) -> dict:
 
 
 def create_property(attr_dict: dict) -> str:
+    """Create the code for a class property and return it as a string."""
     property_declaration = PROPERTY_TEMPLATE.format(
         attr_name=attr_dict['name'],
         attr_return=attr_dict['return'])
     property_docstring = create_docstring(attr_dict['doc'], 1)
-    return_statement = create_property_return_line(attr_dict['return'],
-                                                   attr_dict['name'])
+    return_statement = '    ' + create_property_return_line(attr_dict['return'],
+                                                            attr_dict['name'])
     code_text = '\n'.join([property_declaration,
                            property_docstring,
                            return_statement])
@@ -100,11 +104,9 @@ def create_property_return_line(return_type: str, attr_name: str) -> str:
     if not param:
         return f'return {return_class}(self._json_dict[{attr_name!r}])'
     if return_class == 'Optional':
-        return f'if value := self._json_dict.get({attr_name!r}):\n' \
-               f'    return {param}(value)' \
-               f'return None'
+        return _create_optional_return(attr_name, param)
     if return_class == 'List':
-        f'return [{param}(item) for item in self._json_dict[{attr_name!r}]]'
+        return f'return [{param}(item) for item in self._json_dict[{attr_name!r}]]'
     if return_class == 'Union':
         return f'return union_parser([{param}], self._json_dict[{attr_name!r}])'
     return f'return {return_class}(self._json_dict[{attr_name!r}], {param})'
@@ -122,12 +124,30 @@ def _get_return_type_and_params(return_type: str) -> (str, str):
     return return_class, param
 
 
+def _create_optional_return(attr_name: str, param: str) -> str:
+    """Return the code for an optional return."""
+    if param == 'datetime':
+        param = 'datetime.fromisoformat'
+    return f'if value := self._json_dict.get({attr_name!r}):\n' \
+           f'        return {param}(value)\n' \
+           f'    return None'
+
+
 def build(directory: str):
-    yaml_dicts = create_yaml_dicts('yaml_files')
+    output_path = os.path.join(directory, 'object_library.py')
+    yaml_dicts = create_yaml_dicts()
     class_code = []
     for class_dict in yaml_dicts:
         class_code.append(create_class(class_dict))
-    print('\n\n\n'.join(class_code))
+    with open(BOILERPLATE_PATH, 'r', encoding='utf8') as file:
+        boiler = file.read()
+
+    all_classes = '\n\n\n'.join(class_code)
+
+    with open(output_path, 'w', encoding='utf8') as file:
+        file.write(boiler)
+        file.write(all_classes)
+        file.write('\n')
 
 
-build('\\test\\')
+build('test')
