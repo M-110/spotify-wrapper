@@ -94,7 +94,6 @@ class TempServer(BaseHTTPRequestHandler):
 
     def log_message(self, *_):
         """Override log method to disable requests being logged in the console."""
-        return
 
 
 def _get_authorization(code_challenge: str):

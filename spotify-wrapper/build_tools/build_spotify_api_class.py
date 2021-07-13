@@ -3,151 +3,199 @@ Build the Spotify API class
 """
 import os
 import textwrap
-from typing import List
+from typing import List, Dict, Union, Optional
 
 import yaml
 
-HEADER_TEMPLATE = 'class {class_name}Object(SpotifyObject):\n'
-PROPERTY_TEMPLATE = '\n@property\ndef {attr_name}(self) -> {attr_return}:'
-
-BOILERPLATE_PATH = os.path.join('boilerplate', 'object_library_boiler.py')
-YAML_PATH = os.path.join('yaml_files', 'object_library.yaml')
+YAML_PATH = os.path.join('yaml_files', 'api_methods.yaml')
+BOILERPLATE_PATH = os.path.join('boilerplate', 'spotify_api_class_boiler.py')
 
 
 def create_yaml_dicts() -> List[dict]:
-    """Open/convert the object_library.yaml to a dictionary and return it."""
+    """Open/load the yaml file."""
     with open(YAML_PATH, encoding='utf8') as yaml_file:
         return yaml.load(yaml_file, Loader=yaml.Loader)
 
 
-def create_class(class_dict: dict) -> str:
-    """Create the python code that will represent the class and return it
-    as a string."""
-    class_header = HEADER_TEMPLATE.format(class_name=class_dict['name'])
-    class_docstring = create_docstring(class_dict['doc'], 1)
-    repr_header = '\ndef __repr__(self):\n'
-    repr_return_statement = create_repr_return(class_dict)
-    property_code = []
-    for attr in class_dict['attrs']:
-        property_text = create_property(attr)
-        property_code.append(property_text)
-    class_statement = class_header + class_docstring + '\n'
-    class_methods = repr_header + repr_return_statement + '\n' + \
-                    '\n'.join(property_code)
-    class_methods = textwrap.indent(class_methods, ' ' * 4)
-    return class_statement + class_methods
+def create_method(method: dict) -> str:
+    """Create the python code for the class method and return it as a
+    string."""
+    name = method['method_name']
+    doc = method['doc']
+    http_method = method['http_method']
+    endpoint = method['endpoint']
+    returns = method['returns']
+    scope = method['scope']
+    path_parameters = method['path_parameters']
+    query_parameters = method['query_parameters']
+    json_parameters = method['json_parameters']
+
+    params_dict = create_params_dict(path_parameters,
+                                     query_parameters,
+                                     json_parameters)
+    param_declarations = create_param_declarations(params_dict)
+    params_docstring = create_params_docstring(params_dict)
+    requires_decorator = create_requires_decorator(scope)
+    return_line = create_return_line(returns)
+    url = endpoint
+    
+    query_params = '?'
+    json_body = '?'
+    
+    output = '?'
+    
+    return output
 
 
-def create_docstring(text: str, indent: int) -> str:
-    """Wrap the docstring and surround it with triple quotes."""
-    wrapped_text = _wrap_line(text)
-    docstring = f'"""\n{wrapped_text}\n"""'
-    return textwrap.indent(docstring, prefix=' ' * (4 * indent))
+def create_params_dict(path_params: List[Union[str, dict, None]],
+                       query_params: List[Union[str, dict, None]],
+                       json_params: List[Union[str, dict, None]]) -> dict:
+    """Create a dictionary containing all the method's parameters. This is
+    mainly for the purpose of flattening the three dictionaries and
+    parsing the param values and replacing any preset parameters with a
+    corresponding dictionary."""
+    params = dict(path_parms=path_params,
+                  query_params=query_params,
+                  json_params=json_params)
+    return {name: parse_param_values(values)
+            for name, values in params.items()}
 
 
-def _wrap_line(line: str) -> str:
-    """Wrap the given line and preserve the indent level."""
-    line_indent = ' ' * (len(line) - len(line.lstrip()))
-    wrapped_lines = [textwrap.fill(cut_line, subsequent_indent=line_indent)
-                     for cut_line in line.split('\n')]
-    return '\n'.join(wrapped_lines)
+def parse_param_values(values: List[Union[str, dict, None]]
+                       ) -> List[Optional[dict]]:
+    """Create a list of dictionaries holding the information about each
+    parameter. If the value is a string then it is a preset parameter and the
+    string must further parsed to create a parameter dictionary."""
+    return [create_preset_parameter(value) if isinstance(value, str)
+            else value
+            for value in values]
 
 
-def create_repr_return(class_dict: dict) -> str:
-    """Create the return line of the repr method which will display a few
-    of the selected property values."""
-    class_name = class_dict['name']
-    props = []
-    for prop in class_dict['repr_return']:
-        attr = _lookup_attr(class_dict, prop)
-        formatter = '!r' if attr['return'] == 'str' else ''
-        prop_repr = prop + '={self.' + prop + formatter + '}'
-        props.append(prop_repr)
-    prop_values = ', '.join(props)
-    return_line = f"return f'<{class_name}Object {prop_values}>'"
-    return_wrapped = (textwrap.fill(return_line,
-                                    width=66,
-                                    initial_indent=' ' * 4,
-                                    subsequent_indent=' ' * 8)
-                      .replace('\n        ', '\' \\\n           f\''))
-    return return_wrapped
+def create_preset_parameter(value: str) -> dict:
+    """Create a parameter dictionary by parsing the value string and
+    constructing a dictionary from it using some preset parameter values.
+    
+    These are all values that are common through the API methods so this is
+    to prevent having to type them out 50+ times in the yaml file. Instead
+    shorthand like 'COUNTRY[market]' is used in the yaml file.
+    """
+    if '[' in value:
+        param_name = value[:value.find('[')]
+        args = value[value.find('[') + 1:-1].split(',')
+    else:
+        param_name = value
+        args = None
+
+    if param_name == 'COUNTRY':
+        doc_string = "An ISO 3166-1 alpha-2 country code or the string 'from_token'."
+        param_type = 'str'
+        param_name = args[0]
+        required = bool(args[1:])
+    elif param_name == 'LIMIT':
+        doc_string = 'The maximum number of {} to return.  Default: {}. Minimum: {}. Maximum: {}.'.format(*args)
+        param_type = 'int'
+        required = False
+    elif param_name == 'OFFSET':
+        doc_string = 'The index of the first {} to return. Default: 0.'.format(*args)
+        param_type = 'int'
+        required = False
+    elif param_name == 'ID_':
+        doc_string = 'The Spotify ID of the {}.'.format(*args)
+        param_type = 'str'
+        required = True
+    elif param_name == 'LOCALE':
+        doc_string = "The desired language, consisting of a lowercase ISO 639-1 language code and an uppercase ISO " \
+                     "3166-1 alpha-2 country code, joined by an underscore. For example: es_MX, meaning “Spanish (" \
+                     "Mexico)”. Provide this parameter if you want the results returned in a particular language (" \
+                     "where available). Note that, if locale is not supplied, or if the specified language is not " \
+                     "available, all strings will be returned in the Spotify default language (American English). The " \
+                     "locale parameter, combined with the country parameter, may give odd results if not carefully " \
+                     "matched."
+        param_type = 'str'
+        required = False
+    else:
+        raise ValueError(f'{value} not yet implemented.')
+
+    return dict(name=param_name.lower(),
+                doc=doc_string,
+                required=required,
+                type=param_type)
 
 
-def _lookup_attr(class_dict: dict, prop: str) -> dict:
-    """Get the attr_dict information from the given prop."""
-    for class_attr in class_dict['attrs']:
-        if class_attr['name'] == prop:
-            return class_attr
+def create_param_declarations(params_dict: dict) -> str:
+    """Create the string that will be the method's parameters in the method
+    declaration."""
+    required_args = []
+    optional_args = []
+
+    for params in params_dict.values():
+        for param in params:
+            if param is None:
+                continue
+            if param['required']:
+                required_args.append(f"{param['name']}: {param['type']}")
+            else:
+                optional_args.append(f"{param['name']}: {param['type']} = None")
+
+    return ', '.join(['self'] + required_args + optional_args)
 
 
-def create_property(attr_dict: dict) -> str:
-    """Create the code for a class property and return it as a string."""
-    property_declaration = PROPERTY_TEMPLATE.format(
-        attr_name=attr_dict['name'],
-        attr_return=attr_dict['return'])
-    property_docstring = create_docstring(attr_dict['doc'], 1)
-    return_statement = '    ' + create_property_return_line(attr_dict['return'],
-                                                            attr_dict['name'])
-    code_text = '\n'.join([property_declaration,
-                           property_docstring,
-                           return_statement])
-    return code_text
+def create_params_docstring(params_dict: dict) -> str:
+    """Create the 'Args:' section of the docstring which will list the details
+    of what each parameter is."""
+    required_args = []
+    optional_args = []
+    for params in params_dict.values():
+        for param in params:
+            if param is None:
+                continue
+            if param['required']:
+                required_args.append(
+                    create_arg_docstring_line(param))
+            else:
+                optional_args.append(
+                    create_arg_docstring_line(param))
+    if not (required_args + optional_args):
+        return ''
+    else:
+        return '\n'.join(['\n\n    Args:'] + required_args + optional_args)
 
 
-def create_property_return_line(return_type: str, attr_name: str) -> str:
-    """Create the return line which will instantiate the return type with the
-    class's data."""
-    return_class, param = _get_return_type_and_params(return_type)
-
-    if return_class == 'datetime':
-        return f'return datetime.fromisoformat(self._json_dict[{attr_name!r}])'
-    if not param:
-        return f'return {return_class}(self._json_dict[{attr_name!r}])'
-    if return_class == 'Optional':
-        return _create_optional_return(attr_name, param)
-    if return_class == 'List':
-        return f'return [{param}(item) for item in self._json_dict[{attr_name!r}]]'
-    if return_class == 'Union':
-        return f'return union_parser([{param}], self._json_dict[{attr_name!r}])'
-    return f'return {return_class}(self._json_dict[{attr_name!r}], {param})'
+def create_arg_docstring_line(param: dict) -> str:
+    """Create a docstring line for the given param."""
+    optional = 'Optional; ' if param['required'] else ''
+    return textwrap.fill(f"{param['name']}: {optional}{param['doc']}",
+                         width=78,
+                         initial_indent=' ' * 8,
+                         subsequent_indent=' ' * 12)
 
 
-def _get_return_type_and_params(return_type: str) -> (str, str):
-    """Parse the return type and get the class type and any params within
-    the brackets of the return_type string."""
-    if '[' not in return_type:
-        return return_type, None
+def create_requires_decorator(scope: List[Optional[str]]) -> str:
+    """Create a requirement decorator with the scope that is required to
+    make the API call of the method."""
+    if scope[0]:
+        return ('@requires(' +
+                ', '.join([f'{requirement!r}' for requirement in scope]) +
+                ')'
+                )
+    else:
+        return ''
+    
 
-    bracket_position = return_type.find('[')
-    return_class = return_type[:bracket_position]
-    param = return_type[bracket_position + 1:-1]
-    return return_class, param
-
-
-def _create_optional_return(attr_name: str, param: str) -> str:
-    """Return the code for an optional return."""
-    if param == 'datetime':
-        param = 'datetime.fromisoformat'
-    return f'if value := self._json_dict.get({attr_name!r}):\n' \
-           f'        return {param}(value)\n' \
-           f'    return None'
+def create_return_line(returns: str):
+    """."""
 
 
 def build(directory: str):
-    output_path = os.path.join(directory, 'object_library.py')
-    yaml_dicts = create_yaml_dicts()
-    class_code = []
-    for class_dict in yaml_dicts:
-        class_code.append(create_class(class_dict))
+    output_path = os.path.join(directory, 'api.py')
     with open(BOILERPLATE_PATH, 'r', encoding='utf8') as file:
         boiler = file.read()
 
-    all_classes = '\n\n\n'.join(class_code)
+    yaml_dicts = create_yaml_dicts()
+    method_code = [create_method(method_dict) for method_dict in yaml_dicts]
+    all_methods = '\n\n'.join(method_code)
 
     with open(output_path, 'w', encoding='utf8') as file:
         file.write(boiler)
-        file.write(all_classes)
+        file.write(all_methods)
         file.write('\n')
-
-
-build('test')
