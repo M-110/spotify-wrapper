@@ -10,8 +10,10 @@ import yaml
 HEADER_TEMPLATE = 'class {class_name}Object(SpotifyObject):\n'
 PROPERTY_TEMPLATE = '\n@property\ndef {attr_name}(self) -> {attr_return}:'
 
-BOILERPLATE_PATH = os.path.join('boilerplate', 'object_library_boiler.py')
-YAML_PATH = os.path.join('yaml_files', 'object_library.yaml')
+BOILERPLATE_PATH = os.path.join('build_tools', 'boilerplate',
+                                'object_library_boiler.py')
+YAML_PATH = os.path.join('build_tools', 'yaml_files',
+                         'object_library.yaml')
 
 
 def create_yaml_dicts() -> List[dict]:
@@ -135,14 +137,13 @@ def _create_optional_return(attr_name: str, param: str) -> str:
 
 def build(directory: str):
     # Create the path where the generated python script will be saved.
-    output_path = os.path.join(directory, 'object_library.py')
+    output_path = os.path.join('.', directory, 'object_library.py')
     with open(BOILERPLATE_PATH, 'r', encoding='utf8') as file:
         boiler = file.read()
 
     yaml_dicts = create_yaml_dicts()
     class_code = [create_class(class_dict) for class_dict in yaml_dicts]
     all_classes = '\n\n\n'.join(class_code)
-
     with open(output_path, 'w', encoding='utf8') as file:
         file.write(boiler)
         file.write(all_classes)

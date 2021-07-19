@@ -68,7 +68,7 @@
   doc: "Get Spotify catalog information for several artists based on their Spotify IDs."
   http_method: get
   endpoint: "f'https://api.spotify.com/v1/artists'"
-  returns: Union[List[Optional[ArtistObject], ErrorObject]
+  returns: Union[List[Optional[ArtistObject], ErrorObject]]
   scope:
     - 
       
@@ -790,7 +790,7 @@
   doc: "Remove one or more albums from the current user’s ‘Your Music’ library."
   http_method: delete
   endpoint: "f'https://api.spotify.com/v1/me/albums'"
-  returns: Optioanl[ErrorObject]
+  returns: Optional[ErrorObject]
   scope:
     - user-library-modify
       
@@ -1081,7 +1081,7 @@
   
 # region Markets API
     
-- method_name: get_avaliable_markets
+- method_name: get_available_markets
   doc: "Get the list of strings of the countries in which Spotify is available, identified by their ISO 3166-1 alpha-2 country code with additional country codes for special territories."
   http_method: get
   endpoint: "f'https://api.spotify.com/v1/markets'"
@@ -1201,9 +1201,9 @@
 - method_name: get_the_users_currently_playing_track
   doc: "Get the object currently being played on the user’s Spotify account."
   http_method: get
-  endpoint: "f'	https://api.spotify.com/v1/me/player/currently-playing'"
+  endpoint: "f'https://api.spotify.com/v1/me/player/currently-playing'"
   # TODO: Make playing object to contain this data?
-  returns: Union[Optional[dict]], ErrorObject]
+  returns: Union[Optional[dict], ErrorObject]
   scope:
     - user-read-currently-playing
     - user-read-playback-state
@@ -1875,7 +1875,7 @@
   doc: "Get Spotify catalog information about a show’s episodes. Optional parameters can be used to limit the number of episodes returned."
   http_method: get
   endpoint: "f'https://api.spotify.com/v1/shows/{id_}/episodes'"
-  returns: Union[PagingObect[SimplifiedEpisodeObject], ErrorObject]
+  returns: Union[PagingObject[SimplifiedEpisodeObject], ErrorObject]
   scope:
     - 
       
@@ -2020,7 +2020,7 @@
 - method_name: get_a_users_profile
   doc: "Get public profile information about a Spotify user."
   http_method: get
-  endpoint: "f'https://api.spotify.com/v1/users/{user_id}'"
+  endpoint: "f'https://api.spotify.com/v1/users/{id_}'"
   returns: Union[UserObject, ErrorObject]
   scope:
     -  

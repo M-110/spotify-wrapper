@@ -19,22 +19,22 @@ def get_args() -> Namespace:
                         '--directory',
                         type=str,
                         help='Target directory to place the built .py files.',
-                        default='../spotify/')
+                        default='./spotify/')
     return parser.parse_args()
 
 
-def create_directory_structure(directory: str):
-    """Create the directory structure in the given directory location."""
-    object_library_path = os.path.join(directory, 'object_library')
-
-    if not os.path.isdir(directory):
-        os.mkdir(directory)
-    if not os.path.isdir(object_library_path):
-        os.mkdir(object_library_path)
+# def create_directory_structure(directory: str) -> None:
+#     """Create the directory structure in the given directory location."""
+#     object_library_path = os.path.join(directory, 'object_library')
+#
+#     if not os.path.isdir(directory):
+#         os.mkdir(directory)
+#     if not os.path.isdir(object_library_path):
+#         os.mkdir(object_library_path)
 
 
 if __name__ == '__main__':
     args = get_args()
-    create_directory_structure(args.directory)
+    # create_directory_structure(args.directory)
     build_object_library.build(args.directory)
     build_spotify_api_class.build(args.directory)
