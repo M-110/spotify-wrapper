@@ -10,6 +10,8 @@ import webbrowser
 
 import requests
 
+from .custom_http_server import run_server
+
 SCOPE: str = ' '.join(['ugc-image-upload',
                        'user-read-recently-played',
                        'user-top-read',
@@ -32,12 +34,14 @@ SCOPE: str = ' '.join(['ugc-image-upload',
 
 
 class PKCE:
+    """PKCE flow authentication."""
     def __init__(self):
         self.authorization_code: Optional[str] = None
         self.credentials: Optional[dict] = None
         self.state = str(random.randint(1, 999))
 
     def get_new_credentials(self) -> dict:
+        """Returns credentials with an API token"""
         if self.is_missing_credentials():
             code_verifier, code_challenge = self.generate_code_challenge()
             self.get_authorization(code_challenge)
@@ -52,6 +56,7 @@ class PKCE:
                 "Something went wrong with the credentials. Could not"
                 " find authorization token.")
 
+    # TODO: Side effects
     def is_missing_credentials(self) -> bool:
         """Returns True if 'credentials.json' could not be found or
         if it doesn't contain a refresh token."""
@@ -70,10 +75,10 @@ class PKCE:
         """Generates a random code and encodes is with sha256 and base64.
 
         Returns:
-            code_verifier: randomly generated string which will be used for getting
-                           the token from Spotify.
-            code_challenge: encoded form of code_verifier which will be used for
-                            getting the code from Spotify.
+            code_verifier: randomly generated string which will be used for
+                getting the token from Spotify.
+            code_challenge: encoded form of code_verifier which will be used
+                forgetting the code from Spotify.
         """
         code_verifier = ''.join([random.choice(ascii_letters)
                                  for _ in range(44)]).encode('utf-8')
@@ -93,21 +98,16 @@ class PKCE:
         authorization button and the package will handle the rest.
         """
         authorize_url: str = self.construct_authorize_url(code_challenge)
-
         # Open the authorization page in a browser window.
         webbrowser.open_new(authorize_url)
 
         # Run a temporary server to receive the code from Spotify which will
         # be sent to localhost:8080/get_token/ through the redirect URI
         # after the client approves authorization.
-        server = HTTPServer(("localhost", 8080), TempServer)
-        try:
-            server.serve_forever()
-        except:
-            server.server_close()
+        run_server(self, ('localhost', 8080))
 
         # Once the server receives a response, the token_request function
-        # will be called which will store the authorization_code as a global
+        # will be called which will store the authorization_code as an instance
         # variable and then the server will shut itself down and this code
         # will continue.
         return
@@ -130,7 +130,7 @@ class PKCE:
         params = dict(
             client_id='5b35c8171b7f41bfb1f134c909b5e3ec',
             grant_type='authorization_code',
-            code=authorization_code,
+            code=self.authorization_code,
             redirect_uri='http://localhost:8080/get_token/',
             code_verifier=code_verifier
         )
@@ -159,27 +159,3 @@ class PKCE:
             return bool(self.credentials['access_token'])
         except KeyError:
             return False
-
-
-class TempServer(BaseHTTPRequestHandler):
-    """A temporary local server that will receive the token from Spotify."""
-
-    def do_GET(self):
-        self.send_response(200)
-        self.send_header("Content-type", "text/html")
-        self.end_headers()
-        query = parse_qs(urlsplit(self.path).query)
-
-        global authorization_code
-        self.authorization_code = query['code'][0]
-        response_state = query['state'][0]
-        if response_state != self.state:
-            raise ValueError("State did not match.")
-        self.wfile.write(
-            bytes("<h1>Token received. You may close this window.</h1>",
-                  "utf-8"))
-        raise KeyboardInterrupt
-
-    def log_message(self, *_):
-        """Override log method to disable requests being logged in the
-        console."""

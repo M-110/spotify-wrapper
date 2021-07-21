@@ -7,7 +7,6 @@ from string import ascii_letters
 from typing import Tuple, Optional
 from urllib.parse import urlencode, parse_qs, urlsplit
 import webbrowser
-
 import requests
 
 authorization_code: Optional[str] = None
@@ -155,7 +154,8 @@ class TempServer(BaseHTTPRequestHandler):
         raise KeyboardInterrupt
 
     def log_message(self, *_):
-        """Override log method to disable requests being logged in the console."""
+        """Override log method to disable requests being logged in the
+        console. """
 
 
 def refresh_credentials():
