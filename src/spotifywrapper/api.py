@@ -3,6 +3,7 @@ from typing import List, Union, Optional
 
 import requests
 
+from .authentication.authorization_code_flow_pkce import PKCE
 from .object_library import SpotifyObject, AlbumObject, ErrorObject, \
     PagingObject, SimplifiedTrackObject, ArtistObject, TrackObject, \
     SimplifiedAlbumObject, CategoryObject, SimplifiedPlaylistObject, \
@@ -10,7 +11,6 @@ from .object_library import SpotifyObject, AlbumObject, ErrorObject, \
     SimplifiedShowObject, SimplifiedEpisodeObject, AudioFeaturesObject, \
     SavedShowObject, SavedEpisodeObject, SavedTrackObject, PlayHistoryObject, \
     PlaylistObject, ShowObject, AudioAnalysisObject, UserObject
-
 from .utilities import requires, CustomResponse
 
 
@@ -25,7 +25,8 @@ class SpotifyAPI:
     _headers = {'Accept': ''}
 
     def __init__(self):
-        self._credentials: dict = None  #get_new_credentials()
+        self._flow = PKCE()
+        self._credentials: dict = self._flow.get_credentials()
         self._access_token: str = self._credentials['access_token']
         self._scopes: str = self._credentials['scope']
         self._headers = {
@@ -72,6 +73,12 @@ class SpotifyAPI:
         if error:
             response = json.loads(response.text)['error']
         return response, error
+
+    def _put(self, endpoint):
+        return requests.put(endpoint, headers=self.headers)
+
+    def _post(self, endpoint):
+        return requests.post(endpoint, headers=self.headers)
 
     # TODO: Extract as function
     def _convert_query_params(self, params: dict):
@@ -167,7 +174,7 @@ class SpotifyAPI:
 
     def get_multiple_artists(
             self, ids: List[str]
-    ) -> Union[List[Optional[ArtistObject], ErrorObject]]:
+    ) -> Union[List[Optional[ArtistObject]], ErrorObject]:
         """
         Get Spotify catalog information for several artists based on their
         Spotify IDs.

@@ -29,12 +29,13 @@ def create_class(class_dict: dict) -> str:
     class_docstring = create_docstring(class_dict['doc'], 1)
     repr_header = '\ndef __repr__(self):\n'
     repr_return_statement = create_repr_return(class_dict)
+    str_method = create_str_method(class_dict)
     property_code = []
     for attr in class_dict['attrs']:
         property_text = create_property(attr)
         property_code.append(property_text)
     class_statement = class_header + class_docstring + '\n'
-    class_methods = repr_header + repr_return_statement + '\n' + \
+    class_methods = repr_header + repr_return_statement + '\n' + str_method + \
                     '\n'.join(property_code)
     class_methods = textwrap.indent(class_methods, ' ' * 4)
     return class_statement + class_methods
@@ -71,8 +72,17 @@ def create_repr_return(class_dict: dict) -> str:
                                     width=66,
                                     initial_indent=' ' * 4,
                                     subsequent_indent=' ' * 8)
-                      .replace('\n        ', '\' \\\n           f\''))
+                      .replace('\n        ', '\' \\\n           f\' '))
     return return_wrapped
+
+
+def create_str_method(class_dict: dict) -> str:
+    """Create the return line for the str method which will display a simple
+    string version of the class."""
+    if str_return := class_dict.get('str_return'):
+        return f'\ndef __str__(self):\n' \
+               f'    return str(self.{str_return})\n'
+    return ''
 
 
 def _lookup_attr(class_dict: dict, prop: str) -> dict:
@@ -88,8 +98,9 @@ def create_property(attr_dict: dict) -> str:
         attr_name=attr_dict['name'],
         attr_return=attr_dict['return'])
     property_docstring = create_docstring(attr_dict['doc'], 1)
-    return_statement = '    ' + create_property_return_line(attr_dict['return'],
-                                                            attr_dict['name'])
+    return_statement = '    ' + create_property_return_line(
+        attr_dict['return'],
+        attr_dict['name'])
     code_text = '\n'.join([property_declaration,
                            property_docstring,
                            return_statement])
@@ -102,7 +113,8 @@ def create_property_return_line(return_type: str, attr_name: str) -> str:
     return_class, param = _get_return_type_and_params(return_type)
 
     if return_class == 'datetime':
-        return f'return datetime.fromisoformat(self._json_dict[{attr_name!r}])'
+        return (f'return datetime.strptime(self._json_dict[{attr_name!r}], '
+                '"%Y-%m-%dT%H:%M:%S.%fZ")')
     if not param:
         return f'return {return_class}(self._json_dict[{attr_name!r}])'
     if return_class == 'Optional':
@@ -129,7 +141,10 @@ def _get_return_type_and_params(return_type: str) -> (str, str):
 def _create_optional_return(attr_name: str, param: str) -> str:
     """Return the code for an optional return."""
     if param == 'datetime':
-        param = 'datetime.fromisoformat'
+        return (f'if value := self._json_dict.get({attr_name!r}):\n'
+                f'        return datetime.strptime(value, '
+                f'"%Y-%m-%dT%H:%M:%S.%fZ")\n'
+                f'    return None')
     return f'if value := self._json_dict.get({attr_name!r}):\n' \
            f'        return {param}(value)\n' \
            f'    return None'
@@ -148,6 +163,3 @@ def build(directory: str):
         file.write(boiler)
         file.write(all_classes)
         file.write('\n')
-
-
-build('test')

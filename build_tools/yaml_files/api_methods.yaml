@@ -4,7 +4,7 @@
 - method_name: get_multiple_albums
   doc: "Get Spotify catalog information for multiple albums identified by their Spotify IDs."
   http_method: get
-  endpoint: f'https://api.spotifywrapper.com/v1/albums'
+  endpoint: f'https://api.spotify.com/v1/albums'
   returns: Union[List[Optional[AlbumObject]], ErrorObject]
   scope:
     -
@@ -26,7 +26,7 @@
 - method_name: get_an_album
   doc: "Get Spotify catalog information for a single album."
   http_method: get
-  endpoint: "f'https://api.spotifywrapper.com/v1/albums/{id_}'"
+  endpoint: "f'https://api.spotify.com/v1/albums/{id_}'"
   returns: Union[Optional[AlbumObject], ErrorObject]
   scope:
     -
@@ -44,7 +44,7 @@
 - method_name: get_an_albums_tracks
   doc: "Get Spotify catalog information about an album’s tracks. Optional parameters can be used to limit the number of tracks returned."
   http_method: get
-  endpoint: "f'https://api.spotifywrapper.com/v1/albums/{id_}/tracks'"
+  endpoint: "f'https://api.spotify.com/v1/albums/{id_}/tracks'"
   returns: Union[PagingObject[SimplifiedTrackObject], ErrorObject]
   scope:
     - 
@@ -67,8 +67,8 @@
 - method_name: get_multiple_artists
   doc: "Get Spotify catalog information for several artists based on their Spotify IDs."
   http_method: get
-  endpoint: "f'https://api.spotifywrapper.com/v1/artists'"
-  returns: Union[List[Optional[ArtistObject], ErrorObject]]
+  endpoint: "f'https://api.spotify.com/v1/artists'"
+  returns: Union[List[Optional[ArtistObject]], ErrorObject]
   scope:
     - 
       
@@ -88,7 +88,7 @@
 - method_name: get_an_artist
   doc: "Get Spotify catalog information for a single artist identified by their unique Spotify ID."
   http_method: get
-  endpoint: "f'https://api.spotifywrapper.com/v1/artists/{id_}'"
+  endpoint: "f'https://api.spotify.com/v1/artists/{id_}'"
   returns: Union[ArtistObject, ErrorObject]
   scope:
     - 
@@ -106,7 +106,7 @@
 - method_name: get_an_artists_top_tracks
   doc: "Get Spotify catalog information about an artist’s top tracks by country."
   http_method: get
-  endpoint: "f'https://api.spotifywrapper.com/v1/artists/{id_}/top-tracks'"
+  endpoint: "f'https://api.spotify.com/v1/artists/{id_}/top-tracks'"
   returns: Union[List[TrackObject], ErrorObject]
   scope:
     - 
@@ -127,7 +127,7 @@
 - method_name: get_an_artists_related_artists
   doc: "Get Spotify catalog information about artists similar to a given artist. Similarity is based on analysis of the Spotify community’s listening history."
   http_method: get
-  endpoint: "f'https://api.spotifywrapper.com/v1/artists/{id_}/related-artists'"
+  endpoint: "f'https://api.spotify.com/v1/artists/{id_}/related-artists'"
   returns: Union[List[ArtistObject], ErrorObject]
   scope:
     - 
@@ -145,7 +145,7 @@
 - method_name: get_an_artists_albums
   doc: "Get Spotify catalog information about an artist’s albums."
   http_method: get
-  endpoint: "f'https://api.spotifywrapper.com/v1/artists/{id_}/albums'"
+  endpoint: "f'https://api.spotify.com/v1/artists/{id_}/albums'"
   returns: Union[PagingObject[SimplifiedAlbumObject], ErrorObject]
   scope:
     - 
@@ -172,7 +172,7 @@
 - method_name: get_all_new_releases
   doc: "Get a list of new album releases featured in Spotify (shown, for example, on a Spotify player’s “Browse” tab)."
   http_method: get
-  endpoint: "f'https://api.spotifywrapper.com/v1/browse/new-releases'"
+  endpoint: "f'https://api.spotify.com/v1/browse/new-releases'"
   returns: Union[PagingObject[SimplifiedAlbumObject], ErrorObject]
   scope:
     - 
@@ -192,7 +192,7 @@
 - method_name: get_all_featured_playlists
   doc: "Get a list of Spotify featured playlists (shown, for example, on a Spotify player’s ‘Browse’ tab)."
   http_method: get
-  endpoint: "f'https://api.spotifywrapper.com/v1/browse/featured-playlists'"
+  endpoint: "f'https://api.spotify.com/v1/browse/featured-playlists'"
   returns: Union[PagingObject[SimplifiedPlaylistObject], ErrorObject]
   scope:
     - 
@@ -217,7 +217,7 @@
 - method_name: get_all_categories
   doc: "Get a list of categories used to tag items in Spotify (on, for example, the Spotify player’s “Browse” tab)."
   http_method: get
-  endpoint: "f'https://api.spotifywrapper.com/v1/browse/categories'"
+  endpoint: "f'https://api.spotify.com/v1/browse/categories'"
   returns: Union[PagingObject[CategoryObject], ErrorObject]
   scope:
     - 
@@ -242,7 +242,7 @@
 - method_name: get_a_category
   doc: "Get a single category used to tag items in Spotify (on, for example, the Spotify player’s “Browse” tab)."
   http_method: get
-  endpoint: "f'https://api.spotifywrapper.com/v1/browse/categories/{category_id}'"
+  endpoint: "f'https://api.spotify.com/v1/browse/categories/{category_id}'"
   returns: Union[CategoryObject, ErrorObject]
   scope:
     - 
@@ -264,7 +264,7 @@
 - method_name: get_a_categorys_playlists
   doc: "Get a list of Spotify playlists tagged with a particular category."
   http_method: get
-  endpoint: "f'https://api.spotifywrapper.com/v1/browse/categories/{category_id}/playlists'"
+  endpoint: "f'https://api.spotify.com/v1/browse/categories/{category_id}/playlists'"
   returns: Union[PagingObject[SimplifiedPlaylistObject], ErrorObject]
   scope:
     - 
@@ -288,7 +288,7 @@
 - method_name: get_recommendations
   doc: "Recommendations are generated based on the available information for a given seed entity and matched against similar artists and tracks. If there is sufficient information about the provided seeds, a list of tracks will be returned together with pool size details."
   http_method: get
-  endpoint: "f'https://api.spotifywrapper.com/v1/recommendations'"
+  endpoint: "f'https://api.spotify.com/v1/recommendations'"
   returns: Union[RecommendationsObject, ErrorObject]
   scope:
     - 
@@ -495,7 +495,7 @@
 - method_name: get_recommendation_genres
   doc: "Retrieve a list of available genres seed parameter values for recommendations."
   http_method: get
-  endpoint: "f'https://api.spotifywrapper.com/v1/recommendations/available-genre-seeds'"
+  endpoint: "f'https://api.spotify.com/v1/recommendations/available-genre-seeds'"
   # TODO: What do recommendations look like?
   returns: Union[RecommendationsObject, ErrorObject]
   scope:
@@ -519,7 +519,7 @@
 - method_name: get_multiple_episodes
   doc: "Get Spotify catalog information for several episodes based on their Spotify IDs."
   http_method: get
-  endpoint: "f'https://api.spotifywrapper.com/v1/episodes'"
+  endpoint: "f'https://api.spotify.com/v1/episodes'"
   returns: Union[List[Optional[EpisodeObject]], ErrorObject]
   scope:
     - 
@@ -541,7 +541,7 @@
 - method_name: get_an_episode
   doc: "Get Spotify catalog information for a single episode identified by its unique Spotify ID."
   http_method: get
-  endpoint: "f'https://api.spotifywrapper.com/v1/episodes/{id_}'"
+  endpoint: "f'https://api.spotify.com/v1/episodes/{id_}'"
   returns: Union[EpisodeObject, ErrorObject]
   scope:
     - 
@@ -564,7 +564,7 @@
 - method_name: follow_a_playlist
   doc: "Add the current user as a follower of a playlist."
   http_method: put
-  endpoint: "f'https://api.spotifywrapper.com/v1/playlists/{playlist_id}/followers'"
+  endpoint: "f'https://api.spotify.com/v1/playlists/{playlist_id}/followers'"
   returns: Optional[ErrorObject]
   scope:
     - user-follow-modify
@@ -589,7 +589,7 @@
 - method_name: unfollow_playlist
   doc: "Remove the current user as a follower of a playlist."
   http_method: delete
-  endpoint: "f'https://api.spotifywrapper.com/v1/playlists/{playlist_id}/followers'"
+  endpoint: "f'https://api.spotify.com/v1/playlists/{playlist_id}/followers'"
   returns: Optional[ErrorObject]
   scope:
     - playlist-modify-public
@@ -611,7 +611,7 @@
 - method_name: check_if_users_follow_a_playlist
   doc: "Check to see if one or more Spotify users are following a specified playlist."
   http_method: get
-  endpoint: "f'https://api.spotifywrapper.com/v1/playlists/{playlist_id}/followers/contains'"
+  endpoint: "f'https://api.spotify.com/v1/playlists/{playlist_id}/followers/contains'"
   returns: Union[List[bool], ErrorObject]
   scope:
     - playlist-read-private
@@ -635,7 +635,7 @@
 - method_name: get_users_followed_artists
   doc: "Get the current user’s followed artists."
   http_method: get
-  endpoint: "f'https://api.spotifywrapper.com/v1/me/following'"
+  endpoint: "f'https://api.spotify.com/v1/me/following'"
   returns: Union[PagingObject[ArtistObject], ErrorObject]
   scope:
     - user-follow-modify
@@ -663,7 +663,7 @@
 - method_name: follow_artists_or_users
   doc: "Add the current user as a follower of one or more artists or other Spotify users."
   http_method: put
-  endpoint: "f'https://api.spotifywrapper.com/v1/me/following'"
+  endpoint: "f'https://api.spotify.com/v1/me/following'"
   returns: Optional[ErrorObject]
   scope:
     - user-follow-modify
@@ -690,7 +690,7 @@
 - method_name: unfollow_artists_or_users
   doc: "Remove the current user as a follower of one or more artists or other Spotify users."
   http_method: delete
-  endpoint: "f'https://api.spotifywrapper.com/v1/me/following'"
+  endpoint: "f'https://api.spotify.com/v1/me/following'"
   returns: Optional[ErrorObject]
   scope:
     - user-follow-modify
@@ -717,7 +717,7 @@
 - method_name: get_following_state_for_artists_or_users
   doc: "Check to see if the current user is following one or more artists or other Spotify users.."
   http_method: get
-  endpoint: "f'https://api.spotifywrapper.com/v1/me/following/contains'"
+  endpoint: "f'https://api.spotify.com/v1/me/following/contains'"
   returns: Union[List[bool], ErrorObject]
   scope:
     - user-follow-read
@@ -748,7 +748,7 @@
 - method_name: get_users_saved_albums
   doc: "Get a list of the albums saved in the current Spotify user’s ‘Your Music’ library."
   http_method: get
-  endpoint: "f'https://api.spotifywrapper.com/v1/me/albums'"
+  endpoint: "f'https://api.spotify.com/v1/me/albums'"
   returns: Union[PagingObject[SavedAlbumObject], ErrorObject]
   scope:
     - user-library-read
@@ -768,7 +768,7 @@
 - method_name: save_albums_for_current_user
   doc: "Save one or more albums to the current user’s ‘Your Music’ library."
   http_method: put
-  endpoint: "f'https://api.spotifywrapper.com/v1/me/albums'"
+  endpoint: "f'https://api.spotify.com/v1/me/albums'"
   returns: Optional[ErrorObject]
   scope:
     - user-library-modify
@@ -789,7 +789,7 @@
 - method_name: remove_albums_for_current_user
   doc: "Remove one or more albums from the current user’s ‘Your Music’ library."
   http_method: delete
-  endpoint: "f'https://api.spotifywrapper.com/v1/me/albums'"
+  endpoint: "f'https://api.spotify.com/v1/me/albums'"
   returns: Optional[ErrorObject]
   scope:
     - user-library-modify
@@ -810,7 +810,7 @@
 - method_name: check_users_saved_albums
   doc: "Check if one or more albums is already saved in the current Spotify user’s ‘Your Music’ library."
   http_method: get
-  endpoint: "f'https://api.spotifywrapper.com/v1/me/albums/contains'"
+  endpoint: "f'https://api.spotify.com/v1/me/albums/contains'"
   returns: Union[List[bool], ErrorObject]
   scope:
     - user-library-read
@@ -831,7 +831,7 @@
 - method_name: get_users_saved_tracks
   doc: "Get a list of the songs saved in the current Spotify user’s ‘Your Music’ library."
   http_method: get
-  endpoint: "f'https://api.spotifywrapper.com/v1/me/tracks'"
+  endpoint: "f'https://api.spotify.com/v1/me/tracks'"
   returns: Union[PagingObject[SavedTrackObject], ErrorObject]
   scope:
     - user-library-read
@@ -851,7 +851,7 @@
 - method_name: save_tracks_for_users
   doc: "Save one or more tracks to the current user’s ‘Your Music’ library."
   http_method: put
-  endpoint: "f'https://api.spotifywrapper.com/v1/me/tracks'"
+  endpoint: "f'https://api.spotify.com/v1/me/tracks'"
   returns: Optional[ErrorObject]
   scope:
     - user-library-modify
@@ -872,7 +872,7 @@
 - method_name: remove_users_saved_tracks
   doc: "Remove one or more tracks from the current user’s ‘Your Music’ library."
   http_method: delete
-  endpoint: "f'https://api.spotifywrapper.com/v1/me/tracks'"
+  endpoint: "f'https://api.spotify.com/v1/me/tracks'"
   returns: Optional[ErrorObject]
   scope:
     - user-library-modify
@@ -893,7 +893,7 @@
 - method_name: check_users_saved_tracks
   doc: "Check if one or more tracks is already saved in the current Spotify user’s ‘Your Music’ library."
   http_method: get
-  endpoint: "f'https://api.spotifywrapper.com/v1/me/tracks/contains'"
+  endpoint: "f'https://api.spotify.com/v1/me/tracks/contains'"
   returns: Union[List[bool], ErrorObject]
   scope:
     - user-library-read
@@ -914,7 +914,7 @@
 - method_name: get_users_saved_episodes
   doc: "Get a list of the episodes saved in the current Spotify user’s library. (This API endpoint is in beta and could change without warning)"
   http_method: get
-  endpoint: "f'https://api.spotifywrapper.com/v1/me/episodes'"
+  endpoint: "f'https://api.spotify.com/v1/me/episodes'"
   returns: Union[PagingObject[SavedEpisodeObject], ErrorObject]
   scope:
     - user-library-read
@@ -934,7 +934,7 @@
 - method_name: save_tracks_for_users
   doc: "Save one or more episodes to the current user’s library. (This API endpoint is in beta and could change without warning)"
   http_method: put
-  endpoint: "f'https://api.spotifywrapper.com/v1/me/episodes'"
+  endpoint: "f'https://api.spotify.com/v1/me/episodes'"
   returns: Optional[ErrorObject]
   scope:
     - user-library-modify
@@ -955,7 +955,7 @@
 - method_name: remove_users_saved_tracks
   doc: "Remove one or more episodes from the current user’s library. (This API endpoint is in beta and could change without warning)"
   http_method: delete
-  endpoint: "f'https://api.spotifywrapper.com/v1/me/episodes'"
+  endpoint: "f'https://api.spotify.com/v1/me/episodes'"
   returns: Optional[ErrorObject]
   scope:
     - user-library-modify
@@ -976,7 +976,7 @@
 - method_name: check_users_saved_tracks
   doc: "Check if one or more episodes is already saved in the current Spotify user’s ‘Your Episodes’ library. (This API endpoint is in beta and could change without warning)"
   http_method: get
-  endpoint: "f'https://api.spotifywrapper.com/v1/me/episodes/contains'"
+  endpoint: "f'https://api.spotify.com/v1/me/episodes/contains'"
   returns: Union[List[bool], ErrorObject]
   scope:
     - user-library-read
@@ -997,7 +997,7 @@
 - method_name: get_users_saved_shows
   doc: "Get a list of shows saved in the current Spotify user’s library."
   http_method: get
-  endpoint: "f'https://api.spotifywrapper.com/v1/me/shows'"
+  endpoint: "f'https://api.spotify.com/v1/me/shows'"
   returns: Union[PagingObject[SavedShowObject], ErrorObject]
   scope:
     - user-library-read
@@ -1017,7 +1017,7 @@
 - method_name: save_tracks_for_shows
   doc: "Save one or more shows to current Spotify user’s library."
   http_method: put
-  endpoint: "f'https://api.spotifywrapper.com/v1/me/shows'"
+  endpoint: "f'https://api.spotify.com/v1/me/shows'"
   returns: Optional[ErrorObject]
   scope:
     - user-library-modify
@@ -1038,7 +1038,7 @@
 - method_name: remove_users_saved_shows
   doc: "Delete one or more shows from current Spotify user’s library."
   http_method: delete
-  endpoint: "f'https://api.spotifywrapper.com/v1/me/shows'"
+  endpoint: "f'https://api.spotify.com/v1/me/shows'"
   returns: Optional[ErrorObject]
   scope:
     - user-library-modify
@@ -1060,7 +1060,7 @@
 - method_name: check_users_saved_shows
   doc: "Check if one or more shows is already saved in the current Spotify user’s library."
   http_method: get
-  endpoint: "f'https://api.spotifywrapper.com/v1/me/shows/contains'"
+  endpoint: "f'https://api.spotify.com/v1/me/shows/contains'"
   returns: Union[List[bool], ErrorObject]
   scope:
     - user-library-read
@@ -1084,7 +1084,7 @@
 - method_name: get_available_markets
   doc: "Get the list of strings of the countries in which Spotify is available, identified by their ISO 3166-1 alpha-2 country code with additional country codes for special territories."
   http_method: get
-  endpoint: "f'https://api.spotifywrapper.com/v1/markets'"
+  endpoint: "f'https://api.spotify.com/v1/markets'"
   returns: Union[List[str], ErrorObject]
   scope:
     -
@@ -1106,7 +1106,7 @@
 - method_name: get_a_users_top_artists_and_tracks
   doc: "Get the current user’s top artists or tracks based on calculated affinity."
   http_method: get
-  endpoint: "f'https://api.spotifywrapper.com/v1/me/top/{type_}'"
+  endpoint: "f'https://api.spotify.com/v1/me/top/{type_}'"
   returns: Union[PagingObject[Union[ArtistObject, TrackObject]], ErrorObject]
   scope:
     - user-top-read
@@ -1136,7 +1136,7 @@
 - method_name: get_information_about_the_users_current_playback
   doc: "Get information about the user’s current playback state, including track or episode, progress, and active device."
   http_method: get
-  endpoint: "f'https://api.spotifywrapper.com/v1/me/player'"
+  endpoint: "f'https://api.spotify.com/v1/me/player'"
   # TODO: Add a PlaybackStateObject to contain this information?
   returns: Union[dict, ErrorObject]
   scope:
@@ -1156,7 +1156,7 @@
 - method_name: transfer_a_users_playback
   doc: "Transfer playback to a new device and determine if it should start playing."
   http_method: get
-  endpoint: "f'https://api.spotifywrapper.com/v1/me/player'"
+  endpoint: "f'https://api.spotify.com/v1/me/player'"
   returns: Optional[ErrorObject]
   scope:
     - user-modify-playback-state
@@ -1182,7 +1182,7 @@
 - method_name: get_a_users_available_devices
   doc: "Get a list of user's current available devices with information including their id, name, type, and volume percent."
   http_method: get
-  endpoint: "f'https://api.spotifywrapper.com/v1/me/player/devices'"
+  endpoint: "f'https://api.spotify.com/v1/me/player/devices'"
   # TODO: Make a device object?
   returns: Union[List[Optional[dict]], ErrorObject]
   scope:
@@ -1201,7 +1201,7 @@
 - method_name: get_the_users_currently_playing_track
   doc: "Get the object currently being played on the user’s Spotify account."
   http_method: get
-  endpoint: "f'https://api.spotifywrapper.com/v1/me/player/currently-playing'"
+  endpoint: "f'https://api.spotify.com/v1/me/player/currently-playing'"
   # TODO: Make playing object to contain this data?
   returns: Union[Optional[dict], ErrorObject]
   scope:
@@ -1224,7 +1224,7 @@
 - method_name: start_or_resume_a_users_playback
   doc: "Start a new context or resume current playback on the user’s active device. A new context can be chosen by providing a value for the parameters context_uri or uris (note: you cannot provide both a context_uri and uris parameter). \n\nThe context_uri is the uri code for a list object such as an album. The uris is a list of individual uri codes for individual objects such as tracks so it is like you are providing a playlist. Additionally offset and position_ms can be provided to choose which track to play within the context and the position to start it at. \n\nWarning: Due to the asynchronous nature of the issuance of the command, you should use the method get_information_about_the_users_current_playback to check that your issued command was handled correctly by the player."
   http_method: put
-  endpoint: "f'https://api.spotifywrapper.com/v1/me/player/play'"
+  endpoint: "f'https://api.spotify.com/v1/me/player/play'"
   returns: Optional[ErrorObject]
   scope:
     - user-modify-playback-state
@@ -1261,7 +1261,7 @@
 - method_name: pause_a_users_playback
   doc: "Pause the playback on the user's account. \n\nWarning: Due to the asynchronous nature of the issuance of the command, you should use the method get_information_about_the_users_current_playback to check that your issued command was handled correctly by the player."
   http_method: put
-  endpoint: "f'https://api.spotifywrapper.com/v1/me/player/pause'"
+  endpoint: "f'https://api.spotify.com/v1/me/player/pause'"
   returns: Optional[ErrorObject]
   scope:
     - user-modify-playback-state
@@ -1282,7 +1282,7 @@
 - method_name: skip_users_playback_to_next_track
   doc: "Skips to next track in the user’s queue. \n\nWarning: Due to the asynchronous nature of the issuance of the command, you should use the method get_information_about_the_users_current_playback to check that your issued command was handled correctly by the player."
   http_method: post
-  endpoint: "f'https://api.spotifywrapper.com/v1/me/player/next'"
+  endpoint: "f'https://api.spotify.com/v1/me/player/next'"
   returns: Optional[ErrorObject]
   scope:
     - user-modify-playback-state
@@ -1303,7 +1303,7 @@
 - method_name: seek_to_position_in_currently_playing_track
   doc: "Seeks to the given position in the user's currently playing track. \n\nWarning: Due to the asynchronous nature of the issuance of the command, you should use the method get_information_about_the_users_current_playback to check that your issued command was handled correctly by the player."
   http_method: put
-  endpoint: "f'https://api.spotifywrapper.com/v1/me/player/seek'"
+  endpoint: "f'https://api.spotify.com/v1/me/player/seek'"
   returns: Optional[ErrorObject]
   scope:
     - user-modify-playback-state
@@ -1328,7 +1328,7 @@
 - method_name: set_repeat_mode_on_users_playback
   doc: "Set the repeat mode for the user’s playback. Options are repeat-track, repeat-context, and off. \n\nWarning: Due to the asynchronous nature of the issuance of the command, you should use the method get_information_about_the_users_current_playback to check that your issued command was handled correctly by the player."
   http_method: put
-  endpoint: "f'https://api.spotifywrapper.com/v1/me/player/repeat'"
+  endpoint: "f'https://api.spotify.com/v1/me/player/repeat'"
   returns: Optional[ErrorObject]
   scope:
     - user-modify-playback-state
@@ -1353,7 +1353,7 @@
 - method_name: set_volume_for_users_playback
   doc: "Set the volume for the user's current playback device. \n\nWarning: Due to the asynchronous nature of the issuance of the command, you should use the method get_information_about_the_users_current_playback to check that your issued command was handled correctly by the player."
   http_method: put
-  endpoint: "f'https://api.spotifywrapper.com/v1/me/player/volume'"
+  endpoint: "f'https://api.spotify.com/v1/me/player/volume'"
   returns: Optional[ErrorObject]
   scope:
     - user-modify-playback-state
@@ -1378,7 +1378,7 @@
 - method_name: toggle_shuffle_for_users_playback
   doc: "Toggle shuffle on or off for user’s playback. \n\nWarning: Due to the asynchronous nature of the issuance of the command, you should use the method get_information_about_the_users_current_playback to check that your issued command was handled correctly by the player."
   http_method: put
-  endpoint: "f'https://api.spotifywrapper.com/v1/me/player/shuffle'"
+  endpoint: "f'https://api.spotify.com/v1/me/player/shuffle'"
   returns: Optional[ErrorObject]
   scope:
     - user-modify-playback-state
@@ -1403,7 +1403,7 @@
 - method_name: get_current_users_recently_played_tracks
   doc: "Get tracks from the current user’s recently played tracks. Note: Currently does not support podcast episodes."
   http_method: get
-  endpoint: "f'https://api.spotifywrapper.com/v1/me/player/recently-played'"
+  endpoint: "f'https://api.spotify.com/v1/me/player/recently-played'"
   returns: Union[PagingObject[PlayHistoryObject], ErrorObject]
   scope:
     - user-modify-playback-state
@@ -1429,7 +1429,7 @@
 - method_name: add_an_item_to_queue
   doc: "Add an item to the end of the user’s current playback queue."
   http_method: post
-  endpoint: "f'https://api.spotifywrapper.com/v1/me/player/queue'"
+  endpoint: "f'https://api.spotify.com/v1/me/player/queue'"
   returns: Optional[ErrorObject]
   scope:
     - user-modify-playback-state
@@ -1460,7 +1460,7 @@
 - method_name: get_a_list_of_current_users_playlists
   doc: "Get a list of the playlists owned or followed by the current Spotify user."
   http_method: get
-  endpoint: "f'https://api.spotifywrapper.com/v1/me/playlists'"
+  endpoint: "f'https://api.spotify.com/v1/me/playlists'"
   returns: Union[PagingObject[SimplifiedPlaylistObject], ErrorObject]
   scope:
     - playlist-read-private
@@ -1480,7 +1480,7 @@
 - method_name: get_a_list_of_a_users_playlists
   doc: "Get a list of the playlists owned or followed by a Spotify user."
   http_method: get
-  endpoint: "f'https://api.spotifywrapper.com/v1/users/{user_id}/playlists'"
+  endpoint: "f'https://api.spotify.com/v1/users/{user_id}/playlists'"
   returns: Union[PagingObject[SimplifiedPlaylistObject], ErrorObject]
   scope:
     - playlist-read-private
@@ -1503,7 +1503,7 @@
 - method_name: create_a_playlist
   doc: "Create an empty playlist for a Spotify user."
   http_method: post
-  endpoint: "f'https://api.spotifywrapper.com/v1/users/{user_id}/playlists'"
+  endpoint: "f'https://api.spotify.com/v1/users/{user_id}/playlists'"
   returns: Union[PlaylistObject, ErrorObject]
   scope:
     - playlist-modify-public
@@ -1540,7 +1540,7 @@
 - method_name: get_a_playlist
   doc: "Get a playlist owned by a Spotify user."
   http_method: get
-  endpoint: "f'https://api.spotifywrapper.com/v1/playlists/{playlist_id}'"
+  endpoint: "f'https://api.spotify.com/v1/playlists/{playlist_id}'"
   returns: Union[PlaylistObject, ErrorObject]
   scope:
     - 
@@ -1567,7 +1567,7 @@
 - method_name: change_a_playlists_details
   doc: "Change a playlist's name and public private state. The user must own the playlist."
   http_method: put
-  endpoint: "f'https://api.spotifywrapper.com/v1/playlists/{playlist_id}'"
+  endpoint: "f'https://api.spotify.com/v1/playlists/{playlist_id}'"
   returns: Optional[ErrorObject]
   scope:
     - playlist-modify-public
@@ -1604,7 +1604,7 @@
 - method_name: get_a_playlists_items
   doc: "Get full details of the items of a playlist owned by a Spotify user."
   http_method: get
-  endpoint: "f'https://api.spotifywrapper.com/v1/playlists/{playlist_id}/tracks'"
+  endpoint: "f'https://api.spotify.com/v1/playlists/{playlist_id}/tracks'"
   returns: Union[PagingObject[Union[TrackObject, EpisodeObject]], ErrorObject]
   scope:
     - 
@@ -1633,7 +1633,7 @@
 - method_name: add_items_to_a_playlist
   doc: "Add one or more items to a user’s playlist."
   http_method: post
-  endpoint: "f'https://api.spotifywrapper.com/v1/playlists/{playlist_id}/tracks'"
+  endpoint: "f'https://api.spotify.com/v1/playlists/{playlist_id}/tracks'"
   returns: Optional[ErrorObject]
   scope:
     - playlist-modify-public
@@ -1663,7 +1663,7 @@
 - method_name: reorder_or_replace_a_playlists_items
   doc: "Either reorder or replace items in a playlist depending on the request’s parameters. To reorder items, include range_start, insert_before, range_length and snapshot_id in the request’s body. To replace items, include uris as either a query parameter or in the request’s body. Replacing items in a playlist will overwrite its existing items. This operation can be used for replacing or clearing items in a playlist. \n\nNote: Replace and reorder are mutually exclusive operations which share the same endpoint, but have different parameters. These operations cannot be applied together in a single request."
   http_method: put
-  endpoint: "f'https://api.spotifywrapper.com/v1/playlists/{playlist_id}/tracks'"
+  endpoint: "f'https://api.spotify.com/v1/playlists/{playlist_id}/tracks'"
   # TODO: This is a good example of a method where a return doc string would help a lot.
   returns: Union[str, ErrorObject]
   scope:
@@ -1705,7 +1705,7 @@
 - method_name: remove_items_from_a_playlist
   doc: "Remove one of more items from a user's playlist."
   http_method: delete
-  endpoint: "f'https://api.spotifywrapper.com/v1/playlists/{playlist_id}/tracks'"
+  endpoint: "f'https://api.spotify.com/v1/playlists/{playlist_id}/tracks'"
   # TODO: This is a good example of a method where a return doc string would help a lot.
   returns: Union[str, ErrorObject]
   scope:
@@ -1735,7 +1735,7 @@
 - method_name: get_a_playlist_cover_image
   doc: "Get the current image associated with a specific playlist."
   http_method: get
-  endpoint: "f'https://api.spotifywrapper.com/v1/playlists/{playlist_id}/images'"
+  endpoint: "f'https://api.spotify.com/v1/playlists/{playlist_id}/images'"
   returns: Union[ImageObject, ErrorObject]
   scope:
     - 
@@ -1756,7 +1756,7 @@
 - method_name: upload_a_custom_playlist_cover_image
   doc: "Replace the image used to represent a specific playlist."
   http_method: put
-  endpoint: "f'https://api.spotifywrapper.com/v1/playlists/{playlist_id}/images'"
+  endpoint: "f'https://api.spotify.com/v1/playlists/{playlist_id}/images'"
   returns: Union[ImageObject, ErrorObject]
   scope:
     - ugc-image-upload
@@ -1789,7 +1789,7 @@
   # TODO: Add more extensive documentation for making queries.
   doc: "Get Spotify Catalog information about albums, artists, playlists, tracks, shows or episodes that match a keyword string."
   http_method: get
-  endpoint: "f'https://api.spotifywrapper.com/v1/search'"
+  endpoint: "f'https://api.spotify.com/v1/search'"
   returns: Union[PagingObject[Union[ArtistObject, SimplifiedAlbumObject, TrackObject, SimplifiedShowObject, SimplifiedEpisodeObject]], ErrorObject]
   scope:
     - 
@@ -1833,7 +1833,7 @@
 - method_name: get_multiple_shows
   doc: "Get Spotify catalog information for several shows based on their Spotify IDs."
   http_method: get
-  endpoint: "f'https://api.spotifywrapper.com/v1/shows'"
+  endpoint: "f'https://api.spotify.com/v1/shows'"
   returns: Union[List[Optional[SimplifiedShowObject]], ErrorObject]
   scope:
     - 
@@ -1855,7 +1855,7 @@
 - method_name: get_a_show
   doc: "Get Spotify catalog information for a single show identified by its unique Spotify ID."
   http_method: get
-  endpoint: "f'https://api.spotifywrapper.com/v1/shows/{id_}'"
+  endpoint: "f'https://api.spotify.com/v1/shows/{id_}'"
   returns: Union[ShowObject, ErrorObject]
   scope:
     - 
@@ -1874,7 +1874,7 @@
 - method_name: get_a_shows_episodes
   doc: "Get Spotify catalog information about a show’s episodes. Optional parameters can be used to limit the number of episodes returned."
   http_method: get
-  endpoint: "f'https://api.spotifywrapper.com/v1/shows/{id_}/episodes'"
+  endpoint: "f'https://api.spotify.com/v1/shows/{id_}/episodes'"
   returns: Union[PagingObject[SimplifiedEpisodeObject], ErrorObject]
   scope:
     - 
@@ -1899,7 +1899,7 @@
 - method_name: get_several_tracks
   doc: "Get Spotify catalog information for multiple tracks based on their Spotify IDs."
   http_method: get
-  endpoint: "f'https://api.spotifywrapper.com/v1/tracks'"
+  endpoint: "f'https://api.spotify.com/v1/tracks'"
   returns: Union[List[Optional[TrackObject]], ErrorObject]
   scope:
     - 
@@ -1921,7 +1921,7 @@
 - method_name: get_a_track
   doc: "Get Spotify catalog information for a single track identified by its unique Spotify ID."
   http_method: get
-  endpoint: "f'https://api.spotifywrapper.com/v1/tracks/{id_}'"
+  endpoint: "f'https://api.spotify.com/v1/tracks/{id_}'"
   returns: Union[TrackObject, ErrorObject]
   scope:
     - 
@@ -1939,7 +1939,7 @@
 - method_name: get_audio_features_for_several_tracks
   doc: "Get audio features for multiple tracks based on their Spotify IDs."
   http_method: get
-  endpoint: "f'https://api.spotifywrapper.com/v1/audio-features'"
+  endpoint: "f'https://api.spotify.com/v1/audio-features'"
   returns: Union[List[Optional[AudioFeaturesObject]], ErrorObject]
   scope:
     - 
@@ -1960,7 +1960,7 @@
 - method_name: get_audio_features_for_a_track
   doc: "Get audio feature information for a single track identified by its unique Spotify ID."
   http_method: get
-  endpoint: "f'https://api.spotifywrapper.com/v1/audio-features/{id_}'"
+  endpoint: "f'https://api.spotify.com/v1/audio-features/{id_}'"
   returns: Union[AudioFeaturesObject, ErrorObject]
   scope:
     - 
@@ -1978,7 +1978,7 @@
 - method_name: get_audio_analysis_for_a_track
   doc: "Get a detailed audio analysis for a single track identified by its unique Spotify ID."
   http_method: get
-  endpoint: "f'https://api.spotifywrapper.com/v1/audio-analysis/{id_}'"
+  endpoint: "f'https://api.spotify.com/v1/audio-analysis/{id_}'"
   # TODO: This object isn't listed in the object index. Must be added.
   returns: Union[AudioAnalysisObject, ErrorObject]
   scope:
@@ -2001,7 +2001,7 @@
 - method_name: get_current_users_profile
   doc: "Get detailed profile information about the current user (including the current user’s username)."
   http_method: get
-  endpoint: "f'https://api.spotifywrapper.com/v1/me'"
+  endpoint: "f'https://api.spotify.com/v1/me'"
   returns: Union[UserObject, ErrorObject]
   scope:
     - user-read-email
@@ -2020,7 +2020,7 @@
 - method_name: get_a_users_profile
   doc: "Get public profile information about a Spotify user."
   http_method: get
-  endpoint: "f'https://api.spotifywrapper.com/v1/users/{id_}'"
+  endpoint: "f'https://api.spotify.com/v1/users/{id_}'"
   returns: Union[UserObject, ErrorObject]
   scope:
     -  

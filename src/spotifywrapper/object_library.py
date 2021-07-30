@@ -122,7 +122,10 @@ class AlbumObject(SpotifyObject):
 
     def __repr__(self):
         return f'<AlbumObject name={self.name!r}, id={self.id!r},' \
-               f'artists={self.artists}>'
+               f' artists={self.artists}>'
+
+    def __str__(self):
+        return str(self.name)
 
     @property
     def album_type(self) -> str:
@@ -300,6 +303,9 @@ class ArtistObject(SpotifyObject):
 
     def __repr__(self):
         return f'<ArtistObject name={self.name!r}>'
+
+    def __str__(self):
+        return str(self.name)
 
     @property
     def external_urls(self) -> ExternalUrlObject:
@@ -557,6 +563,9 @@ class CategoryObject(SpotifyObject):
     def __repr__(self):
         return f'<CategoryObject name={self.name!r}>'
 
+    def __str__(self):
+        return str(self.name)
+
     @property
     def href(self) -> str:
         """
@@ -630,7 +639,10 @@ class CopyrightObject(SpotifyObject):
 
     def __repr__(self):
         return f'<CopyrightObject text={self.text!r},' \
-               f'type={self.type!r}>'
+               f' type={self.type!r}>'
+
+    def __str__(self):
+        return str(self.text)
 
     @property
     def text(self) -> str:
@@ -655,8 +667,8 @@ class CurrentlyPlayingContextObject(SpotifyObject):
 
     def __repr__(self):
         return f'<CurrentlyPlayingContextObject device={self.device},' \
-               f'repeat_state={self.repeat_state!r},' \
-               f'shuffle_state={self.shuffle_state!r}>'
+               f' repeat_state={self.repeat_state!r},' \
+               f' shuffle_state={self.shuffle_state!r}>'
 
     @property
     def actions(self) -> DisallowsObject:
@@ -814,7 +826,7 @@ class CursorPagingObject(SpotifyObject):
 
     def __repr__(self):
         return f'<CursorPagingObject items={self.items},' \
-               f'limit={self.limit}, next={self.next}>'
+               f' limit={self.limit}, next={self.next}>'
 
     @property
     def cursors(self) -> CursorObject:
@@ -870,7 +882,10 @@ class DeviceObject(SpotifyObject):
 
     def __repr__(self):
         return f'<DeviceObject name={self.name!r}, id={self.id},' \
-               f'type={self.type!r}>'
+               f' type={self.type!r}>'
+
+    def __str__(self):
+        return str(self.name)
 
     @property
     def id(self) -> Optional[str]:
@@ -950,15 +965,15 @@ class DisallowsObject(SpotifyObject):
 
     def __repr__(self):
         return f'<DisallowsObject' \
-               f'interrupting_playback={self.interrupting_playback},' \
-               f'pausing={self.pausing}, resuming={self.resuming},' \
-               f'seeking={self.seeking},' \
-               f'skipping_next={self.skipping_next},' \
-               f'skipping_prev={self.skipping_prev},' \
-               f'toggling_repeat_context={self.toggling_repeat_context},' \
-               f'toggling_repeat_track={self.toggling_repeat_track},' \
-               f'toggling_shuffle={self.toggling_shuffle},' \
-               f'transferring_playback={self.transferring_playback}>'
+               f' interrupting_playback={self.interrupting_playback},' \
+               f' pausing={self.pausing}, resuming={self.resuming},' \
+               f' seeking={self.seeking},' \
+               f' skipping_next={self.skipping_next},' \
+               f' skipping_prev={self.skipping_prev},' \
+               f' toggling_repeat_context={self.toggling_repeat_context},' \
+               f' toggling_repeat_track={self.toggling_repeat_track},' \
+               f' toggling_shuffle={self.toggling_shuffle},' \
+               f' transferring_playback={self.transferring_playback}>'
 
     @property
     def interrupting_playback(self) -> Optional[bool]:
@@ -1058,7 +1073,10 @@ class EpisodeObject(SpotifyObject):
 
     def __repr__(self):
         return f'<EpisodeObject name={self.name!r}, show={self.show},' \
-               f'id={self.id!r}>'
+               f' id={self.id!r}>'
+
+    def __str__(self):
+        return str(self.name)
 
     @property
     def audio_preview_url(self) -> Optional[str]:
@@ -1205,7 +1223,10 @@ class ErrorObject(SpotifyObject):
 
     def __repr__(self):
         return f'<ErrorObject message={self.message!r},' \
-               f'status={self.status}>'
+               f' status={self.status}>'
+
+    def __str__(self):
+        return str(self.message)
 
     @property
     def message(self) -> str:
@@ -1229,8 +1250,8 @@ class ExplicitContentSettingsObject(SpotifyObject):
 
     def __repr__(self):
         return f'<ExplicitContentSettingsObject' \
-               f'filter_enabled={self.filter_enabled},' \
-               f'filter_locked={self.filter_locked}>'
+               f' filter_enabled={self.filter_enabled},' \
+               f' filter_locked={self.filter_locked}>'
 
     @property
     def filter_enabled(self) -> bool:
@@ -1255,7 +1276,7 @@ class ExternalIdObject(SpotifyObject):
 
     def __repr__(self):
         return f'<ExternalIdObject ean={self.ean!r},' \
-               f'isrc={self.isrc!r}, upc={self.upc!r}>'
+               f' isrc={self.isrc!r}, upc={self.upc!r}>'
 
     @property
     def ean(self) -> str:
@@ -1285,14 +1306,17 @@ class ExternalUrlObject(SpotifyObject):
     """
 
     def __repr__(self):
-        return f'<ExternalUrlObject spotifywrapper={self.spotify!r}>'
+        return f'<ExternalUrlObject spotify={self.spotify!r}>'
+
+    def __str__(self):
+        return str(self.spotify)
 
     @property
     def spotify(self) -> str:
         """
         The Spotify URL for the object.
         """
-        return str(self._json_dict['spotifywrapper'])
+        return str(self._json_dict['spotify'])
 
 
 class FollowersObject(SpotifyObject):
@@ -1302,6 +1326,9 @@ class FollowersObject(SpotifyObject):
 
     def __repr__(self):
         return f'<FollowersObject total={self.total}>'
+
+    def __str__(self):
+        return str(self.total)
 
     @property
     def total(self) -> int:
@@ -1318,7 +1345,10 @@ class ImageObject(SpotifyObject):
 
     def __repr__(self):
         return f'<ImageObject url={self.url!r}, height={self.height},' \
-               f'width={self.width}>'
+               f' width={self.width}>'
+
+    def __str__(self):
+        return str(self.url)
 
     @property
     def height(self) -> Optional[int]:
@@ -1353,6 +1383,9 @@ class LinkedTrackObject(SpotifyObject):
 
     def __repr__(self):
         return f'<LinkedTrackObject id={self.id!r}, uri={self.uri!r}>'
+
+    def __str__(self):
+        return str(self.uri)
 
     @property
     def external_urls(self) -> ExternalUrlObject:
@@ -1397,7 +1430,10 @@ class PlayHistoryObject(SpotifyObject):
 
     def __repr__(self):
         return f'<PlayHistoryObject track={self.track},' \
-               f'played_at={self.played_at}>'
+               f' played_at={self.played_at}>'
+
+    def __str__(self):
+        return str(self.track)
 
     @property
     def context(self) -> ContextObject:
@@ -1411,7 +1447,7 @@ class PlayHistoryObject(SpotifyObject):
         """
         The date and time the track was played.
         """
-        return datetime.fromisoformat(self._json_dict['played_at'])
+        return datetime.strptime(self._json_dict['played_at'], "%Y-%m-%dT%H:%M:%S.%fZ")
 
     @property
     def track(self) -> SimplifiedTrackObject:
@@ -1428,7 +1464,10 @@ class PlayErrorObject(SpotifyObject):
 
     def __repr__(self):
         return f'<PlayErrorObject message={self.message!r},' \
-               f'reason={self.reason!r}, status={self.status}>'
+               f' reason={self.reason!r}, status={self.status}>'
+
+    def __str__(self):
+        return str(self.message)
 
     @property
     def message(self) -> str:
@@ -1485,7 +1524,10 @@ class PlaylistObject(SpotifyObject):
 
     def __repr__(self):
         return f'<PlaylistObject name={self.name!r}, id={self.id!r},' \
-               f'tracks={self.tracks}>'
+               f' tracks={self.tracks}>'
+
+    def __str__(self):
+        return str(self.name)
 
     @property
     def collaborative(self) -> bool:
@@ -1606,6 +1648,9 @@ class PlaylistTrackObject(SpotifyObject):
     def __repr__(self):
         return f'<PlaylistTrackObject track={self.track}>'
 
+    def __str__(self):
+        return str(self.track)
+
     @property
     def added_at(self) -> Optional[datetime]:
         """
@@ -1613,7 +1658,7 @@ class PlaylistTrackObject(SpotifyObject):
         old playlists may return None in this field.
         """
         if value := self._json_dict.get('added_at'):
-            return datetime.fromisoformat(value)
+            return datetime.strptime(value, "%Y-%m-%dT%H:%M:%S.%fZ")
         return None
 
     @property
@@ -1649,6 +1694,9 @@ class PlaylistTracksRefObject(SpotifyObject):
     def __repr__(self):
         return f'<PlaylistTracksRefObject href={self.href!r}>'
 
+    def __str__(self):
+        return str(self.href)
+
     @property
     def href(self) -> str:
         """
@@ -1672,7 +1720,10 @@ class PrivateUserObject(SpotifyObject):
 
     def __repr__(self):
         return f'<PrivateUserObject display_name={self.display_name},' \
-               f'email={self.email}, id={self.id!r}>'
+               f' email={self.email}, id={self.id!r}>'
+
+    def __str__(self):
+        return str(self.display_name)
 
     @property
     def country(self) -> str:
@@ -1785,7 +1836,10 @@ class PublicUserObject(SpotifyObject):
 
     def __repr__(self):
         return f'<PublicUserObject display_name={self.display_name},' \
-               f'id={self.id!r}>'
+               f' id={self.id!r}>'
+
+    def __str__(self):
+        return str(self.display_name)
 
     @property
     def display_name(self) -> Optional[str]:
@@ -1864,8 +1918,7 @@ class RecommendationSeedObject(SpotifyObject):
     """
 
     def __repr__(self):
-        return f'<RecommendationSeedObject id={self.id!r},' \
-               f'type={self.type!r}>'
+        return f'<RecommendationSeedObject type={self.type!r}>'
 
     @property
     def after_filtering_size(self) -> int:
@@ -1922,7 +1975,7 @@ class RecommendationsObject(SpotifyObject):
 
     def __repr__(self):
         return f'<RecommendationsObject seeds={self.seeds},' \
-               f'tracks={self.tracks}>'
+               f' tracks={self.tracks}>'
 
     @property
     def seeds(self) -> List[RecommendationSeedObject]:
@@ -1947,7 +2000,7 @@ class ResumePointObject(SpotifyObject):
 
     def __repr__(self):
         return f'<ResumePointObject fully_played={self.fully_played},' \
-               f'resume_position_ms={self.resume_position_ms}>'
+               f' resume_position_ms={self.resume_position_ms}>'
 
     @property
     def fully_played(self) -> bool:
@@ -1971,7 +2024,10 @@ class SavedAlbumObject(SpotifyObject):
 
     def __repr__(self):
         return f'<SavedAlbumObject album={self.album},' \
-               f'added_at={self.added_at}>'
+               f' added_at={self.added_at}>'
+
+    def __str__(self):
+        return str(self.album)
 
     @property
     def added_at(self) -> datetime:
@@ -1980,7 +2036,7 @@ class SavedAlbumObject(SpotifyObject):
         8601 format as Coordinated Universal Time (UTC) with a zero offset:
         YYYY-MM-DDTHH:MM:SSZ as datetime objects.
         """
-        return datetime.fromisoformat(self._json_dict['added_at'])
+        return datetime.strptime(self._json_dict['added_at'], "%Y-%m-%dT%H:%M:%S.%fZ")
 
     @property
     def album(self) -> AlbumObject:
@@ -1997,7 +2053,10 @@ class SavedEpisodeObject(SpotifyObject):
 
     def __repr__(self):
         return f'<SavedEpisodeObject episode={self.episode},' \
-               f'added_at={self.added_at}>'
+               f' added_at={self.added_at}>'
+
+    def __str__(self):
+        return str(self.episode)
 
     @property
     def added_at(self) -> datetime:
@@ -2006,7 +2065,7 @@ class SavedEpisodeObject(SpotifyObject):
         8601 format as Coordinated Universal Time (UTC) with a zero offset:
         YYYY-MM-DDTHH:MM:SSZ as datetime objects.
         """
-        return datetime.fromisoformat(self._json_dict['added_at'])
+        return datetime.strptime(self._json_dict['added_at'], "%Y-%m-%dT%H:%M:%S.%fZ")
 
     @property
     def episode(self) -> EpisodeObject:
@@ -2023,7 +2082,10 @@ class SavedShowObject(SpotifyObject):
 
     def __repr__(self):
         return f'<SavedShowObject show={self.show},' \
-               f'added_at={self.added_at}>'
+               f' added_at={self.added_at}>'
+
+    def __str__(self):
+        return str(self.show)
 
     @property
     def added_at(self) -> datetime:
@@ -2032,7 +2094,7 @@ class SavedShowObject(SpotifyObject):
         8601 format as Coordinated Universal Time (UTC) with a zero offset:
         YYYY-MM-DDTHH:MM:SSZ as datetime objects.
         """
-        return datetime.fromisoformat(self._json_dict['added_at'])
+        return datetime.strptime(self._json_dict['added_at'], "%Y-%m-%dT%H:%M:%S.%fZ")
 
     @property
     def show(self) -> SimplifiedShowObject:
@@ -2049,7 +2111,10 @@ class SavedTrackObject(SpotifyObject):
 
     def __repr__(self):
         return f'<SavedTrackObject track={self.track},' \
-               f'added_at={self.added_at}>'
+               f' added_at={self.added_at}>'
+
+    def __str__(self):
+        return str(self.track)
 
     @property
     def added_at(self) -> datetime:
@@ -2058,7 +2123,7 @@ class SavedTrackObject(SpotifyObject):
         8601 format as Coordinated Universal Time (UTC) with a zero offset:
         YYYY-MM-DDTHH:MM:SSZ as datetime objects.
         """
-        return datetime.fromisoformat(self._json_dict['added_at'])
+        return datetime.strptime(self._json_dict['added_at'], "%Y-%m-%dT%H:%M:%S.%fZ")
 
     @property
     def track(self) -> TrackObject:
@@ -2075,7 +2140,10 @@ class ShowObject(SpotifyObject):
 
     def __repr__(self):
         return f'<ShowObject name={self.name!r}, id={self.id!r},' \
-               f'media_type={self.media_type!r}>'
+               f' media_type={self.media_type!r}>'
+
+    def __str__(self):
+        return str(self.name)
 
     @property
     def available_markets(self) -> List[str]:
@@ -2203,7 +2271,10 @@ class SimplifiedAlbumObject(SpotifyObject):
 
     def __repr__(self):
         return f'<SimplifiedAlbumObject name={self.name!r},' \
-               f'artists={self.artists}, id={self.id!r}>'
+               f' artists={self.artists}, id={self.id!r}>'
+
+    def __str__(self):
+        return str(self.name)
 
     @property
     def album_group(self) -> str:
@@ -2323,7 +2394,10 @@ class SimplifiedArtistObject(SpotifyObject):
 
     def __repr__(self):
         return f'<SimplifiedArtistObject name={self.name!r},' \
-               f'id={self.id!r}>'
+               f' id={self.id!r}>'
+
+    def __str__(self):
+        return str(self.name)
 
     @property
     def external_urls(self) -> ExternalUrlObject:
@@ -2375,7 +2449,10 @@ class SimplifiedEpisodeObject(SpotifyObject):
 
     def __repr__(self):
         return f'<SimplifiedEpisodeObject name={self.name!r},' \
-               f'show={self.show}, id={self.id!r}>'
+               f' show={self.show}, id={self.id!r}>'
+
+    def __str__(self):
+        return str(self.name)
 
     @property
     def audio_preview_url(self) -> Optional[str]:
@@ -2522,7 +2599,10 @@ class SimplifiedPlaylistObject(SpotifyObject):
 
     def __repr__(self):
         return f'<SimplifiedPlaylistObject name={self.name!r},' \
-               f'id={self.id!r}>'
+               f' id={self.id!r}>'
+
+    def __str__(self):
+        return str(self.name)
 
     @property
     def collaborative(self) -> bool:
@@ -2637,7 +2717,10 @@ class SimplifiedShowObject(SpotifyObject):
 
     def __repr__(self):
         return f'<SimplifiedShowObject name={self.name!r},' \
-               f'id={self.id!r}, media_type={self.media_type!r}>'
+               f' id={self.id!r}, media_type={self.media_type!r}>'
+
+    def __str__(self):
+        return str(self.name)
 
     @property
     def available_markets(self) -> List[str]:
@@ -2758,7 +2841,10 @@ class SimplifiedTrackObject(SpotifyObject):
 
     def __repr__(self):
         return f'<SimplifiedTrackObject name={self.name!r},' \
-               f'id={self.id!r}, artists={self.artists}>'
+               f' id={self.id!r}, artists={self.artists}>'
+
+    def __str__(self):
+        return str(self.name)
 
     @property
     def artists(self) -> List[SimplifiedArtistObject]:
@@ -2900,7 +2986,10 @@ class TrackObject(SpotifyObject):
 
     def __repr__(self):
         return f'<TrackObject name={self.name!r}, id={self.id!r},' \
-               f'artists={self.artists}>'
+               f' artists={self.artists}>'
+
+    def __str__(self):
+        return str(self.name)
 
     @property
     def album(self) -> SimplifiedAlbumObject:
@@ -3076,6 +3165,9 @@ class TrackRestrictionObject(SpotifyObject):
     def __repr__(self):
         return f'<TrackRestrictionObject reason={self.reason!r}>'
 
+    def __str__(self):
+        return str(self.reason)
+
     @property
     def reason(self) -> str:
         """
@@ -3098,15 +3190,15 @@ class TuneableTrackObject(SpotifyObject):
 
     def __repr__(self):
         return f'<TuneableTrackObject' \
-               f'acousticness={self.acousticness},' \
-               f'danceability={self.danceability},' \
-               f'duration_ms={self.duration_ms}, energy={self.energy},' \
-               f'instrumentalness={self.instrumentalness}, key={self.key},' \
-               f'liveness={self.liveness}, loudness={self.loudness},' \
-               f'mode={self.mode}, popularity={self.popularity},' \
-               f'speechiness={self.speechiness}, tempo={self.tempo},' \
-               f'time_signature={self.time_signature},' \
-               f'valence={self.valence}>'
+               f' acousticness={self.acousticness},' \
+               f' danceability={self.danceability},' \
+               f' duration_ms={self.duration_ms}, energy={self.energy},' \
+               f' instrumentalness={self.instrumentalness}, key={self.key},' \
+               f' liveness={self.liveness}, loudness={self.loudness},' \
+               f' mode={self.mode}, popularity={self.popularity},' \
+               f' speechiness={self.speechiness}, tempo={self.tempo},' \
+               f' time_signature={self.time_signature},' \
+               f' valence={self.valence}>'
 
     @property
     def acousticness(self) -> float:

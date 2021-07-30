@@ -303,6 +303,3 @@ def build(directory: str):
     boilerplate_code = get_boilerplate_code()
 
     write_code_to_file(directory, boilerplate_code, combined_methods_code)
-
-
-build('test')

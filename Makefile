@@ -1,4 +1,7 @@
-﻿.PHONY: install, test, rate, clean
+﻿.PHONY: build, install, test, rate
+
+build:
+	venv/scripts/python.exe build_tools/build.py
 
 install:
 	. venv/Scripts/activate
@@ -8,9 +11,5 @@ test:
 	pytest tests -v ${args}
 
 rate:
-	-flake8 src/tasks
-	-pylint src/tasks
-
-clean:
-	@echo hello $(name)
-	which pip
+	-flake8 src/spotifywrapper
+	-pylint src/spotifywrapper

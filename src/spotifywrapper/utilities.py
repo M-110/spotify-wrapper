@@ -1,10 +1,9 @@
-﻿from typing import Callable, List
+﻿from typing import Callable, List, Tuple
 from dataclasses import dataclass
 from functools import wraps
 
 
-# TODO: This seems really specific to one class. Maybe it should be closer to it?
-def requires(scopes: List[str]) -> Callable:
+def requires(*scopes: str) -> Callable:
     """
     Adds a validator to SpotifyAPI methods which will check to make sure the
     method's scope is within the API token's scope.
