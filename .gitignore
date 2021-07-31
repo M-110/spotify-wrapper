@@ -137,4 +137,4 @@ dmypy.json
 cython_debug/
 
 # Don't share credentials
-*.json
+*credentials*

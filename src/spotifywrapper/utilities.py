@@ -1,4 +1,6 @@
-﻿from typing import Callable, List, Tuple
+﻿import json
+import pickle
+from typing import Callable, List, Tuple
 from dataclasses import dataclass
 from functools import wraps
 
@@ -40,6 +42,24 @@ def cached_static_property(method):
         return cached_result
 
     return property(inner)
+
+def cache_get_locally(method):
+    """Cache the results in a local method."""
+
+    @wraps(method)
+    def inner(url, query_params, json_body):
+        response, error = method(url, query_params, json_body)
+        query_params = json.dumps(query_params, sort_keys=True)
+        json_body = json.dumps(json_body, sort_keys=True)
+        print(url)
+        print(type(query_params))
+        print(type(json_body))
+        data = {(url, query_params, json_body): (response, error)}
+        with open('cache.txt', 'wb') as file:
+            pickle.dump(data, file)
+        return response, error
+    return inner
+
 
 
 @dataclass

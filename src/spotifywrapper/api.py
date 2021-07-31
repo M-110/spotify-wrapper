@@ -99,6 +99,7 @@ class SpotifyAPI:
         json_dict = json.loads(response)
         array = list(json_dict.values())[0]
         return [type_(value) if value is not None else None for value in array]
+
     def get_multiple_albums(
             self,
             ids: List[str],

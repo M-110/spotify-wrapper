@@ -662,15 +662,15 @@
   attrs:
     - name: ean
       doc: "International Article Number."
-      return: str
+      return: Optional[str]
 
     - name: isrc
       doc: "International Standard Recording Code."
-      return: str
+      return: Optional[str]
       
     - name: upc
       doc: "Universal Product Code."
-      return: str
+      return: Optional[str]
        
        
        

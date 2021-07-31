@@ -43,7 +43,9 @@ class PagingObject(Sequence, Generic[T], SpotifyObject):
     """
 
     def __init__(self, json_object: Optional[str, dict], item_type: Type[T]):
-        json_dict = json.loads(json_object)
+        print(json_object)
+        #json_dict = json.loads(str(json_object))
+        json_dict = json_object
         print(json_dict.keys())
         if len(json_dict.keys()) < 3:
             json_object = list(json_dict.values())[-1]
@@ -1275,29 +1277,35 @@ class ExternalIdObject(SpotifyObject):
     """
 
     def __repr__(self):
-        return f'<ExternalIdObject ean={self.ean!r},' \
-               f' isrc={self.isrc!r}, upc={self.upc!r}>'
+        return f'<ExternalIdObject ean={self.ean}, isrc={self.isrc},' \
+               f' upc={self.upc}>'
 
     @property
-    def ean(self) -> str:
+    def ean(self) -> Optional[str]:
         """
         International Article Number.
         """
-        return str(self._json_dict['ean'])
+        if value := self._json_dict.get('ean'):
+            return str(value)
+        return None
 
     @property
-    def isrc(self) -> str:
+    def isrc(self) -> Optional[str]:
         """
         International Standard Recording Code.
         """
-        return str(self._json_dict['isrc'])
+        if value := self._json_dict.get('isrc'):
+            return str(value)
+        return None
 
     @property
-    def upc(self) -> str:
+    def upc(self) -> Optional[str]:
         """
         Universal Product Code.
         """
-        return str(self._json_dict['upc'])
+        if value := self._json_dict.get('upc'):
+            return str(value)
+        return None
 
 
 class ExternalUrlObject(SpotifyObject):
