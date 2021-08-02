@@ -138,3 +138,6 @@ cython_debug/
 
 # Don't share credentials
 *credentials*
+
+# Test data
+*/mock_get_data/*

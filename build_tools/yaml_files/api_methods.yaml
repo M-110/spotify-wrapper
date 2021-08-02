@@ -973,7 +973,7 @@
     -  
     
     
-- method_name: check_users_saved_tracks
+- method_name: check_users_saved_episodes
   doc: "Check if one or more episodes is already saved in the current Spotify user’s ‘Your Episodes’ library. (This API endpoint is in beta and could change without warning)"
   http_method: get
   endpoint: "f'https://api.spotify.com/v1/me/episodes/contains'"

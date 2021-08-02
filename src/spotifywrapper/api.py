@@ -97,9 +97,11 @@ class SpotifyAPI:
                                type_) -> List[Optional[SpotifyObject]]:
         """Convert the json dictionary array into a list."""
         json_dict = json.loads(response)
-        array = list(json_dict.values())[0]
+        if isinstance(json_dict, list):
+            array = json_dict
+        else:
+            array = list(json_dict.values())[0]
         return [type_(value) if value is not None else None for value in array]
-
     def get_multiple_albums(
             self,
             ids: List[str],
@@ -987,7 +989,7 @@ class SpotifyAPI:
         response, error = self._get(url, query_params, json_body)
         if error:
             return ErrorObject(response)
-        return self._convert_array_to_list(response.text, ErrorObject)
+        return self._convert_array_to_list(response.text, bool)
 
     @requires('user-follow-modify')
     def get_users_followed_artists(
@@ -1007,7 +1009,7 @@ class SpotifyAPI:
         """
 
         url = f'https://api.spotify.com/v1/me/following'
-        query_params = {'type_': type_, 'after': after, 'limit': limit}
+        query_params = {'type': type_, 'after': after, 'limit': limit}
         json_body = {}
         response, error = self._get(url, query_params, json_body)
         if error:
@@ -1029,7 +1031,7 @@ class SpotifyAPI:
         """
 
         url = f'https://api.spotify.com/v1/me/following'
-        query_params = {'type_': type_, 'ids': ids}
+        query_params = {'type': type_, 'ids': ids}
         json_body = {}
         response, error = self._put(url, query_params, json_body)
         if error:
@@ -1051,7 +1053,7 @@ class SpotifyAPI:
         """
 
         url = f'https://api.spotify.com/v1/me/following'
-        query_params = {'type_': type_, 'ids': ids}
+        query_params = {'type': type_, 'ids': ids}
         json_body = {}
         response, error = self._delete(url, query_params, json_body)
         if error:
@@ -1074,12 +1076,12 @@ class SpotifyAPI:
         """
 
         url = f'https://api.spotify.com/v1/me/following/contains'
-        query_params = {'type_': type_, 'ids': ids}
+        query_params = {'type': type_, 'ids': ids}
         json_body = {}
         response, error = self._get(url, query_params, json_body)
         if error:
             return ErrorObject(response)
-        return self._convert_array_to_list(response.text, ErrorObject)
+        return self._convert_array_to_list(response.text, bool)
 
     @requires('user-library-read')
     def get_users_saved_albums(
@@ -1164,7 +1166,7 @@ class SpotifyAPI:
         response, error = self._get(url, query_params, json_body)
         if error:
             return ErrorObject(response)
-        return self._convert_array_to_list(response.text, ErrorObject)
+        return self._convert_array_to_list(response.text, bool)
 
     @requires('user-library-read')
     def get_users_saved_tracks(
@@ -1248,7 +1250,7 @@ class SpotifyAPI:
         response, error = self._get(url, query_params, json_body)
         if error:
             return ErrorObject(response)
-        return self._convert_array_to_list(response.text, ErrorObject)
+        return self._convert_array_to_list(response.text, bool)
 
     @requires('user-library-read')
     def get_users_saved_episodes(
@@ -1317,7 +1319,7 @@ class SpotifyAPI:
         return ErrorObject(response.text)
 
     @requires('user-library-read')
-    def check_users_saved_tracks(
+    def check_users_saved_episodes(
             self, ids: List[str]) -> Union[List[bool], ErrorObject]:
         """
         Check if one or more episodes is already saved in the current Spotify
@@ -1335,7 +1337,7 @@ class SpotifyAPI:
         response, error = self._get(url, query_params, json_body)
         if error:
             return ErrorObject(response)
-        return self._convert_array_to_list(response.text, ErrorObject)
+        return self._convert_array_to_list(response.text, bool)
 
     @requires('user-library-read')
     def get_users_saved_shows(
@@ -1421,7 +1423,7 @@ class SpotifyAPI:
         response, error = self._get(url, query_params, json_body)
         if error:
             return ErrorObject(response)
-        return self._convert_array_to_list(response.text, ErrorObject)
+        return self._convert_array_to_list(response.text, bool)
 
     def get_available_markets(self) -> Union[List[str], ErrorObject]:
         """
@@ -1436,7 +1438,7 @@ class SpotifyAPI:
         response, error = self._get(url, query_params, json_body)
         if error:
             return ErrorObject(response)
-        return self._convert_array_to_list(response.text, ErrorObject)
+        return self._convert_array_to_list(response.text, str)
 
     @requires('user-top-read')
     def get_a_users_top_artists_and_tracks(
@@ -1492,7 +1494,7 @@ class SpotifyAPI:
         response, error = self._get(url, query_params, json_body)
         if error:
             return ErrorObject(response)
-        return ErrorObject(response.text)
+        return dict(response.text)
 
     @requires('user-modify-playback-state')
     def transfer_a_users_playback(self,
@@ -1532,7 +1534,7 @@ class SpotifyAPI:
         response, error = self._get(url, query_params, json_body)
         if error:
             return ErrorObject(response)
-        return self._convert_array_to_list(response.text, ErrorObject)
+        return self._convert_array_to_list(response.text, dict)
 
     @requires('user-read-currently-playing', 'user-read-playback-state')
     def get_the_users_currently_playing_track(
@@ -1551,7 +1553,7 @@ class SpotifyAPI:
         response, error = self._get(url, query_params, json_body)
         if error:
             return ErrorObject(response)
-        return ErrorObject(response.text)
+        return dict(response.text)
 
     @requires('user-modify-playback-state')
     def start_or_resume_a_users_playback(
@@ -2105,7 +2107,7 @@ class SpotifyAPI:
         response, error = self._put(url, query_params, json_body)
         if error:
             return ErrorObject(response)
-        return ErrorObject(response.text)
+        return str(response.text)
 
     @requires('playlist-modify-public', 'playlist-modify-private')
     def remove_items_from_a_playlist(
@@ -2134,7 +2136,7 @@ class SpotifyAPI:
         response, error = self._delete(url, query_params, json_body)
         if error:
             return ErrorObject(response)
-        return ErrorObject(response.text)
+        return str(response.text)
 
     def get_a_playlist_cover_image(
             self, playlist_id: str) -> Union[ImageObject, ErrorObject]:
@@ -2367,7 +2369,7 @@ class SpotifyAPI:
         """
 
         url = f'https://api.spotify.com/v1/audio-features/{id_}'
-        query_params = {'id_': id_}
+        query_params = {'id': id_}
         json_body = {}
         response, error = self._get(url, query_params, json_body)
         if error:
@@ -2385,7 +2387,7 @@ class SpotifyAPI:
         """
 
         url = f'https://api.spotify.com/v1/audio-analysis/{id_}'
-        query_params = {'id_': id_}
+        query_params = {'id': id_}
         json_body = {}
         response, error = self._get(url, query_params, json_body)
         if error:

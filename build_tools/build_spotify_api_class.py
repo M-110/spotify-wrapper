@@ -14,7 +14,7 @@ import yapf
 
 OUTPUT_FILENAME = 'api.py'
 YAML_PATH = os.path.join('build_tools', 'yaml_files', 'api_methods.yaml')
-BOILERPLATE_PATH = os.path.join('build_tools','boilerplate',
+BOILERPLATE_PATH = os.path.join('build_tools', 'boilerplate',
                                 'spotify_api_class_boiler.py')
 
 METHOD_BODY_TEMPLATE = '''
@@ -183,8 +183,7 @@ def create_param_declarations(params_dict: dict) -> str:
 
 def create_description_docstring(doc: str) -> str:
     """Properly format and wrap the description part of the docstring."""
-    return textwrap.fill(doc,
-                         width=71)
+    return textwrap.fill(doc, width=71)
 
 
 def create_params_docstring(params_dict: dict) -> str:
@@ -237,7 +236,7 @@ def create_requires_decorator(scope: List[Optional[str]]) -> str:
 def create_return_line(returns: str) -> str:
     """Create the return line for the method which return an instance of the
     corresponding class using json response's text."""
-    objects = re.findall(r'\w*Object', returns)
+    objects = re.findall(r'\w*Object|bool|str|dict', returns)
     if 'List' in returns:
         return f'return self._convert_array_to_list(response.text, ' \
                f'{objects[0]})'
@@ -263,9 +262,20 @@ def format_url(endpoint: str) -> str:
 def create_get_params(params: List[dict]) -> str:
     """Create the query or json parameters which will be sent in the get
     request."""
-    return '{' + ', '.join([f"{param['name']!r}: {param['name']}"
-                            for param in params
-                            if param is not None]) + '}'
+    params = [f"{remove_trailing_underscores_from_name(param['name'])!r}: "
+              f"{param['name']}"
+              for param in params
+              if param is not None]
+
+    return '{' + ', '.join(params) + '}'
+
+
+def remove_trailing_underscores_from_name(name: str):
+    """Remove the trailing underscores of variables which shadow built-in
+    names such as 'type'."""
+    if name.endswith('_'):
+        return name[:-1]
+    return name
 
 
 def yapf_format(code: str) -> str:

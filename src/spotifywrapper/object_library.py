@@ -43,9 +43,7 @@ class PagingObject(Sequence, Generic[T], SpotifyObject):
     """
 
     def __init__(self, json_object: Optional[str, dict], item_type: Type[T]):
-        print(json_object)
-        #json_dict = json.loads(str(json_object))
-        json_dict = json_object
+        json_dict = json.loads(json_object)
         print(json_dict.keys())
         if len(json_dict.keys()) < 3:
             json_object = list(json_dict.values())[-1]

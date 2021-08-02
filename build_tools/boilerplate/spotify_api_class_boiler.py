@@ -97,5 +97,8 @@ class SpotifyAPI:
                                type_) -> List[Optional[SpotifyObject]]:
         """Convert the json dictionary array into a list."""
         json_dict = json.loads(response)
-        array = list(json_dict.values())[0]
+        if isinstance(json_dict, list):
+            array = json_dict
+        else:
+            array = list(json_dict.values())[0]
         return [type_(value) if value is not None else None for value in array]
