@@ -140,4 +140,4 @@ cython_debug/
 *credentials*
 
 # Test data
-*/mock_get_data/*
+*.json

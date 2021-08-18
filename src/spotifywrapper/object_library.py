@@ -25,7 +25,8 @@ class SpotifyObject:
             self._json_string = json_object
             self._json_dict = json.loads(json_object)
 
-        self._set_attributes(self._json_dict)
+        # TODO: What is this?
+        # self._set_attributes(self._json_dict)
 
     def __repr__(self):
         return f'{self.__class__.__name__}({self._json_dict})'
@@ -43,7 +44,7 @@ class PagingObject(Sequence, Generic[T], SpotifyObject):
     """
 
     def __init__(self, json_object: Optional[str, dict], item_type: Type[T]):
-        json_dict = json.loads(json_object)
+        json_dict = json_object
         print(json_dict.keys())
         if len(json_dict.keys()) < 3:
             json_object = list(json_dict.values())[-1]

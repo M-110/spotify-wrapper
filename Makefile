@@ -3,6 +3,9 @@
 build:
 	venv/scripts/python.exe build_tools/build.py
 
+mock:
+	venv/scripts/python.exe test_tools/build_mock_data.py
+
 install:
 	. venv/Scripts/activate
 	pip install -e . --use-feature=in-tree-build;

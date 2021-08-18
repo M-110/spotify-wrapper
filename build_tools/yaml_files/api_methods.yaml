@@ -1785,45 +1785,45 @@
 # region Search API
     
       
-- method_name: search_for_an_item
-  # TODO: Add more extensive documentation for making queries.
-  doc: "Get Spotify Catalog information about albums, artists, playlists, tracks, shows or episodes that match a keyword string."
-  http_method: get
-  endpoint: "f'https://api.spotify.com/v1/search'"
-  returns: Union[PagingObject[Union[ArtistObject, SimplifiedAlbumObject, TrackObject, SimplifiedShowObject, SimplifiedEpisodeObject]], ErrorObject]
-  scope:
-    - 
-    
-  path_parameters:
-    - name: q
-      doc: "Search query keywords and optional field filters and operators"
-      required: true
-      type: str
-    - name: type_
-      doc: "A list of strings of the item types to search across. Valid types are: 'album', 'artist', 'playlist', 'track', 'show' and 'episode'."
-      required: true
-      type:  List[str]
-    - COUNTRY[market]
-    - name: limit
-      doc: "Maximum number of results to return. Default: 20. Minimum: 1. Maximum: 50. Note: The limit is applied within each type, not the total response. For example, if the limit value is 3 and the type is ['artist', 'album'], the response contains 3 artists and 3 albums."
-      required: false
-      type:  int
-    - name: offset
-      doc: "The index of the first result to return. Default: 0. Maximum: 1,000. Use with limit to get the next page of search results."
-      required: false
-      type:  int
-      # TODO: No idea what this externally hosted audio is. Why is this not just a bool?
-    - name: include_external
-      doc: "Possible values: 'audio'. If 'audio' is specified the response will include any relevant audio content that is hosted externally. By default external content is filtered out from responses."
-      required: false
-      type:  str
-    
-      
-  query_parameters:
-    - 
-      
-  json_parameters:
-    -  
+#- method_name: search_for_an_item
+#  # TODO: Add more extensive documentation for making queries.
+#  doc: "Get Spotify Catalog information about albums, artists, playlists, tracks, shows or episodes that match a keyword string."
+#  http_method: get
+#  endpoint: "f'https://api.spotify.com/v1/search'"
+#  returns: Union[PagingObject[Union[ArtistObject, SimplifiedAlbumObject, TrackObject, SimplifiedShowObject, SimplifiedEpisodeObject]], ErrorObject]
+#  scope:
+#    -
+#
+#  path_parameters:
+#    - name: q
+#      doc: "Search query keywords and optional field filters and operators"
+#      required: true
+#      type: str
+#    - name: type_
+#      doc: "A list of strings of the item types to search across. Valid types are: 'album', 'artist', 'playlist', 'track', 'show' and 'episode'."
+#      required: true
+#      type:  List[str]
+#    - COUNTRY[market]
+#    - name: limit
+#      doc: "Maximum number of results to return. Default: 20. Minimum: 1. Maximum: 50. Note: The limit is applied within each type, not the total response. For example, if the limit value is 3 and the type is ['artist', 'album'], the response contains 3 artists and 3 albums."
+#      required: false
+#      type:  int
+#    - name: offset
+#      doc: "The index of the first result to return. Default: 0. Maximum: 1,000. Use with limit to get the next page of search results."
+#      required: false
+#      type:  int
+#      # TODO: No idea what this externally hosted audio is. Why is this not just a bool?
+#    - name: include_external
+#      doc: "Possible values: 'audio'. If 'audio' is specified the response will include any relevant audio content that is hosted externally. By default external content is filtered out from responses."
+#      required: false
+#      type:  str
+#
+#
+#  query_parameters:
+#    -
+#
+#  json_parameters:
+#    -
       
 # endregion
     

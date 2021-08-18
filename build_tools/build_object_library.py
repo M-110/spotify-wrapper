@@ -1,7 +1,7 @@
 ﻿"""
 Build object library
 """
-import os
+from pathlib import Path
 import textwrap
 from typing import List
 
@@ -10,10 +10,8 @@ import yaml
 HEADER_TEMPLATE = 'class {class_name}Object(SpotifyObject):\n'
 PROPERTY_TEMPLATE = '\n@property\ndef {attr_name}(self) -> {attr_return}:'
 
-BOILERPLATE_PATH = os.path.join('build_tools', 'boilerplate',
-                                'object_library_boiler.py')
-YAML_PATH = os.path.join('build_tools', 'yaml_files',
-                         'object_library.yaml')
+BOILERPLATE_PATH = Path('build_tools/boilerplate/object_library_boiler.py')
+YAML_PATH = Path('build_tools/yaml_files/object_library.yaml')
 
 
 def create_yaml_dicts() -> List[dict]:
@@ -35,8 +33,8 @@ def create_class(class_dict: dict) -> str:
         property_text = create_property(attr)
         property_code.append(property_text)
     class_statement = class_header + class_docstring + '\n'
-    class_methods = repr_header + repr_return_statement + '\n' + str_method + \
-                    '\n'.join(property_code)
+    class_methods = (repr_header + repr_return_statement + '\n' + str_method +
+                     '\n'.join(property_code))
     class_methods = textwrap.indent(class_methods, ' ' * 4)
     return class_statement + class_methods
 
@@ -120,9 +118,11 @@ def create_property_return_line(return_type: str, attr_name: str) -> str:
     if return_class == 'Optional':
         return _create_optional_return(attr_name, param)
     if return_class == 'List':
-        return f'return [{param}(item) for item in self._json_dict[{attr_name!r}]]'
+        return f'return [{param}(item) for item in ' \
+               f'self._json_dict[{attr_name!r}]]'
     if return_class == 'Union':
-        return f'return union_parser([{param}], self._json_dict[{attr_name!r}])'
+        return f'return union_parser([{param}], ' \
+               f'self._json_dict[{attr_name!r}])'
     return f'return {return_class}(self._json_dict[{attr_name!r}], {param})'
 
 
@@ -151,8 +151,10 @@ def _create_optional_return(attr_name: str, param: str) -> str:
 
 
 def build(directory: str):
-    # Create the path where the generated python script will be saved.
-    output_path = os.path.join('.', directory, 'object_library.py')
+    """Parse the yaml file and generate the code for the classes. Combine
+    the generated code with the boilerplate code and save it as a
+    object_library.py in the target directory."""
+    output_path = Path(directory) / 'object_library.py'
     with open(BOILERPLATE_PATH, 'r', encoding='utf8') as file:
         boiler = file.read()
 

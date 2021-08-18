@@ -4,7 +4,6 @@ Build the object library and the SpotifyAPI class.
 """
 import argparse
 from argparse import Namespace
-import os
 
 import build_object_library
 import build_spotify_api_class

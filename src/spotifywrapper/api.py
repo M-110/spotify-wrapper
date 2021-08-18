@@ -1,5 +1,6 @@
 ﻿import json
-from typing import List, Union, Optional
+from urllib.parse import urlencode
+from typing import List, Tuple, Union, Optional
 
 import requests
 
@@ -12,6 +13,13 @@ from .object_library import SpotifyObject, AlbumObject, ErrorObject, \
     SavedShowObject, SavedEpisodeObject, SavedTrackObject, PlayHistoryObject, \
     PlaylistObject, ShowObject, AudioAnalysisObject, UserObject
 from .utilities import requires, CustomResponse
+
+QUERY_DICT = {'albums': SimplifiedAlbumObject,
+              'artists': ArtistObject,
+              'playlists': PlaylistObject,
+              'tracks': TrackObject,
+              'shows': SimplifiedShowObject,
+              'episodes': SimplifiedEpisodeObject}
 
 
 class SpotifyAPI:
@@ -56,8 +64,9 @@ class SpotifyAPI:
         return self._headers
 
     # TODO: Add type hints
-    def _get(self, url, query_params, json_body):
+    def _get(self, url, query_params, json_body) -> Tuple[dict, bool]:
         params = self._convert_query_params(query_params)
+        print('-----------------get---------------------')
         print(f'{url=}')
         print(f'{params=}')
         print(f'{json_body=}')
@@ -66,12 +75,23 @@ class SpotifyAPI:
             error = 'error' in response.text[:10]
             print(f'URL requested: {response.request.url!r}')
         except ConnectionError as e:
+            # TODO: This seems weird?
             response = CustomResponse(
                 '{ "error": { "status": "ConnectionError", "message": "' +
                 str(e) + '"}}')
             error = True
+        if response.status_code == 204:
+            response = CustomResponse(
+                '{ "error": { "status": "204 No Content", "message": "' +
+                'The server successfully responded but didn\'t return '
+                'any content"}}')
+            error = True
         if error:
             response = json.loads(response.text)['error']
+        else:
+            response = json.loads(response.text)
+        print(f'get returns type: {type(response)}')
+        print('----------------ENDget--------------------')
         return response, error
 
     def _put(self, endpoint):
@@ -80,8 +100,8 @@ class SpotifyAPI:
     def _post(self, endpoint):
         return requests.post(endpoint, headers=self.headers)
 
-    # TODO: Extract as function
-    def _convert_query_params(self, params: dict):
+    @staticmethod
+    def _convert_query_params(params: dict):
         """Remove unused parameters and convert lists to comma separated
         strings. """
         params = {
@@ -92,16 +112,69 @@ class SpotifyAPI:
                 params[key] = ','.join(value)
         return params
 
-    # TODO: Extract as function
-    def _convert_array_to_list(self, response,
+    @staticmethod
+    def _convert_array_to_list(response,
                                type_) -> List[Optional[SpotifyObject]]:
         """Convert the json dictionary array into a list."""
-        json_dict = json.loads(response)
-        if isinstance(json_dict, list):
-            array = json_dict
+        if isinstance(response, list):
+            array = response
         else:
-            array = list(json_dict.values())[0]
+            array = list(response.values())[0]
         return [type_(value) if value is not None else None for value in array]
+
+    def search_for_an_item(
+            self,
+            q: str,
+            type_: List[str],
+            market: str = None,
+            limit: int = None,
+            offset: int = None,
+            include_external: str = None
+    ) -> Union[List[PagingObject[Union[ArtistObject, SimplifiedAlbumObject,
+                                       SimplifiedPlaylistObject,
+                                       TrackObject, SimplifiedShowObject,
+                                       SimplifiedEpisodeObject]]],
+               ErrorObject]:
+        """
+        Get Spotify Catalog information about albums, artists, playlists,
+        tracks, shows or episodes that match a keyword string.
+
+        Args:
+            q: Search query keywords and optional field filters and operators
+            type_: A list of strings of the item types to search across. Valid
+                types are: 'album', 'artist', 'playlist', 'track', 'show' and
+                'episode'.
+            market: Optional; An ISO 3166-1 alpha-2 country code or the string
+                'from_token'.
+            limit: Optional; Maximum number of results to return. Default: 20.
+                Minimum: 1. Maximum: 50. Note: The limit is applied within each
+                type, not the total response. For example, if the limit value
+                is 3 and the type is ['artist', 'album'], the response contains
+                3 artists and 3 albums.
+            offset: Optional; The index of the first result to return. Default:
+                0. Maximum: 1,000. Use with limit to get the next page of
+                search results.
+            include_external: Optional; Possible values: 'audio'. If 'audio' is
+                specified the response will include any relevant audio content
+                that is hosted externally. By default external content is
+                filtered out from responses.
+        """
+
+        url = f'https://api.spotify.com/v1/search?'
+        path_params = dict(q=q, type=','.join(type_), market=market,
+                           limit=limit, offset=offset,
+                           include_external=include_external)
+        active_path_params = {key: value for key, value in path_params.items()
+                              if value is not None}
+        url += urlencode(active_path_params)
+        query_params = {}
+        json_body = {}
+        response, error = self._get(url, query_params, json_body)
+        if error:
+            return ErrorObject(response)
+        return [PagingObject(value, QUERY_DICT[key]) for key, value in
+                response.items()]
+
     def get_multiple_albums(
             self,
             ids: List[str],
@@ -112,9 +185,9 @@ class SpotifyAPI:
         Spotify IDs.
 
         Args:
-            ids: Optional; A list of strings of the Spotify IDs for the albums.
-                Maximum: 20 IDs.
-            market: An ISO 3166-1 alpha-2 country code or the string
+            ids: A list of strings of the Spotify IDs for the albums. Maximum:
+                20 IDs.
+            market: Optional; An ISO 3166-1 alpha-2 country code or the string
                 'from_token'.
         """
 
@@ -124,7 +197,7 @@ class SpotifyAPI:
         response, error = self._get(url, query_params, json_body)
         if error:
             return ErrorObject(response)
-        return self._convert_array_to_list(response.text, AlbumObject)
+        return self._convert_array_to_list(response, AlbumObject)
 
     def get_an_album(
             self,
@@ -134,8 +207,8 @@ class SpotifyAPI:
         Get Spotify catalog information for a single album.
 
         Args:
-            id_: Optional; The Spotify ID of the album.
-            market: An ISO 3166-1 alpha-2 country code or the string
+            id_: The Spotify ID of the album.
+            market: Optional; An ISO 3166-1 alpha-2 country code or the string
                 'from_token'.
         """
 
@@ -145,7 +218,7 @@ class SpotifyAPI:
         response, error = self._get(url, query_params, json_body)
         if error:
             return ErrorObject(response)
-        return AlbumObject(response.text)
+        return AlbumObject(response)
 
     def get_an_albums_tracks(
         self,
@@ -159,12 +232,13 @@ class SpotifyAPI:
         parameters can be used to limit the number of tracks returned.
 
         Args:
-            id_: Optional; The Spotify ID of the album.
-            market: An ISO 3166-1 alpha-2 country code or the string
+            id_: The Spotify ID of the album.
+            market: Optional; An ISO 3166-1 alpha-2 country code or the string
                 'from_token'.
-            limit: The maximum number of tracks to return.  Default: 20.
-                Minimum: 1. Maximum: 50.
-            offset: The index of the first track to return. Default: 0.
+            limit: Optional; The maximum number of tracks to return.  Default:
+                20. Minimum: 1. Maximum: 50.
+            offset: Optional; The index of the first track to return. Default:
+                0.
         """
 
         url = f'https://api.spotify.com/v1/albums/{id_}/tracks'
@@ -173,7 +247,7 @@ class SpotifyAPI:
         response, error = self._get(url, query_params, json_body)
         if error:
             return ErrorObject(response)
-        return PagingObject(response.text, SimplifiedTrackObject)
+        return PagingObject(response, SimplifiedTrackObject)
 
     def get_multiple_artists(
             self, ids: List[str]
@@ -183,8 +257,8 @@ class SpotifyAPI:
         Spotify IDs.
 
         Args:
-            ids: Optional; A list of strings of the Spotify IDs for the
-                artists. Maximum: 50 IDs.
+            ids: A list of strings of the Spotify IDs for the artists. Maximum:
+                50 IDs.
         """
 
         url = f'https://api.spotify.com/v1/artists'
@@ -193,7 +267,7 @@ class SpotifyAPI:
         response, error = self._get(url, query_params, json_body)
         if error:
             return ErrorObject(response)
-        return self._convert_array_to_list(response.text, ArtistObject)
+        return self._convert_array_to_list(response, ArtistObject)
 
     def get_an_artist(self, id_: str) -> Union[ArtistObject, ErrorObject]:
         """
@@ -201,7 +275,7 @@ class SpotifyAPI:
         unique Spotify ID.
 
         Args:
-            id_: Optional; The Spotify ID of the artist.
+            id_: The Spotify ID of the artist.
         """
 
         url = f'https://api.spotify.com/v1/artists/{id_}'
@@ -210,7 +284,7 @@ class SpotifyAPI:
         response, error = self._get(url, query_params, json_body)
         if error:
             return ErrorObject(response)
-        return ArtistObject(response.text)
+        return ArtistObject(response)
 
     def get_an_artists_top_tracks(
             self, id_: str,
@@ -220,8 +294,8 @@ class SpotifyAPI:
         country.
 
         Args:
-            id_: Optional; The Spotify ID of the artist.
-            market: Optional; An ISO 3166-1 alpha-2 country code or the string
+            id_: The Spotify ID of the artist.
+            market: An ISO 3166-1 alpha-2 country code or the string
                 'from_token'.
         """
 
@@ -231,7 +305,7 @@ class SpotifyAPI:
         response, error = self._get(url, query_params, json_body)
         if error:
             return ErrorObject(response)
-        return self._convert_array_to_list(response.text, TrackObject)
+        return self._convert_array_to_list(response, TrackObject)
 
     def get_an_artists_related_artists(
             self, id_: str) -> Union[List[ArtistObject], ErrorObject]:
@@ -241,7 +315,7 @@ class SpotifyAPI:
         listening history.
 
         Args:
-            id_: Optional; The Spotify ID of the artist.
+            id_: The Spotify ID of the artist.
         """
 
         url = f'https://api.spotify.com/v1/artists/{id_}/related-artists'
@@ -250,7 +324,7 @@ class SpotifyAPI:
         response, error = self._get(url, query_params, json_body)
         if error:
             return ErrorObject(response)
-        return self._convert_array_to_list(response.text, ArtistObject)
+        return self._convert_array_to_list(response, ArtistObject)
 
     def get_an_artists_albums(
         self,
@@ -264,16 +338,17 @@ class SpotifyAPI:
         Get Spotify catalog information about an artist’s albums.
 
         Args:
-            id_: Optional; The Spotify ID of the artist.
-            include_groups: A list of strings of the keywords that will be used
-                to filter the response. If not supplied, all album types will
-                be returned. Valid keywords are 'album', 'single',
+            id_: The Spotify ID of the artist.
+            include_groups: Optional; A list of strings of the keywords that
+                will be used to filter the response. If not supplied, all album
+                types will be returned. Valid keywords are 'album', 'single',
                 'appears_on', and 'compilation'.
-            market: An ISO 3166-1 alpha-2 country code or the string
+            market: Optional; An ISO 3166-1 alpha-2 country code or the string
                 'from_token'.
-            limit: The maximum number of albums to return.  Default: 20.
-                Minimum: 1. Maximum: 50.
-            offset: The index of the first album to return. Default: 0.
+            limit: Optional; The maximum number of albums to return.  Default:
+                20. Minimum: 1. Maximum: 50.
+            offset: Optional; The index of the first album to return. Default:
+                0.
         """
 
         url = f'https://api.spotify.com/v1/artists/{id_}/albums'
@@ -287,7 +362,7 @@ class SpotifyAPI:
         response, error = self._get(url, query_params, json_body)
         if error:
             return ErrorObject(response)
-        return PagingObject(response.text, SimplifiedAlbumObject)
+        return PagingObject(response, SimplifiedAlbumObject)
 
     def get_all_new_releases(
         self,
@@ -300,11 +375,12 @@ class SpotifyAPI:
         example, on a Spotify player’s “Browse” tab).
 
         Args:
-            country: An ISO 3166-1 alpha-2 country code or the string
+            country: Optional; An ISO 3166-1 alpha-2 country code or the string
                 'from_token'.
-            limit: The maximum number of albums to return.  Default: 20.
-                Minimum: 1. Maximum: 50.
-            offset: The index of the first album to return. Default: 0.
+            limit: Optional; The maximum number of albums to return.  Default:
+                20. Minimum: 1. Maximum: 50.
+            offset: Optional; The index of the first album to return. Default:
+                0.
         """
 
         url = f'https://api.spotify.com/v1/browse/new-releases'
@@ -313,7 +389,7 @@ class SpotifyAPI:
         response, error = self._get(url, query_params, json_body)
         if error:
             return ErrorObject(response)
-        return PagingObject(response.text, SimplifiedAlbumObject)
+        return PagingObject(response, SimplifiedAlbumObject)
 
     def get_all_featured_playlists(
         self,
@@ -328,29 +404,30 @@ class SpotifyAPI:
         Spotify player’s ‘Browse’ tab).
 
         Args:
-            country: An ISO 3166-1 alpha-2 country code or the string
+            country: Optional; An ISO 3166-1 alpha-2 country code or the string
                 'from_token'.
-            locale: The desired language, consisting of a lowercase ISO 639-1
-                language code and an uppercase ISO 3166-1 alpha-2 country code,
-                joined by an underscore. For example: es_MX, meaning “Spanish
-                (Mexico)”. Provide this parameter if you want the results
-                returned in a particular language (where available). Note that,
-                if locale is not supplied, or if the specified language is not
-                available, all strings will be returned in the Spotify default
-                language (American English). The locale parameter, combined
-                with the country parameter, may give odd results if not
-                carefully matched.
-            timestamp: A timestamp in ISO 8601 format: yyyy-MM-ddTHH:mm:ss. Use
-                this parameter to specify the user’s local time to get results
-                tailored for that specific date and time in the day. If not
-                provided, the response defaults to the current UTC time.
-                Example: “2014-10-23T09:00:00” for a user whose local time is
-                9AM. If there were no featured playlists (or there is no data)
-                at the specified time, the response will revert to the current
-                UTC time.
-            limit: The maximum number of albums to return.  Default: 20.
-                Minimum: 1. Maximum: 50.
-            offset: The index of the first album to return. Default: 0.
+            locale: Optional; The desired language, consisting of a lowercase
+                ISO 639-1 language code and an uppercase ISO 3166-1 alpha-2
+                country code, joined by an underscore. For example: es_MX,
+                meaning “Spanish (Mexico)”. Provide this parameter if you want
+                the results returned in a particular language (where
+                available). Note that, if locale is not supplied, or if the
+                specified language is not available, all strings will be
+                returned in the Spotify default language (American English).
+                The locale parameter, combined with the country parameter, may
+                give odd results if not carefully matched.
+            timestamp: Optional; A timestamp in ISO 8601 format: yyyy-MM-
+                ddTHH:mm:ss. Use this parameter to specify the user’s local
+                time to get results tailored for that specific date and time in
+                the day. If not provided, the response defaults to the current
+                UTC time. Example: “2014-10-23T09:00:00” for a user whose local
+                time is 9AM. If there were no featured playlists (or there is
+                no data) at the specified time, the response will revert to the
+                current UTC time.
+            limit: Optional; The maximum number of albums to return.  Default:
+                20. Minimum: 1. Maximum: 50.
+            offset: Optional; The index of the first album to return. Default:
+                0.
         """
 
         url = f'https://api.spotify.com/v1/browse/featured-playlists'
@@ -365,7 +442,7 @@ class SpotifyAPI:
         response, error = self._get(url, query_params, json_body)
         if error:
             return ErrorObject(response)
-        return PagingObject(response.text, SimplifiedPlaylistObject)
+        return PagingObject(response, SimplifiedPlaylistObject)
 
     def get_all_categories(
         self,
@@ -380,29 +457,30 @@ class SpotifyAPI:
         the Spotify player’s “Browse” tab).
 
         Args:
-            country: An ISO 3166-1 alpha-2 country code or the string
+            country: Optional; An ISO 3166-1 alpha-2 country code or the string
                 'from_token'.
-            locale: The desired language, consisting of a lowercase ISO 639-1
-                language code and an uppercase ISO 3166-1 alpha-2 country code,
-                joined by an underscore. For example: es_MX, meaning “Spanish
-                (Mexico)”. Provide this parameter if you want the results
-                returned in a particular language (where available). Note that,
-                if locale is not supplied, or if the specified language is not
-                available, all strings will be returned in the Spotify default
-                language (American English). The locale parameter, combined
-                with the country parameter, may give odd results if not
-                carefully matched.
-            timestamp: A timestamp in ISO 8601 format: yyyy-MM-ddTHH:mm:ss. Use
-                this parameter to specify the user’s local time to get results
-                tailored for that specific date and time in the day. If not
-                provided, the response defaults to the current UTC time.
-                Example: “2014-10-23T09:00:00” for a user whose local time is
-                9AM. If there were no featured playlists (or there is no data)
-                at the specified time, the response will revert to the current
-                UTC time.
-            limit: The maximum number of albums to return.  Default: 20.
-                Minimum: 1. Maximum: 50.
-            offset: The index of the first category to return. Default: 0.
+            locale: Optional; The desired language, consisting of a lowercase
+                ISO 639-1 language code and an uppercase ISO 3166-1 alpha-2
+                country code, joined by an underscore. For example: es_MX,
+                meaning “Spanish (Mexico)”. Provide this parameter if you want
+                the results returned in a particular language (where
+                available). Note that, if locale is not supplied, or if the
+                specified language is not available, all strings will be
+                returned in the Spotify default language (American English).
+                The locale parameter, combined with the country parameter, may
+                give odd results if not carefully matched.
+            timestamp: Optional; A timestamp in ISO 8601 format: yyyy-MM-
+                ddTHH:mm:ss. Use this parameter to specify the user’s local
+                time to get results tailored for that specific date and time in
+                the day. If not provided, the response defaults to the current
+                UTC time. Example: “2014-10-23T09:00:00” for a user whose local
+                time is 9AM. If there were no featured playlists (or there is
+                no data) at the specified time, the response will revert to the
+                current UTC time.
+            limit: Optional; The maximum number of albums to return.  Default:
+                20. Minimum: 1. Maximum: 50.
+            offset: Optional; The index of the first category to return.
+                Default: 0.
         """
 
         url = f'https://api.spotify.com/v1/browse/categories'
@@ -417,7 +495,7 @@ class SpotifyAPI:
         response, error = self._get(url, query_params, json_body)
         if error:
             return ErrorObject(response)
-        return PagingObject(response.text, CategoryObject)
+        return PagingObject(response, CategoryObject)
 
     def get_a_category(
             self,
@@ -429,19 +507,19 @@ class SpotifyAPI:
         the Spotify player’s “Browse” tab).
 
         Args:
-            category_id: Optional; The Spotify category ID for the category.
-            country: An ISO 3166-1 alpha-2 country code or the string
+            category_id: The Spotify category ID for the category.
+            country: Optional; An ISO 3166-1 alpha-2 country code or the string
                 'from_token'.
-            locale: The desired language, consisting of a lowercase ISO 639-1
-                language code and an uppercase ISO 3166-1 alpha-2 country code,
-                joined by an underscore. For example: es_MX, meaning “Spanish
-                (Mexico)”. Provide this parameter if you want the results
-                returned in a particular language (where available). Note that,
-                if locale is not supplied, or if the specified language is not
-                available, all strings will be returned in the Spotify default
-                language (American English). The locale parameter, combined
-                with the country parameter, may give odd results if not
-                carefully matched.
+            locale: Optional; The desired language, consisting of a lowercase
+                ISO 639-1 language code and an uppercase ISO 3166-1 alpha-2
+                country code, joined by an underscore. For example: es_MX,
+                meaning “Spanish (Mexico)”. Provide this parameter if you want
+                the results returned in a particular language (where
+                available). Note that, if locale is not supplied, or if the
+                specified language is not available, all strings will be
+                returned in the Spotify default language (American English).
+                The locale parameter, combined with the country parameter, may
+                give odd results if not carefully matched.
         """
 
         url = f'https://api.spotify.com/v1/browse/categories/{category_id}'
@@ -450,7 +528,7 @@ class SpotifyAPI:
         response, error = self._get(url, query_params, json_body)
         if error:
             return ErrorObject(response)
-        return CategoryObject(response.text)
+        return CategoryObject(response)
 
     def get_a_categorys_playlists(
         self,
@@ -464,22 +542,23 @@ class SpotifyAPI:
         Get a list of Spotify playlists tagged with a particular category.
 
         Args:
-            category_id: Optional; The Spotify category ID for the category.
-            country: An ISO 3166-1 alpha-2 country code or the string
+            category_id: The Spotify category ID for the category.
+            country: Optional; An ISO 3166-1 alpha-2 country code or the string
                 'from_token'.
-            locale: The desired language, consisting of a lowercase ISO 639-1
-                language code and an uppercase ISO 3166-1 alpha-2 country code,
-                joined by an underscore. For example: es_MX, meaning “Spanish
-                (Mexico)”. Provide this parameter if you want the results
-                returned in a particular language (where available). Note that,
-                if locale is not supplied, or if the specified language is not
-                available, all strings will be returned in the Spotify default
-                language (American English). The locale parameter, combined
-                with the country parameter, may give odd results if not
-                carefully matched.
-            limit: The maximum number of albums to return.  Default: 20.
-                Minimum: 1. Maximum: 50.
-            offset: The index of the first playlist to return. Default: 0.
+            locale: Optional; The desired language, consisting of a lowercase
+                ISO 639-1 language code and an uppercase ISO 3166-1 alpha-2
+                country code, joined by an underscore. For example: es_MX,
+                meaning “Spanish (Mexico)”. Provide this parameter if you want
+                the results returned in a particular language (where
+                available). Note that, if locale is not supplied, or if the
+                specified language is not available, all strings will be
+                returned in the Spotify default language (American English).
+                The locale parameter, combined with the country parameter, may
+                give odd results if not carefully matched.
+            limit: Optional; The maximum number of albums to return.  Default:
+                20. Minimum: 1. Maximum: 50.
+            offset: Optional; The index of the first playlist to return.
+                Default: 0.
         """
 
         url = f'https://api.spotify.com/v1/browse/categories/' \
@@ -494,7 +573,7 @@ class SpotifyAPI:
         response, error = self._get(url, query_params, json_body)
         if error:
             return ErrorObject(response)
-        return PagingObject(response.text, SimplifiedPlaylistObject)
+        return PagingObject(response, SimplifiedPlaylistObject)
 
     def get_recommendations(
         self,
@@ -553,189 +632,212 @@ class SpotifyAPI:
         tracks will be returned together with pool size details.
 
         Args:
-            seed_artists: Optional; A list of strings of Spotify IDs for seed
-                artists. Up to 5 seed values may be provided in any combination
-                of seed_artists, seed_tracks and seed_genres.
-            seed_genres: Optional; A list of strings of Spotify IDs for seed
-                genres. Up to 5 seed values may be provided in any combination
-                of seed_artists, seed_tracks and seed_genres.
-            seed_tracks: Optional; A list of strings of Spotify IDs for seed
-                tracks. Up to 5 seed values may be provided in any combination
-                of seed_artists, seed_tracks and seed_genres.
-            limit: The target size of the list of recommended tracks. For seeds
-                with unusually small pools or when highly restrictive filtering
-                is applied, it may be impossible to generate the requested
-                number of recommended tracks. Debugging information for such
-                cases is available in the response. Default: 20. Minimum: 1.
-                Maximum: 100.
-            market: An ISO 3166-1 alpha-2 country code or the string
+            seed_artists: A list of strings of Spotify IDs for seed artists. Up
+                to 5 seed values may be provided in any combination of
+                seed_artists, seed_tracks and seed_genres.
+            seed_genres: A list of strings of Spotify IDs for seed genres. Up
+                to 5 seed values may be provided in any combination of
+                seed_artists, seed_tracks and seed_genres.
+            seed_tracks: A list of strings of Spotify IDs for seed tracks. Up
+                to 5 seed values may be provided in any combination of
+                seed_artists, seed_tracks and seed_genres.
+            limit: Optional; The target size of the list of recommended tracks.
+                For seeds with unusually small pools or when highly restrictive
+                filtering is applied, it may be impossible to generate the
+                requested number of recommended tracks. Debugging information
+                for such cases is available in the response. Default: 20.
+                Minimum: 1. Maximum: 100.
+            market: Optional; An ISO 3166-1 alpha-2 country code or the string
                 from_token. Provide this parameter if you want to apply Track
                 Relinking. Because min_*, max_* and target_* are applied to
                 pools before relinking, the generated results may not precisely
                 match the filters applied. Original, non-relinked tracks are
                 available via the linked_from attribute of the relinked track
                 response.
-            min_acousticness: Restricts results to tracks with attribute
-                greater than min. Acousticness is a confidence measure from 0.0
-                to 1.0 of whether the track is acoustic. 1.0 represents high
-                confidence the track is acoustic.
-            max_acousticness: Restricts results to tracks with attribute less
-                than max. Acousticness is a confidence measure from 0.0 to 1.0
-                of whether the track is acoustic. 1.0 represents high
-                confidence the track is acoustic.
-            target_acousticness: Tracks near target attribute will be
+            min_acousticness: Optional; Restricts results to tracks with
+                attribute greater than min. Acousticness is a confidence
+                measure from 0.0 to 1.0 of whether the track is acoustic. 1.0
+                represents high confidence the track is acoustic.
+            max_acousticness: Optional; Restricts results to tracks with
+                attribute less than max. Acousticness is a confidence measure
+                from 0.0 to 1.0 of whether the track is acoustic. 1.0
+                represents high confidence the track is acoustic.
+            target_acousticness: Optional; Tracks near target attribute will be
                 preferred. Acousticness is a confidence measure from 0.0 to 1.0
                 of whether the track is acoustic. 1.0 represents high
                 confidence the track is acoustic.
-            min_danceability: Restricts results to tracks with attribute
-                greater than min. Danceability describes how suitable a track
-                is for dancing based on a combination of musical elements
+            min_danceability: Optional; Restricts results to tracks with
+                attribute greater than min. Danceability describes how suitable
+                a track is for dancing based on a combination of musical
+                elements including tempo, rhythm stability, beat strength, and
+                overall regularity. A value of 0.0 is least danceable and 1.0
+                is most danceable.
+            max_danceability: Optional; Restricts results to tracks with
+                attribute less than max. Danceability describes how suitable a
+                track is for dancing based on a combination of musical elements
                 including tempo, rhythm stability, beat strength, and overall
                 regularity. A value of 0.0 is least danceable and 1.0 is most
                 danceable.
-            max_danceability: Restricts results to tracks with attribute less
-                than max. Danceability describes how suitable a track is for
-                dancing based on a combination of musical elements including
-                tempo, rhythm stability, beat strength, and overall regularity.
-                A value of 0.0 is least danceable and 1.0 is most danceable.
-            target_danceability: Tracks near target attribute will be
+            target_danceability: Optional; Tracks near target attribute will be
                 preferred. Danceability describes how suitable a track is for
                 dancing based on a combination of musical elements including
                 tempo, rhythm stability, beat strength, and overall regularity.
                 A value of 0.0 is least danceable and 1.0 is most danceable.
-            min_duration_ms: Restricts results to tracks with duration greater
-                than min duration (in milliseconds).
-            max_duration_ms: Restricts results to tracks with duration less
-                than max duration (in milliseconds).
-            target_duration_ms: Tracks near target duration will be preferred
-                (in milliseconds).
-            min_energy: Restricts results to tracks with attribute greater than
-                min. Energy is a measure from 0.0 to 1.0 and represents a
+            min_duration_ms: Optional; Restricts results to tracks with
+                duration greater than min duration (in milliseconds).
+            max_duration_ms: Optional; Restricts results to tracks with
+                duration less than max duration (in milliseconds).
+            target_duration_ms: Optional; Tracks near target duration will be
+                preferred (in milliseconds).
+            min_energy: Optional; Restricts results to tracks with attribute
+                greater than min. Energy is a measure from 0.0 to 1.0 and
+                represents a perceptual measure of intensity and activity.
+                Typically, energetic tracks feel fast, loud, and noisy. For
+                example, death metal has high energy, while a Bach prelude
+                scores low on the scale. Perceptual features contributing to
+                this attribute include dynamic range, perceived loudness,
+                timbre, onset rate, and general entropy.
+            max_energy: Optional; Restricts results to tracks with attribute
+                less than max. Energy is a measure from 0.0 to 1.0 and
+                represents a perceptual measure of intensity and activity.
+                Typically, energetic tracks feel fast, loud, and noisy. For
+                example, death metal has high energy, while a Bach prelude
+                scores low on the scale. Perceptual features contributing to
+                this attribute include dynamic range, perceived loudness,
+                timbre, onset rate, and general entropy.
+            target_energy: Optional; Tracks near target attribute will be
+                preferred. Energy is a measure from 0.0 to 1.0 and represents a
                 perceptual measure of intensity and activity. Typically,
                 energetic tracks feel fast, loud, and noisy. For example, death
                 metal has high energy, while a Bach prelude scores low on the
                 scale. Perceptual features contributing to this attribute
                 include dynamic range, perceived loudness, timbre, onset rate,
                 and general entropy.
-            max_energy: Restricts results to tracks with attribute less than
-                max. Energy is a measure from 0.0 to 1.0 and represents a
-                perceptual measure of intensity and activity. Typically,
-                energetic tracks feel fast, loud, and noisy. For example, death
-                metal has high energy, while a Bach prelude scores low on the
-                scale. Perceptual features contributing to this attribute
-                include dynamic range, perceived loudness, timbre, onset rate,
-                and general entropy.
-            target_energy: Tracks near target attribute will be preferred.
-                Energy is a measure from 0.0 to 1.0 and represents a perceptual
-                measure of intensity and activity. Typically, energetic tracks
-                feel fast, loud, and noisy. For example, death metal has high
-                energy, while a Bach prelude scores low on the scale.
-                Perceptual features contributing to this attribute include
-                dynamic range, perceived loudness, timbre, onset rate, and
-                general entropy.
-            min_instrumentalness: Restricts results to tracks with attribute
-                greater than min. Predicts whether a track contains no vocals.
+            min_instrumentalness: Optional; Restricts results to tracks with
+                attribute greater than min. Predicts whether a track contains
+                no vocals. “Ooh” and “aah” sounds are treated as instrumental
+                in this context. Rap or spoken word tracks are clearly “vocal”.
+                The closer the instrumentalness value is to 1.0, the greater
+                likelihood the track contains no vocal content. Values above
+                0.5 are intended to represent instrumental tracks, but
+                confidence is higher as the value approaches 1.0.
+            max_instrumentalness: Optional; Restricts results to tracks with
+                attribute less than max. Predicts whether a track contains no
+                vocals. “Ooh” and “aah” sounds are treated as instrumental in
+                this context. Rap or spoken word tracks are clearly “vocal”.
+                The closer the instrumentalness value is to 1.0, the greater
+                likelihood the track contains no vocal content. Values above
+                0.5 are intended to represent instrumental tracks, but
+                confidence is higher as the value approaches 1.0.
+            target_instrumentalness: Optional; Tracks near target attribute
+                will be preferred. Predicts whether a track contains no vocals.
                 “Ooh” and “aah” sounds are treated as instrumental in this
                 context. Rap or spoken word tracks are clearly “vocal”. The
                 closer the instrumentalness value is to 1.0, the greater
                 likelihood the track contains no vocal content. Values above
                 0.5 are intended to represent instrumental tracks, but
                 confidence is higher as the value approaches 1.0.
-            max_instrumentalness: Restricts results to tracks with attribute
-                less than max. Predicts whether a track contains no vocals.
-                “Ooh” and “aah” sounds are treated as instrumental in this
-                context. Rap or spoken word tracks are clearly “vocal”. The
-                closer the instrumentalness value is to 1.0, the greater
-                likelihood the track contains no vocal content. Values above
-                0.5 are intended to represent instrumental tracks, but
-                confidence is higher as the value approaches 1.0.
-            target_instrumentalness: Tracks near target attribute will be
-                preferred. Predicts whether a track contains no vocals. “Ooh”
-                and “aah” sounds are treated as instrumental in this context.
-                Rap or spoken word tracks are clearly “vocal”. The closer the
-                instrumentalness value is to 1.0, the greater likelihood the
-                track contains no vocal content. Values above 0.5 are intended
-                to represent instrumental tracks, but confidence is higher as
-                the value approaches 1.0.
-            min_key: Restricts results to tracks with attribute greater than
-                min. The key the track is in. Integers map to pitches using
-                standard Pitch Class notation . E.g. 0 = C, 1 = C♯/D♭, 2 = D,
-                and so on.
-            max_key: Restricts results to tracks with attribute less than max.
-                The key the track is in. Integers map to pitches using standard
-                Pitch Class notation . E.g. 0 = C, 1 = C♯/D♭, 2 = D, and so on.
-            target_key: Tracks near target attribute will be preferred. The key
-                the track is in. Integers map to pitches using standard Pitch
-                Class notation . E.g. 0 = C, 1 = C♯/D♭, 2 = D, and so on.
-            min_liveness: Restricts results to tracks with attribute greater
-                than min. Detects the presence of an audience in the recording.
-                Higher liveness values represent an increased probability that
-                the track was performed live. A value above 0.8 provides strong
-                likelihood that the track is live.
-            max_liveness: Restricts results to tracks with attribute less than
-                max. Detects the presence of an audience in the recording.
-                Higher liveness values represent an increased probability that
-                the track was performed live. A value above 0.8 provides strong
-                likelihood that the track is live.
-            target_liveness: Tracks near target attribute will be preferred.
-                Detects the presence of an audience in the recording. Higher
-                liveness values represent an increased probability that the
-                track was performed live. A value above 0.8 provides strong
-                likelihood that the track is live.
-            min_loudness: Restricts results to tracks with attribute greater
-                than min. The overall loudness of a track in decibels (dB).
+            min_key: Optional; Restricts results to tracks with attribute
+                greater than min. The key the track is in. Integers map to
+                pitches using standard Pitch Class notation . E.g. 0 = C, 1 =
+                C♯/D♭, 2 = D, and so on.
+            max_key: Optional; Restricts results to tracks with attribute less
+                than max. The key the track is in. Integers map to pitches
+                using standard Pitch Class notation . E.g. 0 = C, 1 = C♯/D♭, 2
+                = D, and so on.
+            target_key: Optional; Tracks near target attribute will be
+                preferred. The key the track is in. Integers map to pitches
+                using standard Pitch Class notation . E.g. 0 = C, 1 = C♯/D♭, 2
+                = D, and so on.
+            min_liveness: Optional; Restricts results to tracks with attribute
+                greater than min. Detects the presence of an audience in the
+                recording. Higher liveness values represent an increased
+                probability that the track was performed live. A value above
+                0.8 provides strong likelihood that the track is live.
+            max_liveness: Optional; Restricts results to tracks with attribute
+                less than max. Detects the presence of an audience in the
+                recording. Higher liveness values represent an increased
+                probability that the track was performed live. A value above
+                0.8 provides strong likelihood that the track is live.
+            target_liveness: Optional; Tracks near target attribute will be
+                preferred. Detects the presence of an audience in the
+                recording. Higher liveness values represent an increased
+                probability that the track was performed live. A value above
+                0.8 provides strong likelihood that the track is live.
+            min_loudness: Optional; Restricts results to tracks with attribute
+                greater than min. The overall loudness of a track in decibels
+                (dB). Loudness values are averaged across the entire track and
+                are useful for comparing relative loudness of tracks. Loudness
+                is the quality of a sound that is the primary psychological
+                correlate of physical strength (amplitude). Values typical
+                range between -60 and 0 db.
+            max_loudness: Optional; Restricts results to tracks with attribute
+                less than max. The overall loudness of a track in decibels
+                (dB). Loudness values are averaged across the entire track and
+                are useful for comparing relative loudness of tracks. Loudness
+                is the quality of a sound that is the primary psychological
+                correlate of physical strength (amplitude). Values typical
+                range between -60 and 0 db.
+            target_loudness: Optional; Tracks near target attribute will be
+                preferred. The overall loudness of a track in decibels (dB).
                 Loudness values are averaged across the entire track and are
                 useful for comparing relative loudness of tracks. Loudness is
                 the quality of a sound that is the primary psychological
                 correlate of physical strength (amplitude). Values typical
                 range between -60 and 0 db.
-            max_loudness: Restricts results to tracks with attribute less than
-                max. The overall loudness of a track in decibels (dB). Loudness
-                values are averaged across the entire track and are useful for
-                comparing relative loudness of tracks. Loudness is the quality
-                of a sound that is the primary psychological correlate of
-                physical strength (amplitude). Values typical range between -60
-                and 0 db.
-            target_loudness: Tracks near target attribute will be preferred.
-                The overall loudness of a track in decibels (dB). Loudness
-                values are averaged across the entire track and are useful for
-                comparing relative loudness of tracks. Loudness is the quality
-                of a sound that is the primary psychological correlate of
-                physical strength (amplitude). Values typical range between -60
-                and 0 db.
-            min_mode: Restricts results to tracks with attribute greater than
-                min. Mode indicates the modality (major or minor) of a track,
-                the type of scale from which its melodic content is derived.
-                Major is represented by 1 and minor is 0.
-            max_mode: Restricts results to tracks with attribute less than max.
-                Mode indicates the modality (major or minor) of a track, the
-                type of scale from which its melodic content is derived. Major
-                is represented by 1 and minor is 0.
-            target_mode: Tracks near target attribute will be preferred. Mode
-                indicates the modality (major or minor) of a track, the type of
-                scale from which its melodic content is derived. Major is
-                represented by 1 and minor is 0.
-            min_popularity: Restricts results to tracks with attribute greater
-                than min. The popularity of the track. The value will be
+            min_mode: Optional; Restricts results to tracks with attribute
+                greater than min. Mode indicates the modality (major or minor)
+                of a track, the type of scale from which its melodic content is
+                derived. Major is represented by 1 and minor is 0.
+            max_mode: Optional; Restricts results to tracks with attribute less
+                than max. Mode indicates the modality (major or minor) of a
+                track, the type of scale from which its melodic content is
+                derived. Major is represented by 1 and minor is 0.
+            target_mode: Optional; Tracks near target attribute will be
+                preferred. Mode indicates the modality (major or minor) of a
+                track, the type of scale from which its melodic content is
+                derived. Major is represented by 1 and minor is 0.
+            min_popularity: Optional; Restricts results to tracks with
+                attribute greater than min. The popularity of the track. The
+                value will be between 0 and 100, with 100 being the most
+                popular. The popularity is calculated by algorithm and is
+                based, in the most part, on the total number of plays the track
+                has had and how recent those plays are.
+            max_popularity: Optional; Restricts results to tracks with
+                attribute less than max. The popularity of the track. The value
+                will be between 0 and 100, with 100 being the most popular. The
+                popularity is calculated by algorithm and is based, in the most
+                part, on the total number of plays the track has had and how
+                recent those plays are.
+            target_popularity: Optional; Tracks near target attribute will be
+                preferred. The popularity of the track. The value will be
                 between 0 and 100, with 100 being the most popular. The
                 popularity is calculated by algorithm and is based, in the most
                 part, on the total number of plays the track has had and how
                 recent those plays are.
-            max_popularity: Restricts results to tracks with attribute less
-                than max. The popularity of the track. The value will be
-                between 0 and 100, with 100 being the most popular. The
-                popularity is calculated by algorithm and is based, in the most
-                part, on the total number of plays the track has had and how
-                recent those plays are.
-            target_popularity: Tracks near target attribute will be preferred.
-                The popularity of the track. The value will be between 0 and
-                100, with 100 being the most popular. The popularity is
-                calculated by algorithm and is based, in the most part, on the
-                total number of plays the track has had and how recent those
-                plays are.
-            min_speechiness: Restricts results to tracks with attribute greater
-                than min. Speechiness detects the presence of spoken words in a
-                track. The more exclusively speech-like the recording (e.g.
+            min_speechiness: Optional; Restricts results to tracks with
+                attribute greater than min. Speechiness detects the presence of
+                spoken words in a track. The more exclusively speech-like the
+                recording (e.g. talk show, audio book, poetry), the closer to
+                1.0 the attribute value. Values above 0.66 describe tracks that
+                are probably made entirely of spoken words. Values between 0.33
+                and 0.66 describe tracks that may contain both music and
+                speech, either in sections or layered, including such cases as
+                rap music. Values below 0.33 most likely represent music and
+                other non-speech-like tracks.
+            max_speechiness: Optional; Restricts results to tracks with
+                attribute less than max. Speechiness detects the presence of
+                spoken words in a track. The more exclusively speech-like the
+                recording (e.g. talk show, audio book, poetry), the closer to
+                1.0 the attribute value. Values above 0.66 describe tracks that
+                are probably made entirely of spoken words. Values between 0.33
+                and 0.66 describe tracks that may contain both music and
+                speech, either in sections or layered, including such cases as
+                rap music. Values below 0.33 most likely represent music and
+                other non-speech-like tracks.
+            target_speechiness: Optional; Tracks near target attribute will be
+                preferred. Speechiness detects the presence of spoken words in
+                a track. The more exclusively speech-like the recording (e.g.
                 talk show, audio book, poetry), the closer to 1.0 the attribute
                 value. Values above 0.66 describe tracks that are probably made
                 entirely of spoken words. Values between 0.33 and 0.66 describe
@@ -743,69 +845,52 @@ class SpotifyAPI:
                 sections or layered, including such cases as rap music. Values
                 below 0.33 most likely represent music and other non-speech-
                 like tracks.
-            max_speechiness: Restricts results to tracks with attribute less
-                than max. Speechiness detects the presence of spoken words in a
-                track. The more exclusively speech-like the recording (e.g.
-                talk show, audio book, poetry), the closer to 1.0 the attribute
-                value. Values above 0.66 describe tracks that are probably made
-                entirely of spoken words. Values between 0.33 and 0.66 describe
-                tracks that may contain both music and speech, either in
-                sections or layered, including such cases as rap music. Values
-                below 0.33 most likely represent music and other non-speech-
-                like tracks.
-            target_speechiness: Tracks near target attribute will be preferred.
-                Speechiness detects the presence of spoken words in a track.
-                The more exclusively speech-like the recording (e.g. talk show,
-                audio book, poetry), the closer to 1.0 the attribute value.
-                Values above 0.66 describe tracks that are probably made
-                entirely of spoken words. Values between 0.33 and 0.66 describe
-                tracks that may contain both music and speech, either in
-                sections or layered, including such cases as rap music. Values
-                below 0.33 most likely represent music and other non-speech-
-                like tracks.
-            min_tempo: Restricts results to tracks with attribute greater than
-                min. The overall estimated tempo of a track in beats per minute
-                (BPM). In musical terminology, tempo is the speed or pace of a
-                given piece and derives directly from the average beat
-                duration.
-            max_tempo: Restricts results to tracks with attribute less than
-                max. The overall estimated tempo of a track in beats per minute
-                (BPM). In musical terminology, tempo is the speed or pace of a
-                given piece and derives directly from the average beat
-                duration.
-            target_tempo: Tracks near target attribute will be preferred. The
-                overall estimated tempo of a track in beats per minute (BPM).
-                In musical terminology, tempo is the speed or pace of a given
-                piece and derives directly from the average beat duration.
-            min_time_signature: Restricts results to tracks with attribute
-                greater than min. An estimated overall time signature of a
-                track. The time signature (meter) is a notational convention to
+            min_tempo: Optional; Restricts results to tracks with attribute
+                greater than min. The overall estimated tempo of a track in
+                beats per minute (BPM). In musical terminology, tempo is the
+                speed or pace of a given piece and derives directly from the
+                average beat duration.
+            max_tempo: Optional; Restricts results to tracks with attribute
+                less than max. The overall estimated tempo of a track in beats
+                per minute (BPM). In musical terminology, tempo is the speed or
+                pace of a given piece and derives directly from the average
+                beat duration.
+            target_tempo: Optional; Tracks near target attribute will be
+                preferred. The overall estimated tempo of a track in beats per
+                minute (BPM). In musical terminology, tempo is the speed or
+                pace of a given piece and derives directly from the average
+                beat duration.
+            min_time_signature: Optional; Restricts results to tracks with
+                attribute greater than min. An estimated overall time signature
+                of a track. The time signature (meter) is a notational
+                convention to specify how many beats are in each bar (or
+                measure).
+            max_time_signature: Optional; Restricts results to tracks with
+                attribute less than max. An estimated overall time signature of
+                a track. The time signature (meter) is a notational convention
+                to specify how many beats are in each bar (or measure).
+            target_time_signature: Optional; Tracks near target attribute will
+                be preferred. An estimated overall time signature of a track.
+                The time signature (meter) is a notational convention to
                 specify how many beats are in each bar (or measure).
-            max_time_signature: Restricts results to tracks with attribute less
-                than max. An estimated overall time signature of a track. The
-                time signature (meter) is a notational convention to specify
-                how many beats are in each bar (or measure).
-            target_time_signature: Tracks near target attribute will be
-                preferred. An estimated overall time signature of a track. The
-                time signature (meter) is a notational convention to specify
-                how many beats are in each bar (or measure).
-            min_valence: Restricts results to tracks with attribute greater
-                than min. A measure from 0.0 to 1.0 describing the musical
+            min_valence: Optional; Restricts results to tracks with attribute
+                greater than min. A measure from 0.0 to 1.0 describing the
+                musical positiveness conveyed by a track. Tracks with high
+                valence sound more positive (e.g. happy, cheerful, euphoric),
+                while tracks with low valence sound more negative (e.g. sad,
+                depressed, angry).
+            max_valence: Optional; Restricts results to tracks with attribute
+                less than max. A measure from 0.0 to 1.0 describing the musical
                 positiveness conveyed by a track. Tracks with high valence
                 sound more positive (e.g. happy, cheerful, euphoric), while
                 tracks with low valence sound more negative (e.g. sad,
                 depressed, angry).
-            max_valence: Restricts results to tracks with attribute less than
-                max. A measure from 0.0 to 1.0 describing the musical
+            target_valence: Optional; Tracks near target attribute will be
+                preferred. A measure from 0.0 to 1.0 describing the musical
                 positiveness conveyed by a track. Tracks with high valence
                 sound more positive (e.g. happy, cheerful, euphoric), while
                 tracks with low valence sound more negative (e.g. sad,
                 depressed, angry).
-            target_valence: Tracks near target attribute will be preferred. A
-                measure from 0.0 to 1.0 describing the musical positiveness
-                conveyed by a track. Tracks with high valence sound more
-                positive (e.g. happy, cheerful, euphoric), while tracks with
-                low valence sound more negative (e.g. sad, depressed, angry).
         """
 
         url = f'https://api.spotify.com/v1/recommendations'
@@ -862,7 +947,7 @@ class SpotifyAPI:
         response, error = self._get(url, query_params, json_body)
         if error:
             return ErrorObject(response)
-        return RecommendationsObject(response.text)
+        return RecommendationsObject(response)
 
     def get_recommendation_genres(
             self) -> Union[RecommendationsObject, ErrorObject]:
@@ -878,7 +963,7 @@ class SpotifyAPI:
         response, error = self._get(url, query_params, json_body)
         if error:
             return ErrorObject(response)
-        return RecommendationsObject(response.text)
+        return RecommendationsObject(response)
 
     def get_multiple_episodes(
         self,
@@ -890,9 +975,9 @@ class SpotifyAPI:
         Spotify IDs.
 
         Args:
-            ids: Optional; A list of strings of the Spotify IDs for the
-                episodes. Maximum: 50 IDs.
-            market: An ISO 3166-1 alpha-2 country code or the string
+            ids: A list of strings of the Spotify IDs for the episodes.
+                Maximum: 50 IDs.
+            market: Optional; An ISO 3166-1 alpha-2 country code or the string
                 'from_token'.
         """
 
@@ -902,7 +987,7 @@ class SpotifyAPI:
         response, error = self._get(url, query_params, json_body)
         if error:
             return ErrorObject(response)
-        return self._convert_array_to_list(response.text, EpisodeObject)
+        return self._convert_array_to_list(response, EpisodeObject)
 
     def get_an_episode(
             self,
@@ -913,8 +998,8 @@ class SpotifyAPI:
         unique Spotify ID.
 
         Args:
-            id_: Optional; The Spotify ID of the episode.
-            market: An ISO 3166-1 alpha-2 country code or the string
+            id_: The Spotify ID of the episode.
+            market: Optional; An ISO 3166-1 alpha-2 country code or the string
                 'from_token'.
         """
 
@@ -924,7 +1009,7 @@ class SpotifyAPI:
         response, error = self._get(url, query_params, json_body)
         if error:
             return ErrorObject(response)
-        return EpisodeObject(response.text)
+        return EpisodeObject(response)
 
     @requires('user-follow-modify', 'playlist-modify-private')
     def follow_a_playlist(self, playlist_id: str,
@@ -933,12 +1018,11 @@ class SpotifyAPI:
         Add the current user as a follower of a playlist.
 
         Args:
-            playlist_id: Optional; The Spotify ID of the playlist. Any playlist
-                can be followed, regardless of its public/private status, as
-                long as you know its playlist ID.
-            public: Optional; If True the playlist will be included in user’s
-                public playlists, if False it will remain private. Defaults to
-                True.
+            playlist_id: The Spotify ID of the playlist. Any playlist can be
+                followed, regardless of its public/private status, as long as
+                you know its playlist ID.
+            public: If True the playlist will be included in user’s public
+                playlists, if False it will remain private. Defaults to True.
         """
 
         url = f'https://api.spotify.com/v1/playlists/{playlist_id}/followers'
@@ -947,7 +1031,7 @@ class SpotifyAPI:
         response, error = self._put(url, query_params, json_body)
         if error:
             return ErrorObject(response)
-        return ErrorObject(response.text)
+        return ErrorObject(response)
 
     @requires('playlist-modify-public', 'playlist-modify-private')
     def unfollow_playlist(self, playlist_id: str) -> Optional[ErrorObject]:
@@ -955,8 +1039,7 @@ class SpotifyAPI:
         Remove the current user as a follower of a playlist.
 
         Args:
-            playlist_id: Optional; The Spotify ID of the playlist to be
-                unfollowed.
+            playlist_id: The Spotify ID of the playlist to be unfollowed.
         """
 
         url = f'https://api.spotify.com/v1/playlists/{playlist_id}/followers'
@@ -965,7 +1048,7 @@ class SpotifyAPI:
         response, error = self._delete(url, query_params, json_body)
         if error:
             return ErrorObject(response)
-        return ErrorObject(response.text)
+        return ErrorObject(response)
 
     @requires('playlist-read-private')
     def check_if_users_follow_a_playlist(
@@ -976,10 +1059,10 @@ class SpotifyAPI:
         playlist.
 
         Args:
-            playlist_id: Optional; The Spotify ID of the playlist.
-            ids: Optional; A list of strings of Spotify User IDs; the ids of
-                the users you want to check to see if they follow the playlist.
-                Maximum: 5 ids.
+            playlist_id: The Spotify ID of the playlist.
+            ids: A list of strings of Spotify User IDs; the ids of the users
+                you want to check to see if they follow the playlist. Maximum:
+                5 ids.
         """
 
         url = f'https://api.spotify.com/v1/playlists/' \
@@ -989,7 +1072,7 @@ class SpotifyAPI:
         response, error = self._get(url, query_params, json_body)
         if error:
             return ErrorObject(response)
-        return self._convert_array_to_list(response.text, bool)
+        return self._convert_array_to_list(response, bool)
 
     @requires('user-follow-modify')
     def get_users_followed_artists(
@@ -1002,10 +1085,11 @@ class SpotifyAPI:
         Get the current user’s followed artists.
 
         Args:
-            type_: Optional; The ID type: currently only 'artist' is supported.
-            after: The last artist ID retrieved from the previous request.
-            limit: The maximum number of artists to return.  Default: 20.
-                Minimum: 1. Maximum: 50.
+            type_: The ID type: currently only 'artist' is supported.
+            after: Optional; The last artist ID retrieved from the previous
+                request.
+            limit: Optional; The maximum number of artists to return.  Default:
+                20. Minimum: 1. Maximum: 50.
         """
 
         url = f'https://api.spotify.com/v1/me/following'
@@ -1014,7 +1098,7 @@ class SpotifyAPI:
         response, error = self._get(url, query_params, json_body)
         if error:
             return ErrorObject(response)
-        return PagingObject(response.text, ArtistObject)
+        return PagingObject(response, ArtistObject)
 
     @requires('user-follow-modify')
     def follow_artists_or_users(self, type_: str,
@@ -1024,10 +1108,9 @@ class SpotifyAPI:
         Spotify users.
 
         Args:
-            type_: Optional; The ID type: 'artist' or 'user'.
-            ids: Optional; A list of strings of Spotify IDs of the artists or
-                users to be followed. A maximum of 50 IDs can be sent in one
-                request.
+            type_: The ID type: 'artist' or 'user'.
+            ids: A list of strings of Spotify IDs of the artists or users to be
+                followed. A maximum of 50 IDs can be sent in one request.
         """
 
         url = f'https://api.spotify.com/v1/me/following'
@@ -1036,7 +1119,7 @@ class SpotifyAPI:
         response, error = self._put(url, query_params, json_body)
         if error:
             return ErrorObject(response)
-        return ErrorObject(response.text)
+        return ErrorObject(response)
 
     @requires('user-follow-modify')
     def unfollow_artists_or_users(self, type_: str,
@@ -1046,10 +1129,9 @@ class SpotifyAPI:
         Spotify users.
 
         Args:
-            type_: Optional; The ID type: 'artist' or 'user'.
-            ids: Optional; A list of strings of Spotify IDs of the artists or
-                users to be unfollowed. A maximum of 50 IDs can be sent in one
-                request.
+            type_: The ID type: 'artist' or 'user'.
+            ids: A list of strings of Spotify IDs of the artists or users to be
+                unfollowed. A maximum of 50 IDs can be sent in one request.
         """
 
         url = f'https://api.spotify.com/v1/me/following'
@@ -1058,7 +1140,7 @@ class SpotifyAPI:
         response, error = self._delete(url, query_params, json_body)
         if error:
             return ErrorObject(response)
-        return ErrorObject(response.text)
+        return ErrorObject(response)
 
     @requires('user-follow-read')
     def get_following_state_for_artists_or_users(
@@ -1069,10 +1151,9 @@ class SpotifyAPI:
         other Spotify users..
 
         Args:
-            type_: Optional; The ID type: 'artist' or 'user'.
-            ids: Optional; A list of strings of Spotify IDs of the artists or
-                users to be checked. A maximum of 50 IDs can be sent in one
-                request.
+            type_: The ID type: 'artist' or 'user'.
+            ids: A list of strings of Spotify IDs of the artists or users to be
+                checked. A maximum of 50 IDs can be sent in one request.
         """
 
         url = f'https://api.spotify.com/v1/me/following/contains'
@@ -1081,7 +1162,7 @@ class SpotifyAPI:
         response, error = self._get(url, query_params, json_body)
         if error:
             return ErrorObject(response)
-        return self._convert_array_to_list(response.text, bool)
+        return self._convert_array_to_list(response, bool)
 
     @requires('user-library-read')
     def get_users_saved_albums(
@@ -1095,10 +1176,11 @@ class SpotifyAPI:
         Music’ library.
 
         Args:
-            limit: The maximum number of albums to return.  Default: 20.
-                Minimum: 1. Maximum: 50.
-            offset: The index of the first album to return. Default: 0.
-            market: An ISO 3166-1 alpha-2 country code or the string
+            limit: Optional; The maximum number of albums to return.  Default:
+                20. Minimum: 1. Maximum: 50.
+            offset: Optional; The index of the first album to return. Default:
+                0.
+            market: Optional; An ISO 3166-1 alpha-2 country code or the string
                 'from_token'.
         """
 
@@ -1108,7 +1190,7 @@ class SpotifyAPI:
         response, error = self._get(url, query_params, json_body)
         if error:
             return ErrorObject(response)
-        return PagingObject(response.text, SavedAlbumObject)
+        return PagingObject(response, SavedAlbumObject)
 
     @requires('user-library-modify')
     def save_albums_for_current_user(self,
@@ -1117,8 +1199,8 @@ class SpotifyAPI:
         Save one or more albums to the current user’s ‘Your Music’ library.
 
         Args:
-            ids: Optional; A list of strings of Spotify IDs of the albums to be
-                saved. A maximum of 50 IDs can be sent in one request.
+            ids: A list of strings of Spotify IDs of the albums to be saved. A
+                maximum of 50 IDs can be sent in one request.
         """
 
         url = f'https://api.spotify.com/v1/me/albums'
@@ -1127,7 +1209,7 @@ class SpotifyAPI:
         response, error = self._put(url, query_params, json_body)
         if error:
             return ErrorObject(response)
-        return ErrorObject(response.text)
+        return ErrorObject(response)
 
     @requires('user-library-modify')
     def remove_albums_for_current_user(
@@ -1136,8 +1218,8 @@ class SpotifyAPI:
         Remove one or more albums from the current user’s ‘Your Music’ library.
 
         Args:
-            ids: Optional; A list of strings of Spotify IDs of the albums to be
-                removed. A maximum of 50 IDs can be sent in one request.
+            ids: A list of strings of Spotify IDs of the albums to be removed.
+                A maximum of 50 IDs can be sent in one request.
         """
 
         url = f'https://api.spotify.com/v1/me/albums'
@@ -1146,7 +1228,7 @@ class SpotifyAPI:
         response, error = self._delete(url, query_params, json_body)
         if error:
             return ErrorObject(response)
-        return ErrorObject(response.text)
+        return ErrorObject(response)
 
     @requires('user-library-read')
     def check_users_saved_albums(
@@ -1156,8 +1238,8 @@ class SpotifyAPI:
         user’s ‘Your Music’ library.
 
         Args:
-            ids: Optional; A list of strings of Spotify IDs of the albums to be
-                checked. A maximum of 50 IDs can be sent in one request.
+            ids: A list of strings of Spotify IDs of the albums to be checked.
+                A maximum of 50 IDs can be sent in one request.
         """
 
         url = f'https://api.spotify.com/v1/me/albums/contains'
@@ -1166,7 +1248,7 @@ class SpotifyAPI:
         response, error = self._get(url, query_params, json_body)
         if error:
             return ErrorObject(response)
-        return self._convert_array_to_list(response.text, bool)
+        return self._convert_array_to_list(response, bool)
 
     @requires('user-library-read')
     def get_users_saved_tracks(
@@ -1180,11 +1262,12 @@ class SpotifyAPI:
         Music’ library.
 
         Args:
-            market: An ISO 3166-1 alpha-2 country code or the string
+            market: Optional; An ISO 3166-1 alpha-2 country code or the string
                 'from_token'.
-            limit: The maximum number of tracks to return.  Default: 20.
-                Minimum: 1. Maximum: 50.
-            offset: The index of the first track to return. Default: 0.
+            limit: Optional; The maximum number of tracks to return.  Default:
+                20. Minimum: 1. Maximum: 50.
+            offset: Optional; The index of the first track to return. Default:
+                0.
         """
 
         url = f'https://api.spotify.com/v1/me/tracks'
@@ -1193,7 +1276,7 @@ class SpotifyAPI:
         response, error = self._get(url, query_params, json_body)
         if error:
             return ErrorObject(response)
-        return PagingObject(response.text, SavedTrackObject)
+        return PagingObject(response, SavedTrackObject)
 
     @requires('user-library-modify')
     def save_tracks_for_users(self, ids: List[str]) -> Optional[ErrorObject]:
@@ -1201,8 +1284,8 @@ class SpotifyAPI:
         Save one or more tracks to the current user’s ‘Your Music’ library.
 
         Args:
-            ids: Optional; A list of strings of Spotify IDs of the tracks to be
-                saved. A maximum of 50 IDs can be sent in one request.
+            ids: A list of strings of Spotify IDs of the tracks to be saved. A
+                maximum of 50 IDs can be sent in one request.
         """
 
         url = f'https://api.spotify.com/v1/me/tracks'
@@ -1211,7 +1294,7 @@ class SpotifyAPI:
         response, error = self._put(url, query_params, json_body)
         if error:
             return ErrorObject(response)
-        return ErrorObject(response.text)
+        return ErrorObject(response)
 
     @requires('user-library-modify')
     def remove_users_saved_tracks(self,
@@ -1220,8 +1303,8 @@ class SpotifyAPI:
         Remove one or more tracks from the current user’s ‘Your Music’ library.
 
         Args:
-            ids: Optional; A list of strings of Spotify IDs of the tracks to be
-                removed. A maximum of 50 IDs can be sent in one request.
+            ids: A list of strings of Spotify IDs of the tracks to be removed.
+                A maximum of 50 IDs can be sent in one request.
         """
 
         url = f'https://api.spotify.com/v1/me/tracks'
@@ -1230,7 +1313,7 @@ class SpotifyAPI:
         response, error = self._delete(url, query_params, json_body)
         if error:
             return ErrorObject(response)
-        return ErrorObject(response.text)
+        return ErrorObject(response)
 
     @requires('user-library-read')
     def check_users_saved_tracks(
@@ -1240,8 +1323,8 @@ class SpotifyAPI:
         user’s ‘Your Music’ library.
 
         Args:
-            ids: Optional; A list of strings of Spotify IDs of the tracks to be
-                checked. A maximum of 50 IDs can be sent in one request.
+            ids: A list of strings of Spotify IDs of the tracks to be checked.
+                A maximum of 50 IDs can be sent in one request.
         """
 
         url = f'https://api.spotify.com/v1/me/tracks/contains'
@@ -1250,7 +1333,7 @@ class SpotifyAPI:
         response, error = self._get(url, query_params, json_body)
         if error:
             return ErrorObject(response)
-        return self._convert_array_to_list(response.text, bool)
+        return self._convert_array_to_list(response, bool)
 
     @requires('user-library-read')
     def get_users_saved_episodes(
@@ -1264,11 +1347,12 @@ class SpotifyAPI:
         (This API endpoint is in beta and could change without warning)
 
         Args:
-            market: An ISO 3166-1 alpha-2 country code or the string
+            market: Optional; An ISO 3166-1 alpha-2 country code or the string
                 'from_token'.
-            limit: The maximum number of episodes to return.  Default: 20.
-                Minimum: 1. Maximum: 50.
-            offset: The index of the first episode to return. Default: 0.
+            limit: Optional; The maximum number of episodes to return.
+                Default: 20. Minimum: 1. Maximum: 50.
+            offset: Optional; The index of the first episode to return.
+                Default: 0.
         """
 
         url = f'https://api.spotify.com/v1/me/episodes'
@@ -1277,7 +1361,7 @@ class SpotifyAPI:
         response, error = self._get(url, query_params, json_body)
         if error:
             return ErrorObject(response)
-        return PagingObject(response.text, SavedEpisodeObject)
+        return PagingObject(response, SavedEpisodeObject)
 
     @requires('user-library-modify')
     def save_tracks_for_users(self, ids: List[str]) -> Optional[ErrorObject]:
@@ -1286,8 +1370,8 @@ class SpotifyAPI:
         endpoint is in beta and could change without warning)
 
         Args:
-            ids: Optional; A list of strings of Spotify IDs of the episodes to
-                be saved. A maximum of 50 IDs can be sent in one request.
+            ids: A list of strings of Spotify IDs of the episodes to be saved.
+                A maximum of 50 IDs can be sent in one request.
         """
 
         url = f'https://api.spotify.com/v1/me/episodes'
@@ -1296,7 +1380,7 @@ class SpotifyAPI:
         response, error = self._put(url, query_params, json_body)
         if error:
             return ErrorObject(response)
-        return ErrorObject(response.text)
+        return ErrorObject(response)
 
     @requires('user-library-modify')
     def remove_users_saved_tracks(self,
@@ -1306,8 +1390,8 @@ class SpotifyAPI:
         endpoint is in beta and could change without warning)
 
         Args:
-            ids: Optional; A list of strings of Spotify IDs of the episodes to
-                be removed. A maximum of 50 IDs can be sent in one request.
+            ids: A list of strings of Spotify IDs of the episodes to be
+                removed. A maximum of 50 IDs can be sent in one request.
         """
 
         url = f'https://api.spotify.com/v1/me/episodes'
@@ -1316,7 +1400,7 @@ class SpotifyAPI:
         response, error = self._delete(url, query_params, json_body)
         if error:
             return ErrorObject(response)
-        return ErrorObject(response.text)
+        return ErrorObject(response)
 
     @requires('user-library-read')
     def check_users_saved_episodes(
@@ -1327,8 +1411,8 @@ class SpotifyAPI:
         change without warning)
 
         Args:
-            ids: Optional; A list of strings of Spotify IDs of the episodes to
-                be checked. A maximum of 50 IDs can be sent in one request.
+            ids: A list of strings of Spotify IDs of the episodes to be
+                checked. A maximum of 50 IDs can be sent in one request.
         """
 
         url = f'https://api.spotify.com/v1/me/episodes/contains'
@@ -1337,7 +1421,7 @@ class SpotifyAPI:
         response, error = self._get(url, query_params, json_body)
         if error:
             return ErrorObject(response)
-        return self._convert_array_to_list(response.text, bool)
+        return self._convert_array_to_list(response, bool)
 
     @requires('user-library-read')
     def get_users_saved_shows(
@@ -1350,11 +1434,12 @@ class SpotifyAPI:
         Get a list of shows saved in the current Spotify user’s library.
 
         Args:
-            market: An ISO 3166-1 alpha-2 country code or the string
+            market: Optional; An ISO 3166-1 alpha-2 country code or the string
                 'from_token'.
-            limit: The maximum number of shows to return.  Default: 20.
-                Minimum: 1. Maximum: 50.
-            offset: The index of the first show to return. Default: 0.
+            limit: Optional; The maximum number of shows to return.  Default:
+                20. Minimum: 1. Maximum: 50.
+            offset: Optional; The index of the first show to return. Default:
+                0.
         """
 
         url = f'https://api.spotify.com/v1/me/shows'
@@ -1363,7 +1448,7 @@ class SpotifyAPI:
         response, error = self._get(url, query_params, json_body)
         if error:
             return ErrorObject(response)
-        return PagingObject(response.text, SavedShowObject)
+        return PagingObject(response, SavedShowObject)
 
     @requires('user-library-modify')
     def save_tracks_for_shows(self, ids: List[str]) -> Optional[ErrorObject]:
@@ -1371,8 +1456,8 @@ class SpotifyAPI:
         Save one or more shows to current Spotify user’s library.
 
         Args:
-            ids: Optional; A list of strings of Spotify IDs of the shows to be
-                saved. A maximum of 50 IDs can be sent in one request.
+            ids: A list of strings of Spotify IDs of the shows to be saved. A
+                maximum of 50 IDs can be sent in one request.
         """
 
         url = f'https://api.spotify.com/v1/me/shows'
@@ -1381,7 +1466,7 @@ class SpotifyAPI:
         response, error = self._put(url, query_params, json_body)
         if error:
             return ErrorObject(response)
-        return ErrorObject(response.text)
+        return ErrorObject(response)
 
     @requires('user-library-modify')
     def remove_users_saved_shows(self,
@@ -1391,9 +1476,9 @@ class SpotifyAPI:
         Delete one or more shows from current Spotify user’s library.
 
         Args:
-            ids: Optional; A list of strings of Spotify IDs of the shows to be
-                removed. A maximum of 50 IDs can be sent in one request.
-            market: An ISO 3166-1 alpha-2 country code or the string
+            ids: A list of strings of Spotify IDs of the shows to be removed. A
+                maximum of 50 IDs can be sent in one request.
+            market: Optional; An ISO 3166-1 alpha-2 country code or the string
                 'from_token'.
         """
 
@@ -1403,7 +1488,7 @@ class SpotifyAPI:
         response, error = self._delete(url, query_params, json_body)
         if error:
             return ErrorObject(response)
-        return ErrorObject(response.text)
+        return ErrorObject(response)
 
     @requires('user-library-read')
     def check_users_saved_shows(
@@ -1413,8 +1498,8 @@ class SpotifyAPI:
         user’s library.
 
         Args:
-            ids: Optional; A list of strings of Spotify IDs of the shows to be
-                checked. A maximum of 50 IDs can be sent in one request.
+            ids: A list of strings of Spotify IDs of the shows to be checked. A
+                maximum of 50 IDs can be sent in one request.
         """
 
         url = f'https://api.spotify.com/v1/me/shows/contains'
@@ -1423,7 +1508,7 @@ class SpotifyAPI:
         response, error = self._get(url, query_params, json_body)
         if error:
             return ErrorObject(response)
-        return self._convert_array_to_list(response.text, bool)
+        return self._convert_array_to_list(response, bool)
 
     def get_available_markets(self) -> Union[List[str], ErrorObject]:
         """
@@ -1438,7 +1523,7 @@ class SpotifyAPI:
         response, error = self._get(url, query_params, json_body)
         if error:
             return ErrorObject(response)
-        return self._convert_array_to_list(response.text, str)
+        return self._convert_array_to_list(response, str)
 
     @requires('user-top-read')
     def get_a_users_top_artists_and_tracks(
@@ -1453,16 +1538,18 @@ class SpotifyAPI:
         affinity.
 
         Args:
-            type_: Optional; The type of entity to return. Valid values:
-                'artists' or 'tracks'.
-            time_range: Over what time frame the affinities are computed. Valid
-                values: 'long_term' (calculated from several years of data and
-                including all new data as it becomes available), 'medium_term'
-                (approximately last 6 months), 'short_term' (approximately last
-                4 weeks). Default: 'medium_term'.
-            limit: The maximum number of entities to return.  Default: 20.
-                Minimum: 1. Maximum: 50.
-            offset: The index of the first entity to return. Default: 0.
+            type_: The type of entity to return. Valid values: 'artists' or
+                'tracks'.
+            time_range: Optional; Over what time frame the affinities are
+                computed. Valid values: 'long_term' (calculated from several
+                years of data and including all new data as it becomes
+                available), 'medium_term' (approximately last 6 months),
+                'short_term' (approximately last 4 weeks). Default:
+                'medium_term'.
+            limit: Optional; The maximum number of entities to return.
+                Default: 20. Minimum: 1. Maximum: 50.
+            offset: Optional; The index of the first entity to return. Default:
+                0.
         """
 
         url = f'https://api.spotify.com/v1/me/top/{type_}'
@@ -1475,7 +1562,7 @@ class SpotifyAPI:
         response, error = self._get(url, query_params, json_body)
         if error:
             return ErrorObject(response)
-        return PagingObject(response.text, ArtistObject)
+        return PagingObject(response, ArtistObject)
 
     def get_information_about_the_users_current_playback(
             self, market: str = None) -> Union[dict, ErrorObject]:
@@ -1484,7 +1571,7 @@ class SpotifyAPI:
         track or episode, progress, and active device.
 
         Args:
-            market: An ISO 3166-1 alpha-2 country code or the string
+            market: Optional; An ISO 3166-1 alpha-2 country code or the string
                 'from_token'.
         """
 
@@ -1494,7 +1581,7 @@ class SpotifyAPI:
         response, error = self._get(url, query_params, json_body)
         if error:
             return ErrorObject(response)
-        return dict(response.text)
+        return dict(response)
 
     @requires('user-modify-playback-state')
     def transfer_a_users_playback(self,
@@ -1505,11 +1592,10 @@ class SpotifyAPI:
         playing.
 
         Args:
-            device_id: Optional; ID of the device on which playback should be
-                transferred
-            play: If True, playback will be ensured on the new device.
-                Otherwise it will keep the current playback state. Default:
-                False.
+            device_id: ID of the device on which playback should be transferred
+            play: Optional; If True, playback will be ensured on the new
+                device. Otherwise it will keep the current playback state.
+                Default: False.
         """
 
         url = f'https://api.spotify.com/v1/me/player'
@@ -1518,7 +1604,7 @@ class SpotifyAPI:
         response, error = self._get(url, query_params, json_body)
         if error:
             return ErrorObject(response)
-        return ErrorObject(response.text)
+        return ErrorObject(response)
 
     @requires('user-read-playback-state')
     def get_a_users_available_devices(
@@ -1534,7 +1620,7 @@ class SpotifyAPI:
         response, error = self._get(url, query_params, json_body)
         if error:
             return ErrorObject(response)
-        return self._convert_array_to_list(response.text, dict)
+        return self._convert_array_to_list(response, dict)
 
     @requires('user-read-currently-playing', 'user-read-playback-state')
     def get_the_users_currently_playing_track(
@@ -1543,7 +1629,7 @@ class SpotifyAPI:
         Get the object currently being played on the user’s Spotify account.
 
         Args:
-            market: Optional; An ISO 3166-1 alpha-2 country code or the string
+            market: An ISO 3166-1 alpha-2 country code or the string
                 'from_token'.
         """
 
@@ -1553,7 +1639,7 @@ class SpotifyAPI:
         response, error = self._get(url, query_params, json_body)
         if error:
             return ErrorObject(response)
-        return dict(response.text)
+        return dict(response)
 
     @requires('user-modify-playback-state')
     def start_or_resume_a_users_playback(
@@ -1578,18 +1664,19 @@ class SpotifyAPI:
         issued command was handled correctly by the player.
 
         Args:
-            device_id: The id of the device this command is targeting. If not
-                supplied, the user’s currently active device is the target.
-            context_uri: The uri of the context to be played. This can be any
-                list type such as an album, playlist, show, etc.
-            uris: A list of uris to be used as the context. These must be
-                individual types like tracks or episodes.
-            offset: The index of position to play within the context. For
-                example if the context_uri were an album, an offset of 3 would
-                begin play at the 4th track on the album. The index begins at
-                0. Default: 0.
-            position_ms: The playback position in milliseconds to start/resume
-                playback at. Default: 0.
+            device_id: Optional; The id of the device this command is
+                targeting. If not supplied, the user’s currently active device
+                is the target.
+            context_uri: Optional; The uri of the context to be played. This
+                can be any list type such as an album, playlist, show, etc.
+            uris: Optional; A list of uris to be used as the context. These
+                must be individual types like tracks or episodes.
+            offset: Optional; The index of position to play within the context.
+                For example if the context_uri were an album, an offset of 3
+                would begin play at the 4th track on the album. The index
+                begins at 0. Default: 0.
+            position_ms: Optional; The playback position in milliseconds to
+                start/resume playback at. Default: 0.
         """
 
         url = f'https://api.spotify.com/v1/me/player/play'
@@ -1603,7 +1690,7 @@ class SpotifyAPI:
         response, error = self._put(url, query_params, json_body)
         if error:
             return ErrorObject(response)
-        return ErrorObject(response.text)
+        return ErrorObject(response)
 
     @requires('user-modify-playback-state')
     def pause_a_users_playback(self,
@@ -1615,8 +1702,9 @@ class SpotifyAPI:
         your issued command was handled correctly by the player.
 
         Args:
-            device_id: The id of the device this command is targeting. If not
-                supplied, the user’s currently active device is the target.
+            device_id: Optional; The id of the device this command is
+                targeting. If not supplied, the user’s currently active device
+                is the target.
         """
 
         url = f'https://api.spotify.com/v1/me/player/pause'
@@ -1625,7 +1713,7 @@ class SpotifyAPI:
         response, error = self._put(url, query_params, json_body)
         if error:
             return ErrorObject(response)
-        return ErrorObject(response.text)
+        return ErrorObject(response)
 
     @requires('user-modify-playback-state')
     def skip_users_playback_to_next_track(self,
@@ -1638,8 +1726,9 @@ class SpotifyAPI:
         your issued command was handled correctly by the player.
 
         Args:
-            device_id: The id of the device this command is targeting. If not
-                supplied, the user’s currently active device is the target.
+            device_id: Optional; The id of the device this command is
+                targeting. If not supplied, the user’s currently active device
+                is the target.
         """
 
         url = f'https://api.spotify.com/v1/me/player/next'
@@ -1648,7 +1737,7 @@ class SpotifyAPI:
         response, error = self._post(url, query_params, json_body)
         if error:
             return ErrorObject(response)
-        return ErrorObject(response.text)
+        return ErrorObject(response)
 
     @requires('user-modify-playback-state')
     def seek_to_position_in_currently_playing_track(
@@ -1663,12 +1752,13 @@ class SpotifyAPI:
         issued command was handled correctly by the player.
 
         Args:
-            position_ms: Optional; The position in milliseconds to seek to.
-                Must be a positive number. Passing in a position that is
-                greater than the length of the track will cause the player to
-                start playing the next song.
-            device_id: The id of the device this command is targeting. If not
-                supplied, the user’s currently active device is the target.
+            position_ms: The position in milliseconds to seek to. Must be a
+                positive number. Passing in a position that is greater than the
+                length of the track will cause the player to start playing the
+                next song.
+            device_id: Optional; The id of the device this command is
+                targeting. If not supplied, the user’s currently active device
+                is the target.
         """
 
         url = f'https://api.spotify.com/v1/me/player/seek'
@@ -1677,7 +1767,7 @@ class SpotifyAPI:
         response, error = self._put(url, query_params, json_body)
         if error:
             return ErrorObject(response)
-        return ErrorObject(response.text)
+        return ErrorObject(response)
 
     @requires('user-modify-playback-state')
     def set_repeat_mode_on_users_playback(self,
@@ -1692,12 +1782,13 @@ class SpotifyAPI:
         issued command was handled correctly by the player.
 
         Args:
-            state: Optional; The state to set the repeat mode to. Valid values
-                are 'track', 'context' and 'off'. 'track' will repeat the
-                current track. 'context' will repeat the current context. 'off'
-                will turn repeat off.
-            device_id: The id of the device this command is targeting. If not
-                supplied, the user’s currently active device is the target.
+            state: The state to set the repeat mode to. Valid values are
+                'track', 'context' and 'off'. 'track' will repeat the current
+                track. 'context' will repeat the current context. 'off' will
+                turn repeat off.
+            device_id: Optional; The id of the device this command is
+                targeting. If not supplied, the user’s currently active device
+                is the target.
         """
 
         url = f'https://api.spotify.com/v1/me/player/repeat'
@@ -1706,7 +1797,7 @@ class SpotifyAPI:
         response, error = self._put(url, query_params, json_body)
         if error:
             return ErrorObject(response)
-        return ErrorObject(response.text)
+        return ErrorObject(response)
 
     @requires('user-modify-playback-state')
     def set_volume_for_users_playback(
@@ -1720,10 +1811,11 @@ class SpotifyAPI:
         check that your issued command was handled correctly by the player.
 
         Args:
-            volume_percent: Optional; The volume to set. Must be a value from 0
-                to 100 inclusive.
-            device_id: The id of the device this command is targeting. If not
-                supplied, the user’s currently active device is the target.
+            volume_percent: The volume to set. Must be a value from 0 to 100
+                inclusive.
+            device_id: Optional; The id of the device this command is
+                targeting. If not supplied, the user’s currently active device
+                is the target.
         """
 
         url = f'https://api.spotify.com/v1/me/player/volume'
@@ -1735,7 +1827,7 @@ class SpotifyAPI:
         response, error = self._put(url, query_params, json_body)
         if error:
             return ErrorObject(response)
-        return ErrorObject(response.text)
+        return ErrorObject(response)
 
     @requires('user-modify-playback-state')
     def toggle_shuffle_for_users_playback(self,
@@ -1749,11 +1841,11 @@ class SpotifyAPI:
         your issued command was handled correctly by the player.
 
         Args:
-            state: Optional; The state to set the shuffle mode to. If True,
-                shuffle will be turned on. If False, shuffle will be turned
-                off.
-            device_id: The id of the device this command is targeting. If not
-                supplied, the user’s currently active device is the target.
+            state: The state to set the shuffle mode to. If True, shuffle will
+                be turned on. If False, shuffle will be turned off.
+            device_id: Optional; The id of the device this command is
+                targeting. If not supplied, the user’s currently active device
+                is the target.
         """
 
         url = f'https://api.spotify.com/v1/me/player/shuffle'
@@ -1762,7 +1854,7 @@ class SpotifyAPI:
         response, error = self._put(url, query_params, json_body)
         if error:
             return ErrorObject(response)
-        return ErrorObject(response.text)
+        return ErrorObject(response)
 
     @requires('user-modify-playback-state')
     def get_current_users_recently_played_tracks(
@@ -1776,14 +1868,14 @@ class SpotifyAPI:
         Currently does not support podcast episodes.
 
         Args:
-            limit: The maximum number of items to return.  Default: 20.
-                Minimum: 1. Maximum: 50.
-            after: A Unix timestamp in milliseconds. Returns all items after
-                (but not including) this cursor position. If after is
-                specified, before must not be specified.
-            before: A Unix timestamp in milliseconds. Returns all items before
-                (but not including) this cursor position. If before is
-                specified, after must not be specified.
+            limit: Optional; The maximum number of items to return.  Default:
+                20. Minimum: 1. Maximum: 50.
+            after: Optional; A Unix timestamp in milliseconds. Returns all
+                items after (but not including) this cursor position. If after
+                is specified, before must not be specified.
+            before: Optional; A Unix timestamp in milliseconds. Returns all
+                items before (but not including) this cursor position. If
+                before is specified, after must not be specified.
         """
 
         url = f'https://api.spotify.com/v1/me/player/recently-played'
@@ -1792,7 +1884,7 @@ class SpotifyAPI:
         response, error = self._get(url, query_params, json_body)
         if error:
             return ErrorObject(response)
-        return PagingObject(response.text, PlayHistoryObject)
+        return PagingObject(response, PlayHistoryObject)
 
     @requires('user-modify-playback-state')
     def add_an_item_to_queue(self,
@@ -1802,10 +1894,11 @@ class SpotifyAPI:
         Add an item to the end of the user’s current playback queue.
 
         Args:
-            uri: Optional; The uri of the item to add to the queue. Must be a
-                track or an episode uri.
-            device_id: The id of the device this command is targeting. If not
-                supplied, the user’s currently active device is the target.
+            uri: The uri of the item to add to the queue. Must be a track or an
+                episode uri.
+            device_id: Optional; The id of the device this command is
+                targeting. If not supplied, the user’s currently active device
+                is the target.
         """
 
         url = f'https://api.spotify.com/v1/me/player/queue'
@@ -1814,7 +1907,7 @@ class SpotifyAPI:
         response, error = self._post(url, query_params, json_body)
         if error:
             return ErrorObject(response)
-        return ErrorObject(response.text)
+        return ErrorObject(response)
 
     @requires('playlist-read-private', 'playlist-read-collaborative')
     def get_a_list_of_current_users_playlists(
@@ -1827,9 +1920,10 @@ class SpotifyAPI:
         user.
 
         Args:
-            limit: The maximum number of playlists to return.  Default: 20.
-                Minimum: 1. Maximum: 50.
-            offset: The index of the first playlist to return. Default: 0.
+            limit: Optional; The maximum number of playlists to return.
+                Default: 20. Minimum: 1. Maximum: 50.
+            offset: Optional; The index of the first playlist to return.
+                Default: 0.
         """
 
         url = f'https://api.spotify.com/v1/me/playlists'
@@ -1838,7 +1932,7 @@ class SpotifyAPI:
         response, error = self._get(url, query_params, json_body)
         if error:
             return ErrorObject(response)
-        return PagingObject(response.text, SimplifiedPlaylistObject)
+        return PagingObject(response, SimplifiedPlaylistObject)
 
     @requires('playlist-read-private', 'playlist-read-collaborative')
     def get_a_list_of_a_users_playlists(
@@ -1851,10 +1945,11 @@ class SpotifyAPI:
         Get a list of the playlists owned or followed by a Spotify user.
 
         Args:
-            user_id: Optional; The user's Spotify user ID.
-            limit: The maximum number of playlists to return.  Default: 20.
-                Minimum: 1. Maximum: 50.
-            offset: The index of the first playlist to return. Default: 0.
+            user_id: The user's Spotify user ID.
+            limit: Optional; The maximum number of playlists to return.
+                Default: 20. Minimum: 1. Maximum: 50.
+            offset: Optional; The index of the first playlist to return.
+                Default: 0.
         """
 
         url = f'https://api.spotify.com/v1/users/{user_id}/playlists'
@@ -1863,7 +1958,7 @@ class SpotifyAPI:
         response, error = self._get(url, query_params, json_body)
         if error:
             return ErrorObject(response)
-        return PagingObject(response.text, SimplifiedPlaylistObject)
+        return PagingObject(response, SimplifiedPlaylistObject)
 
     @requires('playlist-modify-public', 'playlist-modify-private')
     def create_a_playlist(
@@ -1877,18 +1972,18 @@ class SpotifyAPI:
         Create an empty playlist for a Spotify user.
 
         Args:
-            user_id: Optional; The user's Spotify user ID.
-            name: Optional; The name for the new playlist, for example "Your
-                Coolest Playlist". This name does not need to be unique; a user
-                may have several playlists with the same name.
-            public: If True, the playlist will be public. If False, the
-                playlist will be private. Default: True.
-            collaborative: If True, the playlist will be collaborative. If
-                False, it won't be collaborative. Default: False. Note: To
-                create a collaborative playlist you must also set public to
-                False.
-            description: The playlist description that will be displayed on
-                Spotify clients.
+            user_id: The user's Spotify user ID.
+            name: The name for the new playlist, for example "Your Coolest
+                Playlist". This name does not need to be unique; a user may
+                have several playlists with the same name.
+            public: Optional; If True, the playlist will be public. If False,
+                the playlist will be private. Default: True.
+            collaborative: Optional; If True, the playlist will be
+                collaborative. If False, it won't be collaborative. Default:
+                False. Note: To create a collaborative playlist you must also
+                set public to False.
+            description: Optional; The playlist description that will be
+                displayed on Spotify clients.
         """
 
         url = f'https://api.spotify.com/v1/users/{user_id}/playlists'
@@ -1902,7 +1997,7 @@ class SpotifyAPI:
         response, error = self._post(url, query_params, json_body)
         if error:
             return ErrorObject(response)
-        return PlaylistObject(response.text)
+        return PlaylistObject(response)
 
     def get_a_playlist(
             self,
@@ -1913,12 +2008,12 @@ class SpotifyAPI:
         Get a playlist owned by a Spotify user.
 
         Args:
-            playlist_id: Optional; The Spotify ID for the playlist.
-            market: An ISO 3166-1 alpha-2 country code or the string
+            playlist_id: The Spotify ID for the playlist.
+            market: Optional; An ISO 3166-1 alpha-2 country code or the string
                 'from_token'.
-            fields: Filters for the query: a comma-separated list of the fields
-                to return. If omitted, all fields are returned. For example, to
-                get just the playlist’’s description and URI:
+            fields: Optional; Filters for the query: a comma-separated list of
+                the fields to return. If omitted, all fields are returned. For
+                example, to get just the playlist’’s description and URI:
                 fields=description,uri. A dot separator can be used to specify
                 non-reoccurring fields, while parentheses can be used to
                 specify reoccurring fields within objects. For example, to get
@@ -1937,7 +2032,7 @@ class SpotifyAPI:
         response, error = self._get(url, query_params, json_body)
         if error:
             return ErrorObject(response)
-        return PlaylistObject(response.text)
+        return PlaylistObject(response)
 
     @requires('playlist-modify-public', 'playlist-modify-private')
     def change_a_playlists_details(
@@ -1952,18 +2047,18 @@ class SpotifyAPI:
         the playlist.
 
         Args:
-            playlist_id: Optional; The Spotify ID for the playlist.
-            name: Optional; The new name for the playlist, for example "Your
-                Coolest Playlist Version 2". This name does not need to be
-                unique; a user may have several playlists with the same name.
-            public: If True, the playlist will be public. If False, the
-                playlist will be private. Default: True.
-            collaborative: If True, the playlist will be collaborative. If
-                False, it won't be collaborative. Default: False. Note: To
-                create a collaborative playlist you must also set public to
-                False.
-            description: The playlist description that will be displayed on
-                Spotify clients.
+            playlist_id: The Spotify ID for the playlist.
+            name: The new name for the playlist, for example "Your Coolest
+                Playlist Version 2". This name does not need to be unique; a
+                user may have several playlists with the same name.
+            public: Optional; If True, the playlist will be public. If False,
+                the playlist will be private. Default: True.
+            collaborative: Optional; If True, the playlist will be
+                collaborative. If False, it won't be collaborative. Default:
+                False. Note: To create a collaborative playlist you must also
+                set public to False.
+            description: Optional; The playlist description that will be
+                displayed on Spotify clients.
         """
 
         url = f'https://api.spotify.com/v1/playlists/{playlist_id}'
@@ -1977,7 +2072,7 @@ class SpotifyAPI:
         response, error = self._put(url, query_params, json_body)
         if error:
             return ErrorObject(response)
-        return ErrorObject(response.text)
+        return ErrorObject(response)
 
     def get_a_playlists_items(
         self,
@@ -1991,12 +2086,12 @@ class SpotifyAPI:
         Get full details of the items of a playlist owned by a Spotify user.
 
         Args:
-            playlist_id: Optional; The Spotify ID for the playlist.
-            market: An ISO 3166-1 alpha-2 country code or the string
+            playlist_id: The Spotify ID for the playlist.
+            market: Optional; An ISO 3166-1 alpha-2 country code or the string
                 'from_token'.
-            fields: Filters for the query: a comma-separated list of the fields
-                to return. If omitted, all fields are returned. For example, to
-                get just the playlist’’s description and URI:
+            fields: Optional; Filters for the query: a comma-separated list of
+                the fields to return. If omitted, all fields are returned. For
+                example, to get just the playlist’’s description and URI:
                 fields=description,uri. A dot separator can be used to specify
                 non-reoccurring fields, while parentheses can be used to
                 specify reoccurring fields within objects. For example, to get
@@ -2007,9 +2102,10 @@ class SpotifyAPI:
                 can be excluded by prefixing them with an exclamation mark, for
                 example:
                 fields=tracks.items(track(name,href,album(!name,href))).
-            limit: The maximum number of items to return.  Default: 100.
-                Minimum: 1. Maximum: 100.
-            offset: The index of the first item to return. Default: 0.
+            limit: Optional; The maximum number of items to return.  Default:
+                100. Minimum: 1. Maximum: 100.
+            offset: Optional; The index of the first item to return. Default:
+                0.
         """
 
         url = f'https://api.spotify.com/v1/playlists/{playlist_id}/tracks'
@@ -2023,7 +2119,7 @@ class SpotifyAPI:
         response, error = self._get(url, query_params, json_body)
         if error:
             return ErrorObject(response)
-        return PagingObject(response.text, TrackObject)
+        return PagingObject(response, TrackObject)
 
     @requires('playlist-modify-public', 'playlist-modify-private')
     def add_items_to_a_playlist(
@@ -2036,16 +2132,18 @@ class SpotifyAPI:
         Add one or more items to a user’s playlist.
 
         Args:
-            playlist_id: Optional; The Spotify ID for the playlist.
-            market: An ISO 3166-1 alpha-2 country code or the string
+            playlist_id: The Spotify ID for the playlist.
+            market: Optional; An ISO 3166-1 alpha-2 country code or the string
                 'from_token'.
-            position: The position to insert the items, a zero-based index. For
-                example, to insert the items in the first position: position=0;
-                to insert the items in the third position: position=2 . If
-                omitted, the items will be appended to the playlist. Items are
-                added in the order they are listed in the uris.
-            uris: A list of Spotify URIs to be added. They can be tracks or
-                episode URIs. A maximum of 100 items can be added per request.
+            position: Optional; The position to insert the items, a zero-based
+                index. For example, to insert the items in the first position:
+                position=0; to insert the items in the third position:
+                position=2 . If omitted, the items will be appended to the
+                playlist. Items are added in the order they are listed in the
+                uris.
+            uris: Optional; A list of Spotify URIs to be added. They can be
+                tracks or episode URIs. A maximum of 100 items can be added per
+                request.
         """
 
         url = f'https://api.spotify.com/v1/playlists/{playlist_id}/tracks'
@@ -2054,7 +2152,7 @@ class SpotifyAPI:
         response, error = self._post(url, query_params, json_body)
         if error:
             return ErrorObject(response)
-        return ErrorObject(response.text)
+        return ErrorObject(response)
 
     @requires('playlist-modify-public', 'playlist-modify-private')
     def reorder_or_replace_a_playlists_items(
@@ -2078,21 +2176,24 @@ class SpotifyAPI:
         request.
 
         Args:
-            playlist_id: Optional; The Spotify ID for the playlist.
-            uris: A list of Spotify URIs to replace the playlist with. They can
-                be tracks or episode URIs. A maximum of 100 items can be added
-                per request.
-            range_start: The position of the first item to be reordered.
-            insert_before: The position where the items should be inserted. To
-                reorder the items to the end of the playlist, simply set
-                insert_before to the position after the last item. To reorder
-                the first item to the last position in a playlist with 10
-                items, set range_start to 0, and insert_before to 10. To
-                reorder the last item in a playlist with 10 items to the start
-                of the playlist, set range_start to 9, and insert_before to 0.
-            range_length: The amount of items to be reordered. Default: 1.
-            snapshot_id: The playlist's snapshot ID against which you want to
-                make the changes.
+            playlist_id: The Spotify ID for the playlist.
+            uris: Optional; A list of Spotify URIs to replace the playlist
+                with. They can be tracks or episode URIs. A maximum of 100
+                items can be added per request.
+            range_start: Optional; The position of the first item to be
+                reordered.
+            insert_before: Optional; The position where the items should be
+                inserted. To reorder the items to the end of the playlist,
+                simply set insert_before to the position after the last item.
+                To reorder the first item to the last position in a playlist
+                with 10 items, set range_start to 0, and insert_before to 10.
+                To reorder the last item in a playlist with 10 items to the
+                start of the playlist, set range_start to 9, and insert_before
+                to 0.
+            range_length: Optional; The amount of items to be reordered.
+                Default: 1.
+            snapshot_id: Optional; The playlist's snapshot ID against which you
+                want to make the changes.
         """
 
         url = f'https://api.spotify.com/v1/playlists/{playlist_id}/tracks'
@@ -2107,7 +2208,7 @@ class SpotifyAPI:
         response, error = self._put(url, query_params, json_body)
         if error:
             return ErrorObject(response)
-        return str(response.text)
+        return str(response)
 
     @requires('playlist-modify-public', 'playlist-modify-private')
     def remove_items_from_a_playlist(
@@ -2119,14 +2220,14 @@ class SpotifyAPI:
         Remove one of more items from a user's playlist.
 
         Args:
-            playlist_id: Optional; The Spotify ID for the playlist.
-            tracks: A list of Spotify URIs to be removed. They can be tracks or
-                episode URIs. A maximum of 100 items can be removed per
-                request.
-            snapshot_id: The playlist’s snapshot ID against which you want to
-                make the changes. The API will validate that the specified
-                items exist and in the specified positions and make the
-                changes, even if more recent changes have been made to the
+            playlist_id: The Spotify ID for the playlist.
+            tracks: Optional; A list of Spotify URIs to be removed. They can be
+                tracks or episode URIs. A maximum of 100 items can be removed
+                per request.
+            snapshot_id: Optional; The playlist’s snapshot ID against which you
+                want to make the changes. The API will validate that the
+                specified items exist and in the specified positions and make
+                the changes, even if more recent changes have been made to the
                 playlist.
         """
 
@@ -2136,7 +2237,7 @@ class SpotifyAPI:
         response, error = self._delete(url, query_params, json_body)
         if error:
             return ErrorObject(response)
-        return str(response.text)
+        return str(response)
 
     def get_a_playlist_cover_image(
             self, playlist_id: str) -> Union[ImageObject, ErrorObject]:
@@ -2144,7 +2245,7 @@ class SpotifyAPI:
         Get the current image associated with a specific playlist.
 
         Args:
-            playlist_id: Optional; The Spotify ID for the playlist.
+            playlist_id: The Spotify ID for the playlist.
         """
 
         url = f'https://api.spotify.com/v1/playlists/{playlist_id}/images'
@@ -2153,7 +2254,7 @@ class SpotifyAPI:
         response, error = self._get(url, query_params, json_body)
         if error:
             return ErrorObject(response)
-        return ImageObject(response.text)
+        return ImageObject(response)
 
     @requires('ugc-image-upload', 'playlist-modify-public',
               'playlist-modify-private')
@@ -2164,8 +2265,8 @@ class SpotifyAPI:
         Replace the image used to represent a specific playlist.
 
         Args:
-            playlist_id: Optional; The Spotify ID for the playlist.
-            image: Optional; The image to be uploaded.
+            playlist_id: The Spotify ID for the playlist.
+            image: The image to be uploaded.
         """
 
         url = f'https://api.spotify.com/v1/playlists/{playlist_id}/images'
@@ -2174,52 +2275,7 @@ class SpotifyAPI:
         response, error = self._put(url, query_params, json_body)
         if error:
             return ErrorObject(response)
-        return ImageObject(response.text)
-
-    def search_for_an_item(
-        self,
-        q: str,
-        type_: List[str],
-        market: str = None,
-        limit: int = None,
-        offset: int = None,
-        include_external: str = None
-    ) -> Union[PagingObject[Union[ArtistObject, SimplifiedAlbumObject,
-                                  TrackObject, SimplifiedShowObject,
-                                  SimplifiedEpisodeObject]], ErrorObject]:
-        """
-        Get Spotify Catalog information about albums, artists, playlists,
-        tracks, shows or episodes that match a keyword string.
-
-        Args:
-            q: Optional; Search query keywords and optional field filters and
-                operators
-            type_: Optional; A list of strings of the item types to search
-                across. Valid types are: 'album', 'artist', 'playlist',
-                'track', 'show' and 'episode'.
-            market: An ISO 3166-1 alpha-2 country code or the string
-                'from_token'.
-            limit: Maximum number of results to return. Default: 20. Minimum:
-                1. Maximum: 50. Note: The limit is applied within each type,
-                not the total response. For example, if the limit value is 3
-                and the type is ['artist', 'album'], the response contains 3
-                artists and 3 albums.
-            offset: The index of the first result to return. Default: 0.
-                Maximum: 1,000. Use with limit to get the next page of search
-                results.
-            include_external: Possible values: 'audio'. If 'audio' is specified
-                the response will include any relevant audio content that is
-                hosted externally. By default external content is filtered out
-                from responses.
-        """
-
-        url = f'https://api.spotify.com/v1/search'
-        query_params = {}
-        json_body = {}
-        response, error = self._get(url, query_params, json_body)
-        if error:
-            return ErrorObject(response)
-        return PagingObject(response.text, ArtistObject)
+        return ImageObject(response)
 
     def get_multiple_shows(
         self,
@@ -2231,9 +2287,9 @@ class SpotifyAPI:
         Spotify IDs.
 
         Args:
-            ids: Optional; A list of strings of the Spotify IDs for the shows.
-                Maximum: 50 IDs.
-            market: An ISO 3166-1 alpha-2 country code or the string
+            ids: A list of strings of the Spotify IDs for the shows. Maximum:
+                50 IDs.
+            market: Optional; An ISO 3166-1 alpha-2 country code or the string
                 'from_token'.
         """
 
@@ -2243,7 +2299,7 @@ class SpotifyAPI:
         response, error = self._get(url, query_params, json_body)
         if error:
             return ErrorObject(response)
-        return self._convert_array_to_list(response.text, SimplifiedShowObject)
+        return self._convert_array_to_list(response, SimplifiedShowObject)
 
     def get_a_show(self,
                    id_: str,
@@ -2253,8 +2309,8 @@ class SpotifyAPI:
         unique Spotify ID.
 
         Args:
-            id_: Optional; The Spotify ID of the show.
-            market: An ISO 3166-1 alpha-2 country code or the string
+            id_: The Spotify ID of the show.
+            market: Optional; An ISO 3166-1 alpha-2 country code or the string
                 'from_token'.
         """
 
@@ -2264,7 +2320,7 @@ class SpotifyAPI:
         response, error = self._get(url, query_params, json_body)
         if error:
             return ErrorObject(response)
-        return ShowObject(response.text)
+        return ShowObject(response)
 
     def get_a_shows_episodes(
         self,
@@ -2278,12 +2334,13 @@ class SpotifyAPI:
         parameters can be used to limit the number of episodes returned.
 
         Args:
-            id_: Optional; The Spotify ID of the show.
-            market: An ISO 3166-1 alpha-2 country code or the string
+            id_: The Spotify ID of the show.
+            market: Optional; An ISO 3166-1 alpha-2 country code or the string
                 'from_token'.
-            limit: The maximum number of episodes to return.  Default: 20.
-                Minimum: 1. Maximum: 50.
-            offset: The index of the first episode to return. Default: 0.
+            limit: Optional; The maximum number of episodes to return.
+                Default: 20. Minimum: 1. Maximum: 50.
+            offset: Optional; The index of the first episode to return.
+                Default: 0.
         """
 
         url = f'https://api.spotify.com/v1/shows/{id_}/episodes'
@@ -2292,7 +2349,7 @@ class SpotifyAPI:
         response, error = self._get(url, query_params, json_body)
         if error:
             return ErrorObject(response)
-        return PagingObject(response.text, SimplifiedEpisodeObject)
+        return PagingObject(response, SimplifiedEpisodeObject)
 
     def get_several_tracks(
             self,
@@ -2304,9 +2361,9 @@ class SpotifyAPI:
         Spotify IDs.
 
         Args:
-            ids: Optional; A list of strings of the Spotify IDs for the tracks.
-                Maximum: 50 IDs.
-            market: An ISO 3166-1 alpha-2 country code or the string
+            ids: A list of strings of the Spotify IDs for the tracks. Maximum:
+                50 IDs.
+            market: Optional; An ISO 3166-1 alpha-2 country code or the string
                 'from_token'.
         """
 
@@ -2316,7 +2373,7 @@ class SpotifyAPI:
         response, error = self._get(url, query_params, json_body)
         if error:
             return ErrorObject(response)
-        return self._convert_array_to_list(response.text, TrackObject)
+        return self._convert_array_to_list(response, TrackObject)
 
     def get_a_track(self,
                     id_: str,
@@ -2326,8 +2383,8 @@ class SpotifyAPI:
         unique Spotify ID.
 
         Args:
-            id_: Optional; The Spotify ID of the track.
-            market: An ISO 3166-1 alpha-2 country code or the string
+            id_: The Spotify ID of the track.
+            market: Optional; An ISO 3166-1 alpha-2 country code or the string
                 'from_token'.
         """
 
@@ -2337,7 +2394,7 @@ class SpotifyAPI:
         response, error = self._get(url, query_params, json_body)
         if error:
             return ErrorObject(response)
-        return TrackObject(response.text)
+        return TrackObject(response)
 
     def get_audio_features_for_several_tracks(
         self, ids: List[str]
@@ -2346,8 +2403,8 @@ class SpotifyAPI:
         Get audio features for multiple tracks based on their Spotify IDs.
 
         Args:
-            ids: Optional; A list of strings of the Spotify IDs for the tracks.
-                Maximum: 100 IDs.
+            ids: A list of strings of the Spotify IDs for the tracks. Maximum:
+                100 IDs.
         """
 
         url = f'https://api.spotify.com/v1/audio-features'
@@ -2356,7 +2413,7 @@ class SpotifyAPI:
         response, error = self._get(url, query_params, json_body)
         if error:
             return ErrorObject(response)
-        return self._convert_array_to_list(response.text, AudioFeaturesObject)
+        return self._convert_array_to_list(response, AudioFeaturesObject)
 
     def get_audio_features_for_a_track(
             self, id_: str) -> Union[AudioFeaturesObject, ErrorObject]:
@@ -2365,7 +2422,7 @@ class SpotifyAPI:
         unique Spotify ID.
 
         Args:
-            id_: Optional; The Spotify ID of the track.
+            id_: The Spotify ID of the track.
         """
 
         url = f'https://api.spotify.com/v1/audio-features/{id_}'
@@ -2374,7 +2431,7 @@ class SpotifyAPI:
         response, error = self._get(url, query_params, json_body)
         if error:
             return ErrorObject(response)
-        return AudioFeaturesObject(response.text)
+        return AudioFeaturesObject(response)
 
     def get_audio_analysis_for_a_track(
             self, id_: str) -> Union[AudioAnalysisObject, ErrorObject]:
@@ -2383,7 +2440,7 @@ class SpotifyAPI:
         unique Spotify ID.
 
         Args:
-            id_: Optional; The Spotify ID of the track.
+            id_: The Spotify ID of the track.
         """
 
         url = f'https://api.spotify.com/v1/audio-analysis/{id_}'
@@ -2392,7 +2449,7 @@ class SpotifyAPI:
         response, error = self._get(url, query_params, json_body)
         if error:
             return ErrorObject(response)
-        return AudioAnalysisObject(response.text)
+        return AudioAnalysisObject(response)
 
     @requires('user-read-email', 'user-read-private')
     def get_current_users_profile(self) -> Union[UserObject, ErrorObject]:
@@ -2407,14 +2464,14 @@ class SpotifyAPI:
         response, error = self._get(url, query_params, json_body)
         if error:
             return ErrorObject(response)
-        return UserObject(response.text)
+        return UserObject(response)
 
     def get_a_users_profile(self, id_: str) -> Union[UserObject, ErrorObject]:
         """
         Get public profile information about a Spotify user.
 
         Args:
-            id_: Optional; The Spotify ID of the user.
+            id_: The Spotify ID of the user.
         """
 
         url = f'https://api.spotify.com/v1/users/{id_}'
@@ -2423,4 +2480,4 @@ class SpotifyAPI:
         response, error = self._get(url, query_params, json_body)
         if error:
             return ErrorObject(response)
-        return UserObject(response.text)
+        return UserObject(response)

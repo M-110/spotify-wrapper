@@ -1,16 +1,31 @@
 ﻿"""Playground for testing the API"""
+import argparse
+from argparse import Namespace
 from hashlib import md5
 import json
-import os
-import pathlib
-import pickle
+from pathlib import Path
 
 from spotifywrapper.api import SpotifyAPI
+
+
+def get_args() -> Namespace:
+    """Get the optional directory specified through the command line."""
+    parser = argparse.ArgumentParser(
+        description='Build mock data for the get api methods',
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser.add_argument('-d',
+                        '--directory',
+                        type=str,
+                        help='Target directory to save the mock data in',
+                        default='./tests/mock_data/mock_get_data')
+    return parser.parse_args()
 
 
 # TODO Add mock data container which will make a response object (needs
 #  .json method)
 class MockResponse:
+    """Mock response imitating an HTTP response."""
+
     def __init__(self, text):
         self.text = text
 
@@ -23,30 +38,41 @@ def hash_args(url, query_params, json_body):
     return md5(request.encode('utf8')).hexdigest()
 
 
-def cache_get_locally(method):
-    """Cache the results in a local method."""
+def cache_get_data(method, directory):
+    """Cache the get results and save them in a json file."""
 
     def inner(url, query_params, json_body):
+        """Overwriting the get method."""
         request_hash = hash_args(url, query_params, json_body)
-
-        filename = os.path.join('mock_get_data', f'{request_hash}.json')
-
-        if os.path.isfile(filename):
-            with open(filename, encoding='utf8') as file:
-                response = MockResponse(file.read())
-                error = None
-                print(f'Opened {filename}')
-        else:
-            response, error = method(url, query_params, json_body)
-            print(response)
-            print(response.text)
-            with open(filename, 'w', encoding='utf8') as file:
-                json.dump(response.json(), file)
-                print(f'Saved as {filename}')
-
+        filename = Path(directory) / f'{request_hash}.json'
+        response, error = method(url, query_params, json_body)
+        with open(filename, 'w', encoding='utf8') as file:
+            json.dump(response, file)
         return response, error
 
     return inner
+
+
+# def cache_get_locally(method):
+#     """Cache the results in a local method."""
+#
+#     def inner(url, query_params, json_body):
+#         request_hash = hash_args(url, query_params, json_body)
+#
+#         filename = os.path.join('mock_get_data', f'{request_hash}.json')
+#
+#         if os.path.isfile(filename):
+#             with open(filename, encoding='utf8') as file:
+#                 response = json.loads(file.read())
+#                 error = None
+#                 print(f'Opened {filename}')
+#         else:
+#             response, error = method(url, query_params, json_body)
+#             with open(filename, 'w', encoding='utf8') as file:
+#                 json.dump(response, file)
+#                 print(f'Saved as {filename}')
+#         return response, error
+#     return inner
 
 
 # Monty Python
@@ -72,7 +98,11 @@ USER = 'wizzler'
 USERS = ['jmperezperez', 'thelinmichael', 'wizzler']
 
 
-def run_gets_working(sp: SpotifyAPI):
+def run_gets(sp: SpotifyAPI):
+    """Run all the api methods that make get requests in order for the
+    decorated get function to save the api responses as .json files."""
+    sp.search_for_an_item(QUERY, QUERY_TYPE)
+
     sp.get_multiple_albums(ALBUMS)
     sp.get_an_album(ALBUM)
     sp.get_an_albums_tracks(ALBUM)
@@ -116,9 +146,12 @@ def run_gets_working(sp: SpotifyAPI):
     sp.check_users_saved_shows(SHOWS)
 
     sp.get_available_markets()
+    sp.get_following_state_for_artists_or_users('artist', ARTISTS)
+    sp.get_following_state_for_artists_or_users('user', USERS)
 
     sp.get_a_users_available_devices()
-
+    sp.get_a_users_top_artists_and_tracks('artists')
+    sp.get_a_users_top_artists_and_tracks('tracks')
     sp.get_current_users_recently_played_tracks()
 
     sp.get_a_list_of_current_users_playlists()
@@ -143,32 +176,13 @@ def run_gets_working(sp: SpotifyAPI):
     sp.get_current_users_profile()
     sp.get_a_users_profile(USER)
 
-
-def run_gets(sp: SpotifyAPI):
-    """Run through the gets to generate the mock data."""
-    # # TODO: type_ should be optional
-    # sp.get_following_state_for_artists_or_users('artist', ARTISTS)
-    # sp.get_following_state_for_artists_or_users('user', USERS)
-
-    # # TODO: type_ should be optional?
-    # sp.get_a_users_top_artists_and_tracks('artists')
-    # sp.get_a_users_top_artists_and_tracks('tracks')
-    # sp.get_information_about_the_users_current_playback()
-
-    # TODO: Market says optional but shouldn't. Maybe add a parameter to the
-    #  yaml to specify which markets are optional.
-    # sp.get_the_users_currently_playing_track('us')
-
-    # # sp.create_a_playlist(name='api_test')
-    # # sp.reorder_or_replace_a_playlists_items()
-    # # sp.remove_items_from_a_playlist()
-    # # sp.upload_a_custom_playlist_cover_image()
-    # TODO: builder needs to do be fixed for a PagingObject with multiple
-    #  returns
-    # # sp.search_for_an_item(QUERY, QUERY_TYPE)
+    # NOTE: Requires spotify to be playing something
+    sp.get_information_about_the_users_current_playback()
+    sp.get_the_users_currently_playing_track('us')
 
 
 if __name__ == '__main__':
+    args = get_args()
     spotify = SpotifyAPI()
-    spotify._get = cache_get_locally(spotify._get)
+    spotify._get = cache_get_data(spotify._get, args.directory)
     run_gets(spotify)

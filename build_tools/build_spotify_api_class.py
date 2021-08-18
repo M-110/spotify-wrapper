@@ -1,21 +1,20 @@
-﻿"""
+"""
 Build the Spotify API class
 """
 # TODO: Search for an item issues. PagingObject needs to be able to handle
 #  multiple possible object types. Right now it just handles 1.
 # TODO: Split long urls. yapf isn't splitting them because they're one word.
-import os
-import textwrap
+from pathlib import Path
 import re
+import textwrap
 from typing import List, Union, Optional
 
 import yaml
 import yapf
 
 OUTPUT_FILENAME = 'api.py'
-YAML_PATH = os.path.join('build_tools', 'yaml_files', 'api_methods.yaml')
-BOILERPLATE_PATH = os.path.join('build_tools', 'boilerplate',
-                                'spotify_api_class_boiler.py')
+YAML_PATH = Path('build_tools/yaml_files/api_methods.yaml')
+BOILERPLATE_PATH = Path('build_tools/boilerplate/spotify_api_class_boiler.py')
 
 METHOD_BODY_TEMPLATE = '''
 url = {url}
@@ -85,7 +84,7 @@ def create_params_dict(path_params: List[Union[str, dict, None]],
     mainly for the purpose of flattening the three dictionaries and
     parsing the param values and replacing any preset parameters with a
     corresponding dictionary."""
-    params = dict(path_parms=path_params,
+    params = dict(path_params=path_params,
                   query_params=query_params,
                   json_params=json_params)
     return {name: parse_param_values(values)
@@ -167,7 +166,6 @@ def create_param_declarations(params_dict: dict) -> str:
     declaration."""
     required_args = []
     optional_args = []
-
     for params in params_dict.values():
         for param in params:
             if param is None:
@@ -177,7 +175,6 @@ def create_param_declarations(params_dict: dict) -> str:
             else:
                 optional_args.append(
                     f"{param['name']}: {param['type']} = None")
-
     return ', '.join(['self'] + required_args + optional_args)
 
 
@@ -209,7 +206,7 @@ def create_params_docstring(params_dict: dict) -> str:
 
 def create_arg_docstring_line(param: dict) -> str:
     """Create a docstring line for the given param."""
-    optional = 'Optional; ' if param['required'] else ''
+    optional = '' if param['required'] else 'Optional; '
     return textwrap.fill(f"{param['name']}: {optional}{param['doc']}",
                          width=71,
                          initial_indent=' ' * 4,
@@ -238,12 +235,12 @@ def create_return_line(returns: str) -> str:
     corresponding class using json response's text."""
     objects = re.findall(r'\w*Object|bool|str|dict', returns)
     if 'List' in returns:
-        return f'return self._convert_array_to_list(response.text, ' \
+        return f'return self._convert_array_to_list(response, ' \
                f'{objects[0]})'
     elif 'PagingObject' in returns:
-        return f'return PagingObject(response.text, {objects[1]})'
+        return f'return PagingObject(response, {objects[1]})'
     else:
-        return f'return {objects[0]}(response.text)'
+        return f'return {objects[0]}(response)'
 
 
 def format_url(endpoint: str) -> str:
@@ -287,6 +284,7 @@ def yapf_format(code: str) -> str:
 
 
 def get_boilerplate_code() -> str:
+    """Get the boilerplate code from the boilerplate file."""
     with open(BOILERPLATE_PATH, 'r', encoding='utf8') as file:
         return file.read()
 
@@ -294,7 +292,9 @@ def get_boilerplate_code() -> str:
 def write_code_to_file(directory: str,
                        boilerplate_code: str,
                        combined_methods_code: str):
-    output_path = os.path.join(directory, OUTPUT_FILENAME)
+    """Write the resulting code to the target directory by combing the
+    boilerplate code and the generated code."""
+    output_path = Path(directory) / OUTPUT_FILENAME
     with open(output_path, 'w', encoding='utf8') as file:
         file.write(boilerplate_code)
         file.write(combined_methods_code)
